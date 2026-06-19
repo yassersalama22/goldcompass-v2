@@ -1,33 +1,26 @@
-import Link from "next/link";
+import type { Metadata } from "next";
 
-import { Container } from "@/components/layout/container";
-import { Button } from "@/components/ui/button";
+import { Hero } from "@/components/home/hero";
+import { RecommendationsSection } from "@/components/home/recommendations-section";
+import { FeaturesSection } from "@/components/home/features-section";
+import { InsightsSection } from "@/components/home/insights-section";
+import { CtaSection } from "@/components/home/cta-section";
+import { JsonLd } from "@/components/seo/json-ld";
+import { organizationSchema, websiteSchema } from "@/lib/structured-data";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 export default function HomePage() {
   return (
-    <Container className="flex flex-col items-center gap-6 py-24 text-center">
-      <span className="bg-accent text-accent-foreground rounded-full px-3 py-1 text-xs font-medium">
-        Navigate the gold market with confidence
-      </span>
-      <h1 className="max-w-3xl text-4xl font-bold sm:text-5xl">
-        Smart, clear guidance for{" "}
-        <span className="text-gold">gold investors</span>
-      </h1>
-      <p className="text-muted-foreground max-w-xl text-lg">
-        Market outlooks, live price trends, and a smart gold calculator — built
-        to help everyday investors make informed decisions.
-      </p>
-      <div className="flex flex-wrap items-center justify-center gap-3">
-        <Button render={<Link href="/outlook" />} size="lg">
-          View Outlook
-        </Button>
-        <Button render={<Link href="/calculator" />} size="lg" variant="outline">
-          Gold Calculator
-        </Button>
-      </div>
-      <p className="text-muted-foreground mt-4 text-xs">
-        Educational information only — not financial advice.
-      </p>
-    </Container>
+    <>
+      <JsonLd data={[organizationSchema(), websiteSchema()]} />
+      <Hero />
+      <RecommendationsSection />
+      <FeaturesSection />
+      <InsightsSection />
+      <CtaSection />
+    </>
   );
 }

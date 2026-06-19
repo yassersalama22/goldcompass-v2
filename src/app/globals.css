@@ -12,6 +12,7 @@
   --font-heading: var(--font-sans);
   --color-gold: var(--gold);
   --color-gold-foreground: var(--gold-foreground);
+  --color-gold-strong: var(--gold-strong);
   --color-bull: var(--bull);
   --color-bull-foreground: var(--bull-foreground);
   --color-bear: var(--bear);
@@ -84,7 +85,9 @@
   /* Brand + market-signal tokens */
   --gold: oklch(0.72 0.13 80);
   --gold-foreground: oklch(0.22 0.03 80);
-  --bull: oklch(0.6 0.15 150);
+  /* Darker gold for small text/links to meet WCAG AA contrast on light bg */
+  --gold-strong: oklch(0.48 0.11 68);
+  --bull: oklch(0.52 0.15 150);
   --bull-foreground: oklch(0.985 0.01 150);
   --bear: oklch(0.58 0.2 25);
   --bear-foreground: oklch(0.985 0.01 25);
@@ -125,6 +128,7 @@
   --chart-5: oklch(0.64 0.2 25);
   --gold: oklch(0.78 0.13 82);
   --gold-foreground: oklch(0.2 0.03 80);
+  --gold-strong: oklch(0.82 0.12 84);
   --bull: oklch(0.68 0.15 150);
   --bull-foreground: oklch(0.16 0.02 150);
   --bear: oklch(0.64 0.2 25);

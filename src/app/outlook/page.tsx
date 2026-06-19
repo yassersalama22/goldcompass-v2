@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: "Gold Market Outlook",
   description:
     "Short-term and long-term gold market outlooks with supporting analysis.",
+  alternates: { canonical: "/outlook" },
 };
 
 export default function OutlookPage() {

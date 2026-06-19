@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: "Disclaimer",
   description:
     "GoldCompass provides educational information only and not financial advice.",
+  alternates: { canonical: "/disclaimer" },
 };
 
 export default function DisclaimerPage() {

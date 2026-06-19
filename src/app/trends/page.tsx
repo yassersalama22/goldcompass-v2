@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: "Gold Price Trends",
   description:
     "Live XAU/USD spot price and an interactive 30-day gold price chart.",
+  alternates: { canonical: "/trends" },
 };
 
 export default function TrendsPage() {

@@ -182,3 +182,24 @@ Match the current site's look and feel:
     create-next-app but **not committed** (awaiting user go-ahead).
   - Next: **Phase 1 — Home page** (hero, recommendations/price/calculator/insights teasers,
     JSON-LD, Lighthouse pass).
+- 2026-06-19: **Phase 1 complete.** Home page built and verified.
+  - Sections (`src/components/home/`): `Hero`, `RecommendationsSection` (short/long-term
+    BUY/SELL cards w/ `SignalBadge`), `FeaturesSection` (Trends + Calculator teasers),
+    `InsightsSection` (3 featured cards, stretched-link), `CtaSection`.
+  - Content data: `src/data/recommendations.ts` (SELL 30d / BUY 12m) and `src/data/insights.ts`
+    (placeholder teasers; real MDX in Phase 4). Insight cards link to `/insights` until Phase 4.
+  - SEO: per-page `metadata` + `alternates.canonical` on ALL pages (home `/`, sub-pages own
+    path — verified emitted). JSON-LD Organization + WebSite via `JsonLd` + `lib/structured-data.ts`.
+    Branded `app/icon.svg` (compass) replaces default favicon; default `favicon.ico` removed.
+  - **Accessibility (color contrast verified numerically)** via `scripts/check-contrast.mjs`
+    (oklch→sRGB WCAG calc). Findings + fixes: bright `--gold` (2.48:1) is decorative/brand-only;
+    added `--gold-strong` (light 6.62:1, dark 10.88:1) for all functional gold text/links + hero
+    accent; darkened `--bull` to L0.52 so white badge text passes (5.15:1); `--bear` 4.74:1,
+    gold button dark-on-gold 6.90:1, muted-fg 5.44:1 — all PASS. **Pattern: never use `text-gold`
+    for small text on light bg — use `text-gold-strong`.**
+  - Verified: `next build` ✓ (all static), `eslint` ✓, SSR HTML has all sections, single `<h1>`,
+    valid JSON-LD (Organization+WebSite), canonicals per page, icon.svg serves.
+  - TODO later: exact brand hex sampling from live site; OG image; real Lighthouse/axe run in a
+    browser (contrast done; need keyboard/screenreader pass); footer column headings are `<h2>`
+    (reconsider heading hierarchy if needed).
+  - Next: **Phase 2 — Outlook / Recommendations page** (detailed analysis, static + ISR).

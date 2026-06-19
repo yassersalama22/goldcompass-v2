@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: "Market Insights",
   description:
     "Curated insights on gold market movements, central banks, and price analysis.",
+  alternates: { canonical: "/insights" },
 };
 
 export default function InsightsPage() {

@@ -5,6 +5,7 @@ import { ComingSoon } from "@/components/layout/coming-soon";
 export const metadata: Metadata = {
   title: "Articles",
   description: "Educational articles and analysis on gold investing.",
+  alternates: { canonical: "/articles" },
 };
 
 export default function ArticlesPage() {

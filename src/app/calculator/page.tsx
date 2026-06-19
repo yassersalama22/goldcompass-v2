@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: "Smart Gold Calculator",
   description:
     "Estimate how much gold your budget buys, break-even prices, and profit/loss scenarios.",
+  alternates: { canonical: "/calculator" },
 };
 
 export default function CalculatorPage() {
