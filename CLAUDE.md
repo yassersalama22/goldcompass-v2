@@ -178,7 +178,8 @@ Match the current site's look and feel:
 
 - Exact brand hex values + logo asset source (sample from live site in Phase 1).
 - Newsletter "Subscribe" backend (e.g. a hosted service vs. self-managed) — Phase 6.
-- Recommendation engine design **decided** — see §12. (LLM provider TBD: research then choose.)
+- Recommendation engine **built** (§12 + §13 Phase 3.5). LLM provider = **Claude
+  `claude-opus-4-8`** with the `web_search_20260209` tool; needs `ANTHROPIC_API_KEY` for real runs.
 - Chart library **decided**: custom lightweight SVG (no chart dep) — see §13 Phase 3.
 - Final EC2 instance type + whether to go fully static export — Phase 7.
 
@@ -326,3 +327,32 @@ Match the current site's look and feel:
   - Note: network egress (CoinGecko, git push) is sandboxed — run those with sandbox disabled.
   - Next: **Phase 3.5 — Recommendation pipeline** (now unblocked by the price feed) or **Phase 4
     — Articles/Insights**. Decide with user.
+- 2026-06-20: **Phase 3.5 complete.** Aureus v2 recommendation pipeline built.
+  - **Generator abstraction**: `src/server/outlook/generator/` — `OutlookGenerator` interface +
+    `claude.ts` (Anthropic SDK, **`claude-opus-4-8`** + `web_search_20260209` grounding, adaptive
+    thinking; returns a single JSON object that's **zod-validated with one corrective retry** —
+    sidesteps web-search↔structured-output compatibility) and `mock.ts` (deterministic, offline).
+    `index.ts` selects by env: Claude when `ANTHROPIC_API_KEY` set, else mock. Lazy-imports the SDK.
+  - **Separation of concerns**: deterministic price (CoinGecko) is fed to the prompt as ground
+    truth; the LLM only does analysis. Contract `generator/schema.ts` (`GeneratedOutlook`) reuses
+    the outlook contract pieces. Versioned prompt `prompt.ts` (`PROMPT_VERSION`). `sanitize.ts`
+    strips HTML from markdown (defense-in-depth vs the old engine's stored-HTML/XSS gap).
+  - **Git-as-CMS scripts** (run via `tsx`, npm `outlook:generate` / `outlook:publish`):
+    `scripts/generate-outlook.mts` (fetch price → generate → sanitize → assemble full
+    `OutlookReport` origin=generated/status=draft → zod-validate → write `draft.json`),
+    `publish-outlook.mts` (draft→`current.json`, status=published). `draft.json` is gitignored
+    (intermediate); `current.json` is the live artifact.
+  - **Human-approval gate** = **GitHub Actions PR**: `.github/workflows/daily-outlook.yml` (06:00
+    UTC cron + manual) runs generate+publish, opens a PR via `peter-evans/create-pull-request`;
+    merging publishes. Inert/mock until `ANTHROPIC_API_KEY` secret is added.
+  - **On-demand revalidation**: `POST /api/revalidate?secret=…` (`REVALIDATE_SECRET`) →
+    `revalidatePath('/outlook','/')` so a publish refreshes static pages without full redeploy.
+  - Deps: `@anthropic-ai/sdk`, `tsx` (dev). `tsx` resolves the `@/` alias natively. `.env.example`
+    documents `ANTHROPIC_API_KEY` / `OUTLOOK_MODEL` / `OUTLOOK_GENERATOR` / `REVALIDATE_SECRET`.
+  - Verified: pipeline ran end-to-end with **mock + live CoinGecko** → validated draft
+    (short=SELL/long=BUY), publish promoted it; editorial seed restored (no mock content live).
+    `next build` ✓ (Claude SDK code + `.mts` scripts type-check), `eslint` ✓.
+  - **TODO before going live**: add `ANTHROPIC_API_KEY` (GitHub secret + `.env.local`), do a real
+    run and review output quality, set `REVALIDATE_SECRET`, optionally tune cron / hybrid cadence
+    (currently full daily regen) and the prompt. Then merge a real PR to publish.
+  - Next: **Phase 4 — Articles/Insights** (MDX), or Phase 5 (Calculator).

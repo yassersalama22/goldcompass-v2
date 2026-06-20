@@ -1,0 +1,56 @@
+name: Daily Gold Outlook
+
+# Generates the gold outlook daily and opens a Pull Request for human review.
+# Merging the PR publishes it (updates current.json → ISR/redeploy serves it).
+#
+# Requires repo secret ANTHROPIC_API_KEY for real (web-grounded) content.
+# Without it, the pipeline produces placeholder mock content — do not merge.
+
+on:
+  schedule:
+    - cron: "0 6 * * *" # 06:00 UTC daily
+  workflow_dispatch: {} # allow manual runs
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Generate + stage outlook
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          npm run outlook:generate
+          npm run outlook:publish
+
+      - name: Open pull request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: outlook/daily-update
+          base: main
+          title: "Outlook: daily gold update"
+          commit-message: "Outlook: daily gold update"
+          body: |
+            Automated daily gold outlook (Aureus v2).
+
+            **Review before merging:**
+            - Short- and long-term BUY/SELL calls + confidence
+            - Spot price and key levels match reality
+            - Analysis reads well and cites real sources
+
+            Merging updates `src/content/outlook/current.json` and publishes.
+          add-paths: |
+            src/content/outlook/current.json
+          delete-branch: true
