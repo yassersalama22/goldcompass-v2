@@ -55,6 +55,22 @@ The rewrite must be **fully independent** (no Lovable lock-in) and is being buil
 
 ## 4. Architecture principles
 
+- **API-first / headless core (web + future mobile)** — **RULE.** All dynamic/data-driven
+  functionality (recommendations, prices, later articles) is built as a headless core that can
+  serve **multiple clients**: this website *and* a possible future mobile app or third party.
+  Concretely:
+  - A central **data-access layer** (`src/server/<domain>/`) returns typed domain objects. It is
+    the single source of truth and contains all business logic.
+  - The **website** (Server Components) calls the data-access layer **directly** for SSR/ISR — no
+    HTTP hop to our own API — so SEO + performance stay optimal.
+  - The **same** core is exposed via **versioned public JSON endpoints** (`/api/v1/...`, Route
+    Handlers) for non-web clients (mobile app, etc.). These are thin wrappers over the data layer.
+  - **Shared contract**: domain **types live in `src/types/` (or `src/server/<domain>/types.ts`)**
+    and define the JSON shape once. The generated recommendation artifact *is* this contract.
+    Endpoints are versioned; responses are cache-friendly (Cloudflare) and CORS-enabled for
+    non-web clients. Never leak DB/internal fields; expose only the public contract.
+  - Rule of thumb: **UI never talks to an external/source API directly** — it goes through the
+    data-access layer, which both the web and `/api/v1` consume.
 - **Server-first**: render HTML on the server (RSC/SSG/ISR). Client JS only where interactivity
   is needed (calculator, live price ticker, charts). Keep client bundles small.
 - **Caching layers**: (1) Next.js data cache / ISR revalidation, (2) Cloudflare edge cache,
@@ -125,10 +141,18 @@ Match the current site's look and feel:
   Hero, recommendations preview (short/long-term), price teaser, calculator teaser,
   insights teaser, CTAs, disclaimers. Full SEO metadata + JSON-LD. Lighthouse pass.
 - **Phase 2 — Outlook / Recommendations page**
-  Detailed short & long-term analysis. Static + ISR.
+  Detailed short & long-term analysis. **Reads from the typed content/data-access layer**
+  (headless core — see §4 + §12), not hard-coded in the UI. Seed today's content manually as a
+  structured artifact matching the contract. Render prose + signal cards + key levels + sources +
+  "last updated" + methodology link. Static + ISR. Also expose the read model at `/api/v1`.
 - **Phase 3 — Trends (live price + chart)**
   CoinGecko provider w/ server-side caching, live price ticker, 30-day interactive chart.
-  Handle loading/error/stale states. Keep client bundle small.
+  Handle loading/error/stale states. Keep client bundle small. Exposed via the same data layer +
+  `/api/v1/price`.
+- **Phase 3.5 — Recommendation engine pipeline (Aureus v2)**
+  The automated generation pipeline that produces the Phase 2 artifact (see §12 for full design).
+  Depends on the Phase 3 price feed (deterministic data → grounds the LLM). Off-request-path
+  scheduled job → structured output → validate/sanitize → draft → human approve → revalidate.
 - **Phase 4 — Articles / Insights**
   MDX-based articles, list + detail pages, Article JSON-LD, RSS optional.
 - **Phase 5 — Smart Gold Calculator**
@@ -154,11 +178,49 @@ Match the current site's look and feel:
 
 - Exact brand hex values + logo asset source (sample from live site in Phase 1).
 - Newsletter "Subscribe" backend (e.g. a hosted service vs. self-managed) — Phase 6.
-- Where recommendation content comes from (hand-authored vs. data-driven) — Phase 2.
+- Recommendation engine design **decided** — see §12. (LLM provider TBD: research then choose.)
 - Chart library final choice — Phase 3.
 - Final EC2 instance type + whether to go fully static export — Phase 7.
 
-## 12. Status log
+## 12. Recommendation engine (Aureus v2) — design
+
+> Replaces the old Supabase/Lovable "Aureus" pipeline (pg_cron → edge fn → Gemini+grounding →
+> regex "sanitize" → 2nd LLM extract → Postgres). That design is **not** ported as-is. Reasons:
+> it's Supabase/Lovable-bound; its HTML "sanitizer" is **not** XSS-safe (regex fence/chatter
+> stripping only) which + web grounding = stored-XSS/prompt-injection risk; it trusts the LLM for
+> hard numbers (price/DXY/yields); stores raw model HTML (design/SEO/safety issues); per-language
+> independent generations can disagree; and it auto-publishes financial calls (YMYL/trust risk).
+
+**Accepted design (decisions locked):**
+
+- **Headless / API-first** (per §4): pipeline output is a typed artifact = the public contract;
+  web reads it via the data-access layer, `/api/v1` serves it to other clients.
+- **Separate retrieval from reasoning**: fetch hard data deterministically (spot price + change
+  from the Phase 3 price feed; later DXY/yields) and **inject it into the prompt as ground truth**.
+  The LLM does analysis/narrative on top — it does not invent the numbers.
+- **Single structured output** (prefer one call): `{ analysisMarkdown, shortTerm{call,reason,
+  confidence,invalidationLevel}, longTerm{...}, keyLevels, sources[] }`. Avoids the fragile
+  2nd-model extraction (fall back to the 2-call split only if grounding + structured output can't
+  co-exist in the chosen API).
+- **Store Markdown/structured JSON, not model HTML.** Render through our own components for design
+  consistency + SEO. If any HTML is ever rendered, use a real allowlist sanitizer (e.g.
+  sanitize-html/DOMPurify) — never the old regex approach.
+- **Publishing = draft → human approve → publish** (decided). Protects trust/legal + YMYL SEO
+  (E-E-A-T). Show "last updated", source citations, and a methodology page.
+- **Storage = Git-as-CMS** (decided): pipeline commits the JSON/MDX artifact to the repo; Next.js
+  renders statically; revalidate on publish. (S3 object is the fallback if volume grows.)
+- **Cadence = hybrid** (decided): short-term refreshed ~daily, long-term ~weekly. Off the request
+  path (scheduler: GitHub Actions cron preferred → no always-on cost; system cron on EC2 is the
+  alt). Job generates → validates against schema → (human approve) → commits → pings on-demand
+  revalidation (`revalidatePath`) → purge Cloudflare path.
+- **LLM provider = TBD**: research current best (Claude w/ web-search + structured output vs Gemini
+  grounding vs other) before committing. Keep generation behind a provider interface so it's
+  swappable, mirroring the price-provider abstraction.
+- **Resilience** (keep from v1): on any failure, keep the previous published artifact; alert.
+- **i18n** (future): generate ONE canonical analysis, then **translate** (so all languages share
+  the same calls/data). New site is English-only initially.
+
+## 13. Status log
 
 - 2026-06-19: Project kicked off. Decisions locked: defer auth, CoinGecko (abstracted),
   Docker + reverse proxy, Next.js + TS + Tailwind + shadcn/ui. CLAUDE.md created.
@@ -203,3 +265,36 @@ Match the current site's look and feel:
     browser (contrast done; need keyboard/screenreader pass); footer column headings are `<h2>`
     (reconsider heading hierarchy if needed).
   - Next: **Phase 2 — Outlook / Recommendations page** (detailed analysis, static + ISR).
+- 2026-06-20: **Recommendation-engine redesign + API-first rule decided.** Reviewed the old
+  Supabase/Lovable "Aureus" pipeline (`support_files/`). Added the **API-first / headless core
+  rule** (§4) — all dynamic content serves both web and a possible future mobile app via a shared
+  typed contract + versioned `/api/v1`. Recorded the Aureus v2 design (§12): deterministic data →
+  single grounded structured LLM call → markdown/JSON (no model HTML) → draft→approve → Git-as-CMS
+  artifact → ISR revalidate; hybrid cadence; provider TBD (research first). Roadmap updated: Phase
+  2 reads the typed content layer; new **Phase 3.5** = the pipeline (depends on Phase 3 price feed).
+  Next: build **Phase 2** against the content contract.
+- 2026-06-20: **Phase 2 complete.** Outlook page built the headless/API-first way.
+  - **Contract**: `src/types/outlook.ts` — zod schema is the single source of truth, TS types
+    inferred (`OutlookReport`, `OutlookCall`, `KeyLevel`, `Source`, `Signal`, `Confidence`);
+    `CONTRACT_VERSION = 1`. This shape = the artifact = the API response = future LLM output.
+  - **Data-access layer**: `src/server/outlook/` (`server-only`, React `cache()`) —
+    `getCurrentOutlook()` / `getPublishedOutlook()` load + zod-validate the artifact. Web + API
+    both go through here; UI never reads the artifact directly. Swapping Git→S3/DB later = this
+    module only.
+  - **Artifact (Git-as-CMS)**: `src/content/outlook/current.json` — hand-seeded English content
+    (`origin: editorial`, spot ≈ $4,160, SELL short / BUY long), validated against the schema.
+  - **Page** `/outlook` (`src/app/outlook/page.tsx`, ISR `revalidate=1800`): header w/ spot +
+    signed change, `KeyLevels` grid, two `OutlookCallCard`s (signal/confidence/reason/invalidation),
+    full analysis via **react-markdown + remark-gfm** (safe — builds React elements, NOT
+    `dangerouslySetInnerHTML`; styled to design system), sources list, methodology box, disclaimer.
+    `AnalysisNewsArticle` JSON-LD + `generateMetadata` (summary as description, OG article).
+  - **Public API**: `GET /api/v1/recommendations` → `{ data: OutlookReport }`, `Cache-Control:
+    public, s-maxage=1800, swr=3600`, CORS `*`, `OPTIONS` preflight. (Mobile-ready surface.)
+  - **Refactor**: home `RecommendationsSection` now reads `getPublishedOutlook()` (single source of
+    truth); deleted `src/data/recommendations.ts`; moved `SignalBadge` → `src/components/market/`.
+  - Deps added: `zod`, `react-markdown`, `remark-gfm`. Verified: `next build` ✓ (/outlook static
+    +ISR, api dynamic), `eslint` ✓, SSR HTML has h1/spot/SELL/BUY/analysis/JSON-LD/methodology,
+    API returns valid JSON+headers, home teaser reads new data, contrast (bull 5.07:1 / bear
+    4.67:1 as text) PASS.
+  - TODO later: wire Phase 3.5 pipeline to write this artifact; richer methodology page; OG image.
+  - Next: **Phase 3 — Trends (live price + chart)**.

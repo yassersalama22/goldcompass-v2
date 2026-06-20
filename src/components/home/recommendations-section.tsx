@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
 import { Container } from "@/components/layout/container";
-import { SignalBadge } from "@/components/home/signal-badge";
+import { SignalBadge } from "@/components/market/signal-badge";
 import {
   Card,
   CardContent,
@@ -10,9 +10,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { recommendations } from "@/data/recommendations";
+import { getPublishedOutlook } from "@/server/outlook";
 
 export function RecommendationsSection() {
+  // Single source of truth — same data the /outlook page and /api/v1 serve.
+  const report = getPublishedOutlook();
+  if (!report) return null;
+
   return (
     <section aria-labelledby="outlook-heading" className="py-16 sm:py-20">
       <Container className="space-y-8">
@@ -35,19 +39,19 @@ export function RecommendationsSection() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
-          {recommendations.map((rec) => (
-            <Card key={rec.term} className="border-l-gold border-l-4">
+          {report.calls.map((call) => (
+            <Card key={call.term} className="border-l-gold border-l-4">
               <CardHeader>
                 <div className="flex items-center justify-between gap-3">
-                  <CardTitle className="text-xl">{rec.term}</CardTitle>
-                  <SignalBadge signal={rec.signal} />
+                  <CardTitle className="text-xl">{call.label}</CardTitle>
+                  <SignalBadge signal={call.signal} />
                 </div>
                 <CardDescription className="text-sm font-medium">
-                  {rec.horizon}
+                  {call.horizon}
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">{rec.summary}</p>
+                <p className="text-muted-foreground">{call.reason}</p>
               </CardContent>
             </Card>
           ))}
