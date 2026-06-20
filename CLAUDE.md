@@ -356,3 +356,13 @@ Match the current site's look and feel:
     run and review output quality, set `REVALIDATE_SECRET`, optionally tune cron / hybrid cadence
     (currently full daily regen) and the prompt. Then merge a real PR to publish.
   - Next: **Phase 4 — Articles/Insights** (MDX), or Phase 5 (Calculator).
+- 2026-06-20: **Phase 3.5 follow-ups** (first real CI run feedback).
+  - First manual GH Actions run cost **$0.89** (Opus 4.8 + high-effort thinking + web search).
+    Added cost tuning: `output_config.effort` default **medium** (env `OUTLOOK_EFFORT`), web-search
+    `max_uses` 6→**4** (env `OUTLOOK_WEB_SEARCH_MAX_USES`), and `OUTLOOK_MODEL` can be Sonnet 4.6
+    (~2× cheaper). Deduped the two `messages.create` calls. ~$0.40/run expected at medium; Sonnet
+    ~$0.15–0.25. ~$27/mo → ~$6–12/mo.
+  - Bumped actions to Node-24 majors: `checkout@v6`, `setup-node@v5`, `create-pull-request@v8`.
+  - **PR-creation error fix is a REPO SETTING (not code):** GitHub → Settings → Actions → General →
+    Workflow permissions → enable "Allow GitHub Actions to create and approve pull requests". The
+    workflow already requests `pull-requests: write`; this org/repo toggle gates it.
