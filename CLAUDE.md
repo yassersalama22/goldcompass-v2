@@ -179,7 +179,7 @@ Match the current site's look and feel:
 - Exact brand hex values + logo asset source (sample from live site in Phase 1).
 - Newsletter "Subscribe" backend (e.g. a hosted service vs. self-managed) — Phase 6.
 - Recommendation engine design **decided** — see §12. (LLM provider TBD: research then choose.)
-- Chart library final choice — Phase 3.
+- Chart library **decided**: custom lightweight SVG (no chart dep) — see §13 Phase 3.
 - Final EC2 instance type + whether to go fully static export — Phase 7.
 
 ## 12. Recommendation engine (Aureus v2) — design
@@ -298,3 +298,31 @@ Match the current site's look and feel:
     4.67:1 as text) PASS.
   - TODO later: wire Phase 3.5 pipeline to write this artifact; richer methodology page; OG image.
   - Next: **Phase 3 — Trends (live price + chart)**.
+- 2026-06-20: **Phase 3 complete.** Live gold price + 30-day chart, headless/API-first.
+  - **Provider abstraction**: `src/server/price/provider.ts` (`PriceProvider`) +
+    `coingecko.ts` (CoinGecko free API, **PAX Gold / PAXG** as the gold spot proxy; zod-validates
+    upstream; `fetch` w/ `next.revalidate` — quote 300s, series 3600s — so one upstream call per
+    window respects free rate limits). Swap provider in one place to change source.
+  - **Data-access layer**: `src/server/price/index.ts` (`server-only`, cached) — `getGoldQuote()`
+    / `getGoldSeries30d()` return a `PriceResult<T>` ({ ok, data, stale, fetchedAt }) and **never
+    throw** → static builds + offline dev degrade gracefully instead of failing.
+  - **Contract**: `src/types/price.ts` (zod-authoritative): `PriceQuote`, `PricePoint` (t=ms),
+    `PriceSeries` (30d), `PriceResult`. `PRICE_CONTRACT_VERSION = 1`.
+  - **Public API**: `GET /api/v1/price` → `{ data:{ quote, series }, meta:{ fetchedAt, stale } }`,
+    cache + CORS, 503 only if both fail. (Mobile-ready.)
+  - **Chart** (decided: **custom lightweight SVG, no chart dep** — perf/bundle): 
+    `price-chart.tsx` — responsive `viewBox` + `non-scaling-stroke`, area
+    gradient, bull/bear color by trend. **SSR-rendered** (polyline in initial HTML → SEO, no-JS,
+    no CLS). Client adds hover crosshair + % -positioned tooltip. A11y: `role=img` summary +
+    `sr-only` data table. `touch-none` for pointer.
+  - **Ticker** `components/trends/price-ticker.tsx` (client): SSR-seeded, polls `/api/v1/price`
+    every 60s **only while tab visible**, `aria-live` price, Live/Delayed/Offline pill
+    (`animate-ping` w/ `motion-reduce:animate-none`).
+  - **Page** `/trends` (ISR `revalidate=300`): SSR quote+series, ticker + chart, graceful
+    "unavailable" states, source attribution + disclaimer, CTAs. `src/lib/format.ts` added.
+  - Verified offline: `next build` ✓ (/trends static+ISR, fallback path), `eslint` ✓. Verified
+    **live** (sandbox off): API real data ($4,147, 31 pts, stale=false, headers ✓); `/trends` SSR
+    HTML has h1/price/`<svg>`/`<polyline>`/sr-only table/source/status pill.
+  - Note: network egress (CoinGecko, git push) is sandboxed — run those with sandbox disabled.
+  - Next: **Phase 3.5 — Recommendation pipeline** (now unblocked by the price feed) or **Phase 4
+    — Articles/Insights**. Decide with user.
