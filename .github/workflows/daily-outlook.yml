@@ -7,9 +7,11 @@ name: Daily Gold Outlook
 # Without it, the pipeline produces placeholder mock content — do not merge.
 
 on:
-  schedule:
-    - cron: "0 6 * * *" # 06:00 UTC daily
-  workflow_dispatch: {} # allow manual runs
+  # Manual-only for now (run from the Actions tab). Enable the daily schedule
+  # after release by uncommenting the cron below.
+  workflow_dispatch: {}
+  # schedule:
+  #   - cron: "0 6 * * *" # 06:00 UTC daily
 
 permissions:
   contents: write

@@ -363,6 +363,8 @@ Match the current site's look and feel:
     (~2× cheaper). Deduped the two `messages.create` calls. ~$0.40/run expected at medium; Sonnet
     ~$0.15–0.25. ~$27/mo → ~$6–12/mo.
   - Bumped actions to Node-24 majors: `checkout@v6`, `setup-node@v5`, `create-pull-request@v8`.
+  - Workflow is **manual-only for now** (`workflow_dispatch`); the daily `cron` is commented out —
+    re-enable after release.
   - **PR-creation error fix is a REPO SETTING (not code):** GitHub → Settings → Actions → General →
     Workflow permissions → enable "Allow GitHub Actions to create and approve pull requests". The
     workflow already requests `pull-requests: write`; this org/repo toggle gates it.
