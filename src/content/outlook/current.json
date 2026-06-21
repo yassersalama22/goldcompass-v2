@@ -1,47 +1,85 @@
 {
   "contractVersion": 1,
-  "date": "2026-06-20",
-  "updatedAt": "2026-06-20T06:00:00.000Z",
-  "origin": "editorial",
+  "date": "2026-06-21",
+  "updatedAt": "2026-06-21T12:47:01.190Z",
+  "origin": "generated",
   "status": "published",
-  "summary": "Gold has cooled from recent highs, slipping toward the mid-$4,100s as a firmer dollar and steadier real yields weigh on the near term. We see further short-term downside risk over the next few weeks, but the longer-term case — central-bank buying, structural demand, and an eventual easing cycle — remains constructive.",
+  "summary": "Gold sits near $4,152, essentially flat on the day after a sharp ~7.6% monthly pullback from roughly $4,494. Price is stabilizing in the lower-middle of its 30-day range, holding well above the $4,052 low. The flat session hints at a pause in the downtrend. We favor HOLD short-term (let the basing process confirm) and BUY long-term, as structural demand and an eventual easing cycle should support higher prices over 3–12 months.",
   "spot": {
-    "price": 4160.26,
+    "price": 4151.88,
     "currency": "USD",
-    "asOf": "2026-06-20T06:00:00.000Z",
-    "changePct": -0.85
+    "asOf": "2026-06-21T12:44:06.000Z",
+    "changePct": 0.00680367829537129
   },
   "calls": [
     {
       "term": "short",
       "label": "Short-term",
       "horizon": "Next 1–4 weeks",
-      "signal": "SELL",
+      "signal": "HOLD",
       "confidence": "medium",
-      "reason": "Momentum has rolled over after a ~9% pullback this month, and a firmer US dollar plus steadier real yields cap near-term upside. Patient buyers may find better entries closer to support.",
-      "invalidation": "A decisive daily close back above $4,290 would neutralize the short-term bearish view."
+      "reason": "Gold has fallen about 7.6% over the past month, and although today's near-flat tape suggests selling pressure is easing, momentum is still negative and the recovery is unconfirmed. With price stuck between support near $4,050 and overhead resistance around $4,350, the risk/reward of chasing here is mediocre. Holding existing positions and waiting for a clear base or breakout is the disciplined play.",
+      "invalidation": "A decisive daily close back above ~$4,350 would flip the bias to BUY; a sustained break below the $4,050 30-day low would shift it to SELL."
     },
     {
       "term": "long",
       "label": "Long-term",
       "horizon": "Next 3–12 months",
       "signal": "BUY",
-      "confidence": "high",
-      "reason": "Sustained central-bank accumulation, resilient physical and ETF demand, and the prospect of rate cuts support a constructive 12-month outlook despite near-term chop.",
-      "invalidation": "A sustained break below the $3,900 region, or a sharp hawkish shift in rate expectations, would challenge the bullish thesis."
+      "confidence": "medium",
+      "reason": "The structural case for gold remains intact: steady central-bank accumulation, demand for a hedge against currency debasement and fiscal risk, and the prospect of lower policy rates that reduce gold's opportunity cost. The recent drop looks like a correction within a larger uptrend rather than a trend reversal, offering long-term buyers a better entry than a month ago. We view dips toward the low-$4,000s as accumulation zones.",
+      "invalidation": "A sustained move below ~$3,900–$4,000, a sharp rise in real yields, or a durable, strong-dollar regime would undermine the bullish long-term thesis."
     }
   ],
   "keyLevels": [
-    { "label": "Spot", "value": "$4,160", "emphasis": true },
-    { "label": "Near support", "value": "$4,050" },
-    { "label": "Major support", "value": "$3,900" },
-    { "label": "Near resistance", "value": "$4,290" },
-    { "label": "Upside target", "value": "$4,516" }
+    {
+      "label": "Spot (XAU/USD)",
+      "value": "$4,152",
+      "emphasis": true
+    },
+    {
+      "label": "30-day low / key support",
+      "value": "$4,052",
+      "emphasis": true
+    },
+    {
+      "label": "Near-term resistance",
+      "value": "$4,350",
+      "emphasis": false
+    },
+    {
+      "label": "30-day high",
+      "value": "$4,564",
+      "emphasis": false
+    },
+    {
+      "label": "Psychological floor",
+      "value": "$4,000",
+      "emphasis": true
+    },
+    {
+      "label": "30-day change",
+      "value": "-7.61%",
+      "emphasis": false
+    }
   ],
-  "analysisMarkdown": "## Market overview\n\nGold (XAU/USD) is trading near **$4,160**, down roughly **0.85%** on the session and about **9% over the past month** after setting fresh highs earlier in the year. Even with the recent pullback, the metal remains up close to **30% year over year**, and the 52-week range spans roughly **$3,248 to $5,595** — a reminder of how far the trend has carried.\n\n## Key drivers right now\n\n- **US dollar:** A firmer dollar has been the main headwind, raising the cost of gold for non-dollar buyers and pressuring spot.\n- **Real yields:** Steadier real rates reduce the relative appeal of non-yielding assets like gold in the near term.\n- **Central-bank demand:** Official-sector buying remains a structural tailwind and has underpinned each pullback for several quarters.\n- **Positioning:** After a strong run, some profit-taking and lighter speculative positioning are weighing on momentum.\n\n## Technical picture\n\nThe near-term trend has turned lower after momentum rolled over. We see **near support around $4,050** and more **significant support near $3,900**; on the upside, **$4,290 is the first resistance** to clear, with a recovery potentially opening the door toward the **$4,516 area**. A daily close back above $4,290 would meaningfully improve the short-term tone.\n\n## Short-term outlook (1–4 weeks)\n\n**SELL / wait for better entries.** With momentum soft and the dollar firm, the risk skews toward further consolidation or downside over the coming weeks. This is a tactical view: long-term holders need not act on it, but new buyers may be rewarded for patience near support.\n\n## Long-term outlook (3–12 months)\n\n**BUY on weakness.** The structural case is intact: central banks continue to accumulate, physical and ETF demand has been resilient, and an eventual easing cycle would lower the opportunity cost of holding gold. We would treat pullbacks toward major support as accumulation opportunities for a 12-month horizon.\n\n## Risks to this view\n\n- A more hawkish rate path or a sustained dollar surge could extend the correction.\n- A break below $3,900 would weaken the technical structure.\n- A sharp risk-off shock could cause short-term liquidation even within a longer-term uptrend.",
+  "analysisMarkdown": "## Market Overview\n\nGold is trading around **$4,151.88 per ounce**, virtually unchanged on the day (**+0.01%**). That flat session matters because it follows a meaningful month-long slide: gold has fallen **about 7.6%** from roughly **$4,494** thirty days ago to today's level. Over the past 30 days the metal has swung between a low of **$4,051.63** and a high of **$4,563.72**, so price currently sits in the lower-middle of that range — corrected, but holding comfortably above the floor.\n\nThe big-picture takeaway: this looks like a **correction within a still-elevated market**, not a collapse. Pullbacks of 7–10% are common and healthy in long uptrends, and the fact that today's tape is essentially flat suggests the wave of selling that drove prices lower may be losing steam. Whether that turns into a genuine base or just a pause is the key question for the weeks ahead.\n\n## Key Drivers to Watch\n\nGold doesn't move in a vacuum. The forces that typically set its direction are:\n\n- **The US dollar (DXY):** Gold is priced in dollars, so a stronger dollar tends to pressure gold and a weaker dollar tends to lift it. A firm dollar is a plausible contributor to the recent pullback.\n- **Real yields:** Gold pays no interest, so when inflation-adjusted bond yields rise, the opportunity cost of holding gold goes up and prices often soften. Falling real yields do the opposite.\n- **Monetary policy expectations:** Markets price gold partly off the expected path of central-bank rates. Signals pointing to **rate cuts** are generally supportive; a more hawkish, \"higher-for-longer\" tone is a headwind.\n- **Central-bank buying:** Official-sector demand has been a persistent, structural pillar of support, reflecting reserve diversification away from concentrated dollar holdings. This demand tends to be price-insensitive and provides a floor on dips.\n- **Geopolitics and safe-haven demand:** Flare-ups in conflict or trade tension can spark rapid inflows; de-escalation can unwind them.\n- **ETF and physical demand:** Investor flows into gold-backed ETFs amplify trends, while physical jewelry and bar/coin demand (often price-sensitive in Asia) can stabilize prices when they fall.\n\nBecause I couldn't confirm today's specific headlines, treat the recent decline as most likely driven by some combination of a firmer dollar, steadier-to-higher real yields, and profit-taking after a strong run — with central-bank demand cushioning the downside.\n\n## Technical Picture\n\nThe chart structure is straightforward:\n\n- **Support:** The **$4,050–$4,100** zone, anchored by the 30-day low of $4,051.63, is the line in the sand. Holding it keeps the corrective-pullback interpretation alive.\n- **Resistance:** The first hurdle is around **$4,350**, followed by the 30-day high near **$4,564**. Reclaiming $4,350 on a closing basis would be an early sign that buyers are back in control.\n- **Momentum:** The month-long, ~7.6% drift lower means short-term momentum is still negative, but today's flat close is a tentative sign of stabilization. Markets often need to spend time **basing** before a durable turn, so patience is warranted.\n- **Psychological level:** The **$4,000** round number sits just below support and would likely attract strong dip-buying interest if tested.\n\n## Short-Term Outlook (1–4 weeks): HOLD\n\nWith price wedged between support near $4,050 and resistance near $4,350, the near-term setup is **two-sided**. Momentum still leans down, but the selling appears to be cooling. That argues against both chasing strength and aggressively bottom-fishing. The sensible posture is to **hold** existing exposure and wait for confirmation:\n\n- A **daily close above ~$4,350** would signal the correction is ending and tilt the bias to **BUY**.\n- A **sustained break below $4,050** would warn of deeper downside and tilt the bias to **SELL**.\n\nUntil one of those triggers fires, drifting sideways-to-choppy is the base case.\n\n## Long-Term Outlook (3–12 months): BUY\n\nZooming out, the **structural case remains constructive**. Central-bank diversification, persistent demand for a hedge against currency debasement and fiscal/geopolitical risk, and the prospect that policy rates eventually move lower all point to a supportive multi-quarter backdrop. Lower rates reduce gold's main disadvantage — its lack of yield — while the official-sector bid provides a reliable floor.\n\nViewed this way, the recent decline is an **opportunity for patient buyers** to accumulate at better levels than a month ago. We'd treat dips into the low-$4,000s as zones to add, scaling in rather than committing all at once given near-term volatility.\n\n## Risks to the View\n\nNo outlook is bulletproof. The main risks to the bullish long-term thesis are:\n\n- **A stronger-for-longer dollar** and/or a fresh rise in real yields, which would extend the correction.\n- **A hawkish policy surprise** that pushes rate-cut expectations further out.\n- **A break below $3,900–$4,000**, which would damage the technical structure and force a reassessment.\n- **A sharp risk-on rotation** (e.g., rapid geopolitical de-escalation) that drains safe-haven and ETF flows.\n\n**Bottom line:** Hold through the near-term chop while the market builds a base, and use weakness as a long-term accumulation opportunity — with $4,050 as the short-term pivot and $3,900–$4,000 as the long-term line that, if broken, changes the story.",
   "sources": [
-    { "title": "XAU/USD — Gold Spot US Dollar Price (Investing.com)", "url": "https://www.investing.com/currencies/xau-usd" },
-    { "title": "XAU=: Gold / US Dollar Spot — CNBC", "url": "https://www.cnbc.com/quotes/XAU=" },
-    { "title": "Gold Price Forecast & Analysis (LiteFinance)", "url": "https://www.litefinance.org/blog/analysts-opinions/gold-price-prediction-forecast/daily-and-weekly/" }
+    {
+      "title": "World Gold Council — Gold market research and central-bank demand data",
+      "url": "https://www.gold.org"
+    },
+    {
+      "title": "Reuters — Commodities and precious metals coverage",
+      "url": "https://www.reuters.com/markets/commodities/"
+    },
+    {
+      "title": "Kitco — Live gold prices and market news",
+      "url": "https://www.kitco.com"
+    },
+    {
+      "title": "LBMA — Gold benchmark prices and market data",
+      "url": "https://www.lbma.org.uk"
+    }
   ]
 }
