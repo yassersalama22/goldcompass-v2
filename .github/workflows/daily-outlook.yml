@@ -7,9 +7,11 @@ name: Daily Gold Outlook
 # Without it, the pipeline produces placeholder mock content — do not merge.
 
 on:
-  schedule:
-    - cron: "0 6 * * *" # 06:00 UTC daily
-  workflow_dispatch: {} # allow manual runs
+  # Manual-only for now (run from the Actions tab). Enable the daily schedule
+  # after release by uncommenting the cron below.
+  workflow_dispatch: {}
+  # schedule:
+  #   - cron: "0 6 * * *" # 06:00 UTC daily
 
 permissions:
   contents: write
@@ -19,9 +21,9 @@ jobs:
   generate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
@@ -36,7 +38,7 @@ jobs:
           npm run outlook:publish
 
       - name: Open pull request
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@v8
         with:
           branch: outlook/daily-update
           base: main

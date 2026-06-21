@@ -7,6 +7,22 @@ import type { OutlookGenerator } from "./provider";
 const MODEL = process.env.OUTLOOK_MODEL ?? "claude-opus-4-8";
 const MAX_TOKENS = 16000;
 const MAX_PAUSE_CONTINUATIONS = 4;
+/** Fewer searches = less injected content = lower cost. */
+const WEB_SEARCH_MAX_USES = Number(process.env.OUTLOOK_WEB_SEARCH_MAX_USES ?? 4);
+
+const EFFORTS = ["low", "medium", "high", "xhigh", "max"] as const;
+type Effort = (typeof EFFORTS)[number];
+/** Effort drives thinking depth + token spend. Default `medium` keeps the
+ *  daily run inexpensive; raise to `high` for deeper analysis at higher cost. */
+const EFFORT: Effort = EFFORTS.includes(process.env.OUTLOOK_EFFORT as Effort)
+  ? (process.env.OUTLOOK_EFFORT as Effort)
+  : "medium";
+
+const WEB_SEARCH_TOOL = {
+  type: "web_search_20260209" as const,
+  name: "web_search" as const,
+  max_uses: WEB_SEARCH_MAX_USES,
+};
 
 /** Concatenate the text blocks of an assistant message. */
 function extractText(content: Anthropic.ContentBlock[]): string {
@@ -39,31 +55,24 @@ export function createClaudeGenerator(): OutlookGenerator {
     messages: Anthropic.MessageParam[],
     useSearch: boolean,
   ): Promise<Anthropic.Message> {
-    let response = await client.messages.create({
-      model: MODEL,
-      max_tokens: MAX_TOKENS,
-      thinking: { type: "adaptive" },
-      system: SYSTEM_PROMPT,
-      messages,
-      tools: useSearch
-        ? [{ type: "web_search_20260209", name: "web_search", max_uses: 6 }]
-        : undefined,
-    });
+    const create = () =>
+      client.messages.create({
+        model: MODEL,
+        max_tokens: MAX_TOKENS,
+        thinking: { type: "adaptive" },
+        output_config: { effort: EFFORT },
+        system: SYSTEM_PROMPT,
+        messages,
+        tools: useSearch ? [WEB_SEARCH_TOOL] : undefined,
+      });
+
+    let response = await create();
 
     // Server-tool loop: resume on pause_turn until the model finishes.
     let continuations = 0;
     while (response.stop_reason === "pause_turn" && continuations < MAX_PAUSE_CONTINUATIONS) {
       messages.push({ role: "assistant", content: response.content });
-      response = await client.messages.create({
-        model: MODEL,
-        max_tokens: MAX_TOKENS,
-        thinking: { type: "adaptive" },
-        system: SYSTEM_PROMPT,
-        messages,
-        tools: useSearch
-          ? [{ type: "web_search_20260209", name: "web_search", max_uses: 6 }]
-          : undefined,
-      });
+      response = await create();
       continuations++;
     }
 
@@ -74,7 +83,7 @@ export function createClaudeGenerator(): OutlookGenerator {
   }
 
   return {
-    name: `Claude (${MODEL})`,
+    name: `Claude (${MODEL}, effort=${EFFORT}, search≤${WEB_SEARCH_MAX_USES})`,
 
     async generate(input: GenerationInput): Promise<GeneratedOutlook> {
       const messages: Anthropic.MessageParam[] = [
