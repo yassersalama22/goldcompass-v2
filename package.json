@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "eslint",
     "outlook:generate": "tsx scripts/generate-outlook.mts",
-    "outlook:publish": "tsx scripts/publish-outlook.mts"
+    "outlook:publish": "tsx scripts/publish-outlook.mts",
+    "articles:generate": "tsx scripts/generate-article.mts",
+    "articles:publish": "tsx scripts/publish-article.mts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.105.0",

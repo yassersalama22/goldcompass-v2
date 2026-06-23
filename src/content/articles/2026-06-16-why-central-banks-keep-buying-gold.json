@@ -1,0 +1,18 @@
+{
+  "contractVersion": 1,
+  "slug": "why-central-banks-keep-buying-gold",
+  "title": "Why central banks keep stacking gold",
+  "description": "Official-sector gold demand has stayed elevated for a third straight year. Here's what's driving it — and why it matters for prices.",
+  "category": "Central Banks",
+  "tags": ["central banks", "demand", "reserves"],
+  "date": "2026-06-16",
+  "updatedAt": "2026-06-16T08:00:00.000Z",
+  "origin": "editorial",
+  "status": "published",
+  "bodyMarkdown": "Central banks have been one of the most reliable forces under the gold market in recent years. After record official-sector buying in 2022 and 2023, demand from central banks has stayed historically strong — a structural shift that helps explain why gold has held up even through periods of a firmer US dollar.\n\n## Who is buying, and why\n\nThe motivations are consistent across buyers:\n\n- **Reserve diversification.** Many central banks want to reduce their dependence on any single currency. Gold has no issuer and no counterparty, which makes it attractive for diversifying away from concentrated dollar holdings.\n- **Geopolitical insurance.** Gold sits outside the conventional financial system, so it can't be frozen or sanctioned the way foreign-currency reserves can. That quality has become more valued in a more fragmented geopolitical environment.\n- **A hedge against inflation and currency risk.** Over long horizons, gold has tended to preserve purchasing power, which appeals to reserve managers thinking in decades rather than quarters.\n\n## Why it matters for prices\n\nCentral-bank buying is relatively price-insensitive and tends to be persistent rather than tactical. That provides a floor of demand that doesn't disappear when the gold price dips — and it has repeatedly absorbed selloffs driven by a stronger dollar or rising real yields.\n\nIt's not a guarantee of higher prices. But it does change the character of the market: a steady, structural buyer makes deep, sustained declines harder to engineer.\n\n## What to watch\n\nThe key question is whether the pace of official buying holds. The World Gold Council's quarterly *Gold Demand Trends* reports are the best public read on the trend, and individual central banks (notably in Asia and the Middle East) disclose reserve changes that the market follows closely.\n\nFor everyday investors, the takeaway isn't to mimic central banks — they have very different goals and time horizons. It's to understand that a large, patient buyer is part of why gold's long-term demand picture has looked resilient.",
+  "sources": [
+    { "title": "World Gold Council — Gold Demand Trends", "url": "https://www.gold.org/goldhub/research/gold-demand-trends" },
+    { "title": "Reuters — Gold markets coverage", "url": "https://www.reuters.com/markets/commodities/" },
+    { "title": "IMF — Currency Composition of Official Foreign Exchange Reserves (COFER)", "url": "https://data.imf.org/cofer" }
+  ]
+}

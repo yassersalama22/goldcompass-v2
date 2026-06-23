@@ -1,0 +1,64 @@
+name: Gold Article
+
+# Generates a gold-market article and opens a Pull Request for human review.
+# Merging the PR publishes it. Manual-only for now; enable the ~3-day schedule
+# after release by uncommenting the cron below.
+#
+# Requires repo secret ANTHROPIC_API_KEY for real (web-grounded) content.
+# Without it, the pipeline produces placeholder mock content — do not merge.
+
+on:
+  workflow_dispatch:
+    inputs:
+      topic:
+        description: "Optional topic to steer the article (blank = model picks)"
+        required: false
+        default: ""
+  # schedule:
+  #   - cron: "0 7 */3 * *" # every 3 days at 07:00 UTC
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Generate + stage article
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ARTICLE_TOPIC: ${{ github.event.inputs.topic }}
+        run: |
+          npm run articles:generate
+          npm run articles:publish
+
+      - name: Open pull request
+        uses: peter-evans/create-pull-request@v8
+        with:
+          branch: articles/new-article
+          base: main
+          title: "Article: new gold-market piece"
+          commit-message: "Article: new gold-market piece"
+          body: |
+            Automated gold-market article (Aureus v2).
+
+            **Review before merging:**
+            - Facts/numbers are accurate and match the cited sources
+            - Sources are reputable and the links resolve
+            - Tone is neutral/educational; no unsupported predictions
+            - Title, category, and description read well
+
+            Merging adds the article under `src/content/articles/` and publishes it.
+          add-paths: |
+            src/content/articles
+          delete-branch: true

@@ -1,23 +1,15 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
+import { ArticleCard } from "@/components/articles/article-card";
 import { Container } from "@/components/layout/container";
-import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { featuredInsights } from "@/data/insights";
-
-const dateFormatter = new Intl.DateTimeFormat("en-US", {
-  year: "numeric",
-  month: "short",
-  day: "numeric",
-});
+import { toArticleSummary } from "@/types/article";
+import { getRecentArticles } from "@/server/articles";
 
 export function InsightsSection() {
+  const articles = getRecentArticles(3);
+  if (articles.length === 0) return null;
+
   return (
     <section aria-labelledby="insights-heading" className="py-16 sm:py-20">
       <Container className="space-y-8">
@@ -40,32 +32,8 @@ export function InsightsSection() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-3">
-          {featuredInsights.map((insight) => (
-            <Card
-              key={insight.slug}
-              className="relative transition-shadow hover:shadow-md"
-            >
-              <CardHeader>
-                <div className="flex items-center justify-between gap-2">
-                  <Badge variant="secondary">{insight.category}</Badge>
-                  <time
-                    dateTime={insight.date}
-                    className="text-muted-foreground text-xs"
-                  >
-                    {dateFormatter.format(new Date(insight.date))}
-                  </time>
-                </div>
-                <CardTitle className="mt-2 text-lg leading-snug">
-                  <Link
-                    href="/insights"
-                    className="hover:text-gold-strong after:absolute after:inset-0 focus-visible:underline"
-                  >
-                    {insight.title}
-                  </Link>
-                </CardTitle>
-                <CardDescription>{insight.excerpt}</CardDescription>
-              </CardHeader>
-            </Card>
+          {articles.map((article) => (
+            <ArticleCard key={article.slug} article={toArticleSummary(article)} />
           ))}
         </div>
       </Container>

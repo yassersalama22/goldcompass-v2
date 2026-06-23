@@ -1,0 +1,18 @@
+{
+  "contractVersion": 1,
+  "slug": "the-dollar-gold-relationship-explained",
+  "title": "The dollar–gold relationship, explained",
+  "description": "A stronger dollar usually pressures gold. We break down the mechanics — and the moments when that correlation breaks down.",
+  "category": "Education",
+  "tags": ["us dollar", "DXY", "correlation", "education"],
+  "date": "2026-06-12",
+  "updatedAt": "2026-06-12T08:00:00.000Z",
+  "origin": "editorial",
+  "status": "published",
+  "bodyMarkdown": "If you follow gold for any length of time, you'll hear that gold and the US dollar move in opposite directions. It's a useful rule of thumb — but like most rules of thumb, it's incomplete.\n\n## Why the inverse relationship exists\n\nGold is priced in US dollars globally. So when the dollar strengthens against other currencies, two things happen:\n\n1. **Gold gets more expensive for non-dollar buyers.** A stronger dollar means someone paying in euros, yen, or rupees needs more of their own currency to buy the same ounce — which can dampen demand.\n2. **The opportunity cost shifts.** A strong dollar often coincides with higher US interest rates and real yields. Since gold pays no yield, it looks relatively less attractive when safe, interest-bearing dollar assets pay more.\n\nThat's why the **US Dollar Index (DXY)** and real Treasury yields are two of the first things analysts check when gold moves.\n\n## When the correlation breaks down\n\nThe inverse link is a tendency, not a law. It weakens or inverts when:\n\n- **Fear dominates.** In a crisis, both the dollar *and* gold can rise together as investors seek safety.\n- **Central banks are buying heavily.** Structural, price-insensitive demand can push gold higher even as the dollar firms.\n- **Inflation expectations move.** What often matters most is the *real* (inflation-adjusted) yield, not the nominal dollar level.\n\n## How to use this as an investor\n\nDon't treat \"dollar up, gold down\" as a trading signal on its own. Instead, use the dollar and real yields as **context**: they help explain *why* gold is moving, and they flag when a move might be a short-term, dollar-driven wobble versus a shift in the longer-term story.\n\nThis is educational information, not a forecast — the relationship is one input among many.",
+  "sources": [
+    { "title": "Investing.com — US Dollar Index (DXY)", "url": "https://www.investing.com/indices/usdollar" },
+    { "title": "Federal Reserve — Selected Interest Rates (H.15)", "url": "https://www.federalreserve.gov/releases/h15/" },
+    { "title": "World Gold Council — What drives gold", "url": "https://www.gold.org/goldhub/research" }
+  ]
+}

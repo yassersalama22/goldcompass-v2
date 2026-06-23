@@ -153,8 +153,9 @@ Match the current site's look and feel:
   The automated generation pipeline that produces the Phase 2 artifact (see §12 for full design).
   Depends on the Phase 3 price feed (deterministic data → grounds the LLM). Off-request-path
   scheduled job → structured output → validate/sanitize → draft → human approve → revalidate.
-- **Phase 4 — Articles / Insights**
-  MDX-based articles, list + detail pages, Article JSON-LD, RSS optional.
+- **Phase 4 — Articles / Insights** ✅ (see §13 status log 2026-06-23)
+  Article contract + Git-as-CMS JSON artifacts, list + detail pages, Article JSON-LD, RSS,
+  `/api/v1/articles`, and an Aureus-style generation pipeline (web-grounded, cited sources).
 - **Phase 5 — Smart Gold Calculator**
   Budget + purity inputs → quantity, break-even (w/ premiums), P/L scenarios.
   Accessible forms, client-side calc, shareable. Validate math thoroughly.
@@ -368,3 +369,36 @@ Match the current site's look and feel:
   - **PR-creation error fix is a REPO SETTING (not code):** GitHub → Settings → Actions → General →
     Workflow permissions → enable "Allow GitHub Actions to create and approve pull requests". The
     workflow already requests `pull-requests: write`; this org/repo toggle gates it.
+- 2026-06-23: **Phase 4 complete.** Articles/Insights — unified content system + generation pipeline.
+  - **Decision**: ONE Articles store + pipeline. `/articles` = full archive; `/insights` = curated
+    latest view (top 6); home "Market insights" section reads the 3 most recent. No duplicate infra.
+  - **Contract**: `src/types/article.ts` (zod-authoritative): `Article` / `ArticleSummary`
+    (`toArticleSummary` drops the body for lists/API). Reuses `sourceSchema` from the outlook
+    contract. `ARTICLE_CONTRACT_VERSION = 1`.
+  - **Data-access**: `src/server/articles/` (`server-only`, cached) reads + zod-validates
+    `src/content/articles/*.json`, returns published, newest-first. (Phase 7: include
+    `src/content/**` via `outputFileTracingIncludes` for standalone runtime ISR reads.)
+  - **Artifacts (Git-as-CMS)**: 3 hand-seeded editorial articles in `src/content/articles/`
+    (central banks / dollar–gold / reading trends), each cited.
+  - **Pages**: `/articles` (grid), `/articles/[slug]` (SSG via `generateStaticParams` + ISR 1h;
+    `Article` + `BreadcrumbList` JSON-LD, `generateMetadata`, sources list, reading time), curated
+    `/insights`. Shared `components/markdown/prose.tsx` (outlook `Analysis` now wraps it). Shared
+    `ArticleCard`. Deleted placeholder `src/data/insights.ts`; home + sitemap now read real articles.
+  - **RSS**: `/articles/rss.xml`. **API**: `/api/v1/articles` (summaries) + `/api/v1/articles/[slug]`
+    (full), cache + CORS.
+  - **Generation pipeline** (mirrors Aureus v2): `src/server/articles/generator/` — `ArticleGenerator`
+    interface + `claude.ts` / `mock.ts`, versioned `prompt.ts` (`ARTICLE_PROMPT_VERSION`; reputable
+    sources REQUIRED, ≥1, no fabricated data), `sanitize.ts`. **Refactor**: shared
+    `src/server/llm/` — `grounded-json.ts` (web-search + adaptive thinking + effort + zod-validate +
+    retry, used by BOTH generators), `json.ts`, `sanitize.ts`; outlook `claude.ts` slimmed to a wrapper.
+  - **Scripts**: `articles:generate` (→ `src/content/articles/<date>-<slug>.json`, draft) /
+    `articles:publish` (flip drafts→published). **Workflow**: `.github/workflows/articles.yml`
+    (manual `workflow_dispatch` w/ optional topic input; 3-day cron commented; opens PR). Model =
+    **`claude-opus-4-8`** medium effort (env `ARTICLE_MODEL`/`ARTICLE_EFFORT`/`ARTICLE_WEB_SEARCH_MAX_USES`).
+  - Verified: pipeline ran (mock + live CoinGecko) → valid draft, publish flipped it (mock removed,
+    not committed). `next build` ✓ (articles SSG'd, generators + `.mts` type-check), `eslint` ✓.
+    Dev SSR: /articles, /articles/[slug] (Article+Breadcrumb JSON-LD + sources), /insights, rss.xml
+    (3 items), /api/v1/articles (3, no body), home shows real articles.
+  - **TODO before going live**: real article run + review (needs `ANTHROPIC_API_KEY`), enable repo
+    PR-permission setting, optionally enable the 3-day cron. Phase 7: `outputFileTracingIncludes`.
+  - Next: **Phase 5 — Smart Gold Calculator**, or Phase 6 (About/legal/subscribe).

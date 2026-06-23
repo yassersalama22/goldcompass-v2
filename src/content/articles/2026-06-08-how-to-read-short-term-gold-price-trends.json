@@ -1,0 +1,18 @@
+{
+  "contractVersion": 1,
+  "slug": "how-to-read-short-term-gold-price-trends",
+  "title": "How to read short-term gold price trends",
+  "description": "Spot price, dealer premiums, and momentum: a practical guide to making sense of daily gold moves without overreacting.",
+  "category": "Guides",
+  "tags": ["price", "spot", "premiums", "education"],
+  "date": "2026-06-08",
+  "updatedAt": "2026-06-08T08:00:00.000Z",
+  "origin": "editorial",
+  "status": "published",
+  "bodyMarkdown": "Daily gold prices can feel noisy. A practical framework helps you separate signal from noise — and avoid making decisions on a single day's wobble.\n\n## Start with the spot price\n\nThe **spot price** (quoted as XAU/USD) is the benchmark for one troy ounce of gold for immediate delivery. It's what news headlines reference and what charts track. But it's not what you pay at the dealer.\n\n## Mind the premium\n\nWhen you buy physical gold — coins or bars — you pay the spot price **plus a premium** that covers fabrication, distribution, and the dealer's margin. Premiums vary by product and can widen when demand spikes. That's why your real break-even price is higher than spot, and why a small spot move doesn't always change your position much. (Our [Gold Calculator](/calculator) is built to make this concrete.)\n\n## Read momentum, not single days\n\nA few habits keep short-term moves in perspective:\n\n- **Zoom out.** A 30-day chart tells you more than a single session. Is price making higher highs, or rolling over?\n- **Check the drivers.** Is the move tied to the US dollar, real yields, or a news event? A dollar-driven dip is different from a demand-driven one.\n- **Watch key levels.** Round numbers and recent highs/lows often act as support or resistance — useful reference points, not magic.\n\n## Don't confuse volatility with trend\n\nGold can swing several percent in a week and still be in a longer uptrend (or downtrend). Short-term traders care about the swings; long-term holders are usually better served focusing on the structural picture — demand, real rates, and the dollar — than reacting to every candle.\n\nNone of this is financial advice. It's a way to look at the data calmly so you can make informed decisions on your own terms.",
+  "sources": [
+    { "title": "CoinGecko — PAX Gold (gold spot proxy)", "url": "https://www.coingecko.com/en/coins/pax-gold" },
+    { "title": "World Gold Council — Gold prices", "url": "https://www.gold.org/goldhub/data/gold-prices" },
+    { "title": "Investing.com — XAU/USD", "url": "https://www.investing.com/currencies/xau-usd" }
+  ]
+}
