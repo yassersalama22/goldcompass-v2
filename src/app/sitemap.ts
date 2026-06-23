@@ -3,7 +3,7 @@ import type { MetadataRoute } from "next";
 import { siteConfig } from "@/config/site";
 import { getAllArticles } from "@/server/articles";
 
-const routes = ["", "/outlook", "/trends", "/insights", "/articles", "/calculator", "/about", "/disclaimer"];
+const routes = ["", "/outlook", "/trends", "/insights", "/calculator", "/about", "/disclaimer"];
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const staticEntries: MetadataRoute.Sitemap = routes.map((route) => ({
@@ -13,7 +13,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   }));
 
   const articleEntries: MetadataRoute.Sitemap = getAllArticles().map((article) => ({
-    url: `${siteConfig.url}/articles/${article.slug}`,
+    url: `${siteConfig.url}/insights/${article.slug}`,
     lastModified: article.updatedAt,
     changeFrequency: "monthly",
     priority: 0.6,

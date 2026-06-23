@@ -424,3 +424,22 @@ Match the current site's look and feel:
     added helper `calculatorFaqSchema()` to `src/lib/structured-data.ts`. Methodology box at bottom.
   - No new deps. `next build` ✓ (/calculator 5m ISR, 21 total routes), `eslint` ✓.
   - Next: **Phase 6 — About + legal/disclaimer + Subscribe**.
+- 2026-06-23: **Insights/Articles merged into one hub.** The Phase 4 two-page split (`/insights`
+  top-6 + `/articles` full archive) read as the *same page* to users (identical cards, same store)
+  and created SEO duplicate-content/keyword-cannibalization. Decision (with user): collapse to ONE
+  user-facing hub at **`/insights`**.
+  - `/articles`, `/articles/[slug]`, `/articles/rss.xml` **deleted**; their content moved to
+    `/insights`, `/insights/[slug]`, `/insights/rss.xml`. `/insights` now lists ALL articles
+    (was top-6). Detail page breadcrumb/back-link/canonical now say Insights.
+  - **308 permanent redirects** in `next.config.ts`: `/articles`→`/insights`,
+    `/articles/:slug`→`/insights/:slug`, `/articles/rss.xml`→`/insights/rss.xml` (preserves any
+    external links / search equity). Verified at runtime (curl: 308 + correct Location; /insights 200).
+  - Nav (`src/config/site.ts`): removed the "Articles" item (header + footer); "Insights" is the
+    single entry. Updated `ArticleCard` href, `sitemap.ts` (dropped `/articles`, slugs → `/insights/`),
+    `newsArticleSchema` URL.
+  - **Unchanged (deliberate)**: internal naming stays `article` — `src/types/article.ts`,
+    `src/server/articles/`, `src/content/articles/`, `@/components/articles/`, the generation
+    pipeline/scripts/workflow, and the versioned public **`/api/v1/articles`** contract (API resource
+    name ≠ page route; not churning a versioned contract). Home "Market insights" teaser unchanged
+    (3 most recent → links to `/insights`).
+  - `next build` ✓ (20 routes; `/insights/[slug]` SSG ×3), `eslint` ✓.

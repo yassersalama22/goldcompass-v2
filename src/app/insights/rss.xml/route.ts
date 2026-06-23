@@ -16,7 +16,7 @@ export async function GET() {
   const articles = getAllArticles();
   const items = articles
     .map((a) => {
-      const url = `${siteConfig.url}/articles/${a.slug}`;
+      const url = `${siteConfig.url}/insights/${a.slug}`;
       return `    <item>
       <title>${escapeXml(a.title)}</title>
       <link>${url}</link>
@@ -31,8 +31,8 @@ export async function GET() {
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0">
   <channel>
-    <title>${escapeXml(siteConfig.name)} — Articles</title>
-    <link>${siteConfig.url}/articles</link>
+    <title>${escapeXml(siteConfig.name)} — Market Insights</title>
+    <link>${siteConfig.url}/insights</link>
     <description>${escapeXml(siteConfig.description)}</description>
     <language>en</language>
 ${items}

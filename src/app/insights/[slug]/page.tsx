@@ -31,11 +31,11 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const article = getArticleBySlug(slug);
-  if (!article) return { title: "Article not found" };
+  if (!article) return { title: "Insight not found" };
   return {
     title: article.title,
     description: article.description,
-    alternates: { canonical: `/articles/${article.slug}` },
+    alternates: { canonical: `/insights/${article.slug}` },
     openGraph: {
       type: "article",
       title: article.title,
@@ -47,7 +47,7 @@ export async function generateMetadata({
   };
 }
 
-export default async function ArticlePage({
+export default async function InsightPage({
   params,
 }: {
   params: Promise<{ slug: string }>;
@@ -65,19 +65,19 @@ export default async function ArticlePage({
           newsArticleSchema(article),
           breadcrumbSchema([
             { name: "Home", path: "/" },
-            { name: "Articles", path: "/articles" },
-            { name: article.title, path: `/articles/${article.slug}` },
+            { name: "Insights", path: "/insights" },
+            { name: article.title, path: `/insights/${article.slug}` },
           ]),
         ]}
       />
 
       <Container className="max-w-3xl py-12 sm:py-16">
         <Link
-          href="/articles"
+          href="/insights"
           className="text-muted-foreground hover:text-foreground mb-8 inline-flex items-center gap-1 text-sm"
         >
           <ArrowLeft className="size-4" aria-hidden="true" />
-          All articles
+          All insights
         </Link>
 
         <article className="space-y-8">

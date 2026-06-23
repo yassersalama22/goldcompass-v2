@@ -22,7 +22,7 @@ export function ArticleCard({ article }: { article: ArticleSummary }) {
         </div>
         <CardTitle className="mt-2 text-lg leading-snug">
           <Link
-            href={`/articles/${article.slug}`}
+            href={`/insights/${article.slug}`}
             className="hover:text-gold-strong after:absolute after:inset-0 focus-visible:underline"
           >
             {article.title}

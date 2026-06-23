@@ -47,7 +47,7 @@ export function outlookArticleSchema(report: OutlookReport) {
 
 /** schema.org Article for a published article. */
 export function newsArticleSchema(article: Article) {
-  const url = `${siteConfig.url}/articles/${article.slug}`;
+  const url = `${siteConfig.url}/insights/${article.slug}`;
   return {
     "@context": "https://schema.org",
     "@type": "Article",

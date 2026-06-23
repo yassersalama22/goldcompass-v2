@@ -13,7 +13,6 @@ export const siteConfig = {
     { title: "Outlook", href: "/outlook" },
     { title: "Trends", href: "/trends" },
     { title: "Insights", href: "/insights" },
-    { title: "Articles", href: "/articles" },
     { title: "About", href: "/about" },
   ] satisfies NavItem[],
   footerNav: {
@@ -21,10 +20,9 @@ export const siteConfig = {
       { title: "Outlook", href: "/outlook" },
       { title: "Trends", href: "/trends" },
       { title: "Gold Calculator", href: "/calculator" },
-      { title: "Articles", href: "/articles" },
+      { title: "Insights", href: "/insights" },
     ] satisfies NavItem[],
     resources: [
-      { title: "Market Insights", href: "/insights" },
       { title: "About", href: "/about" },
       { title: "Disclaimer", href: "/disclaimer" },
     ] satisfies NavItem[],
