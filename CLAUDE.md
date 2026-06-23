@@ -402,3 +402,25 @@ Match the current site's look and feel:
   - **TODO before going live**: real article run + review (needs `ANTHROPIC_API_KEY`), enable repo
     PR-permission setting, optionally enable the 3-day cron. Phase 7: `outputFileTracingIncludes`.
   - Next: **Phase 5 — Smart Gold Calculator**, or Phase 6 (About/legal/subscribe).
+- 2026-06-23: **Phase 5 complete.** Smart Gold Calculator — client-side, accessible, shareable.
+  - **Math** (`src/lib/calculator.ts`, pure functions, no React): `calculate()` takes budget,
+    spot, purity factor (0–1), premium% → returns item/pure troy oz + grams, break-even spot
+    and %, and 6 P/L scenarios (−20% to +50% of spot). `GOLD_PURITIES` array (24K/22K/18K/14K/10K).
+    Formula: dealer price per item oz = spot × purity × (1 + premium%); break-even = spot × (1 + premium%)
+    — premium% is the minimum spot-rise needed regardless of karat (purity cancels out).
+  - **Calculator component** (`src/components/calculator/gold-calculator.tsx`, `"use client"`):
+    - Inputs: budget, purity select, dealer premium slider (0–15%, 0.5 step, default 5%),
+      spot price (pre-seeded from SSR, editable, "Reset to live" button), unit toggle (troy oz/grams).
+    - Results: Quantity card (item oz/g + pure equivalent for <24K), Break-even card, P/L table
+      (6 rows, bull/bear colored, "Today's spot" row highlighted).
+    - URL sharing: `window.history.replaceState` writes inputs to query params on change (no re-render);
+      `useSearchParams()` lazy-initializes state from URL on first render (Suspense-wrapped in page).
+    - Share button copies current URL to clipboard.
+    - Accessibility: all inputs labeled (with `useId()`), `aria-live="polite"` on results,
+      `aria-valuetext` on slider, `role="group"` + `role="radio"` on unit toggle, table `scope` attributes.
+  - **Page** `/calculator` (`src/app/calculator/page.tsx`, ISR `revalidate=300`): server component
+    fetches live spot via `getGoldQuote()`, seeds `initialSpot` into client component. `Suspense`
+    boundary wraps calculator (required by `useSearchParams`). `FAQPage` JSON-LD (4 Q&As) for SEO —
+    added helper `calculatorFaqSchema()` to `src/lib/structured-data.ts`. Methodology box at bottom.
+  - No new deps. `next build` ✓ (/calculator 5m ISR, 21 total routes), `eslint` ✓.
+  - Next: **Phase 6 — About + legal/disclaimer + Subscribe**.

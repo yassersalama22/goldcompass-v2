@@ -69,6 +69,48 @@ export function newsArticleSchema(article: Article) {
   };
 }
 
+/** schema.org FAQPage for the gold calculator page. */
+export function calculatorFaqSchema() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: [
+      {
+        "@type": "Question",
+        name: "How much gold can I buy with $10,000?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "At current gold prices near $4,150/oz with a 5% dealer premium, $10,000 buys roughly 2.3 troy oz (about 71.5 grams) of pure 24K gold. Use the GoldCompass calculator for a precise figure based on live spot prices.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "What is a dealer premium on gold?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "A dealer premium is a markup charged above the spot (market) price to cover minting, refining, and dealer margins. Typical premiums: gold bars/coins 3–8%, jewelry 10–15%. Your investment only turns profitable once the spot price rises above your break-even (spot at purchase × (1 + premium)).",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "What is the difference between 24K, 18K, and 14K gold?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Karat indicates purity: 24K is 99.9% pure gold; 18K is 75% gold (750 fine); 14K is 58.3% gold (583 fine). Lower karat gold contains other metals (silver, copper) for durability. For investment purposes, 24K bars or coins are most common. The calculator adjusts quantity calculations for any purity level.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "How is break-even price calculated for gold?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Break-even price = purchase spot price × (1 + dealer premium %). For example, buying at $4,000/oz with a 5% premium means gold must rise to $4,200 before you recover your investment when selling at spot. This calculator is for educational purposes and does not account for storage costs, taxes, or sell-side commissions.",
+        },
+      },
+    ],
+  };
+}
+
 /** schema.org BreadcrumbList. Pass ordered { name, path } items. */
 export function breadcrumbSchema(items: { name: string; path: string }[]) {
   return {
