@@ -443,3 +443,35 @@ Match the current site's look and feel:
     name ≠ page route; not churning a versioned contract). Home "Market insights" teaser unchanged
     (3 most recent → links to `/insights`).
   - `next build` ✓ (20 routes; `/insights/[slug]` SSG ×3), `eslint` ✓.
+- 2026-06-23: **Phase 6 complete.** About + legal/disclaimer + Subscribe (newsletter).
+  - **Newsletter provider abstraction** (`src/server/newsletter/`, mirrors `PriceProvider` + LLM
+    generators): `provider.ts` (`NewsletterProvider` interface, `SubscribeResult` — never throws),
+    `buttondown.ts` (Buttondown REST API via `fetch`, no SDK; 201→subscribed, 400+"already"→
+    already_subscribed, list lives in Buttondown so **no DB**), `inert.ts` (logs + returns ok;
+    fallback so dev/CI work offline), `index.ts` (`getNewsletterProvider()` — Buttondown when
+    `BUTTONDOWN_API_KEY` set & `NEWSLETTER_PROVIDER!==inert`, else inert; `server-only`).
+    **Decision (with user): Buttondown** — simple API, free tier, privacy-friendly, no DB.
+  - **Subscribe API** `POST /api/subscribe` (`force-dynamic`, nodejs): zod-validates email,
+    **honeypot** (`company` field → silently accept, store nothing), delegates to provider, friendly
+    JSON errors (400 invalid / 502 provider). No email enumeration.
+  - **SubscribeForm** (`src/components/newsletter/subscribe-form.tsx`, client): accessible (sr-only
+    label, `aria-live` status, `aria-invalid`, off-screen honeypot w/ `aria-hidden`+`tabIndex=-1`),
+    idle/loading/success/error states, `motion-reduce` spinner. Used in footer (replaces "coming
+    soon") + About CTA via `source` prop.
+  - **About** `/about` (real page, was `ComingSoon`): intro/mission, "What we do" (4 linked feature
+    cards), "How we work" (data-first / cited+reviewed / educational-not-advisory — E-E-A-T trust
+    signals), disclaimer callout, Subscribe CTA. `AboutPage` JSON-LD (`aboutPageSchema()` added to
+    `lib/structured-data.ts`). `generateMetadata` + canonical + OG.
+  - **Disclaimer** `/disclaimer` expanded from 2 paras → 9 sections (educational-only, not advice,
+    no advisory relationship, third-party data accuracy, forward-looking, investment risk,
+    independence/no-commissions, external links, changes) + "last updated" — proper YMYL coverage.
+  - **`.gitignore` fix**: `.env*` was also ignoring `.env.example` (so documented vars never reached
+    the repo). Added `!.env.example` (placeholders only, no secrets) per §10. `.env.example` now
+    documents `BUTTONDOWN_API_KEY` / `NEWSLETTER_PROVIDER`.
+  - No new deps. `next build` ✓ (21 routes; `/api/subscribe` dynamic; about/disclaimer static),
+    `eslint` ✓. Runtime-verified: subscribe valid→`{ok,subscribed}`, invalid→400, honeypot→silent ok,
+    /about + /disclaimer 200.
+  - **TODO before going live**: create Buttondown account, add `BUTTONDOWN_API_KEY` to `.env.local`
+    (+ host env), confirm double-opt-in email wording. Subscribe is inert (logs only) until then.
+  - Next: **Phase 7 — Deployment** (Docker standalone, reverse proxy, EC2, Cloudflare, S3;
+    remember `outputFileTracingIncludes` for `src/content/**`).

@@ -69,6 +69,23 @@ export function newsArticleSchema(article: Article) {
   };
 }
 
+/** schema.org AboutPage for the /about route, with the Organization as its subject. */
+export function aboutPageSchema() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "AboutPage",
+    name: `About ${siteConfig.name}`,
+    url: `${siteConfig.url}/about`,
+    mainEntity: {
+      "@type": "Organization",
+      name: siteConfig.name,
+      url: siteConfig.url,
+      description: siteConfig.description,
+      logo: `${siteConfig.url}/icon.svg`,
+    },
+  };
+}
+
 /** schema.org FAQPage for the gold calculator page. */
 export function calculatorFaqSchema() {
   return {

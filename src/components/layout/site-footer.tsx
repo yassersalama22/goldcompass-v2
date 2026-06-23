@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { Logo } from "@/components/brand/logo";
 import { Container } from "@/components/layout/container";
+import { SubscribeForm } from "@/components/newsletter/subscribe-form";
 import { siteConfig } from "@/config/site";
 
 export function SiteFooter() {
@@ -22,8 +23,9 @@ export function SiteFooter() {
           <div className="space-y-3">
             <h2 className="text-sm font-semibold">Weekly Gold Updates</h2>
             <p className="text-muted-foreground text-sm">
-              Get the weekly outlook in your inbox. (Coming soon.)
+              Get the latest outlook and market insights in your inbox. Free, no spam.
             </p>
+            <SubscribeForm source="footer" />
           </div>
         </div>
 
