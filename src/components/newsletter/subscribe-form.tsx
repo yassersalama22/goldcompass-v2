@@ -1,12 +1,36 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
+import Script from "next/script";
 import { Check, Loader2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 type Status = "idle" | "loading" | "success" | "error";
+
+const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+
+// Minimal typing for the Turnstile global (we load the script raw, no SDK).
+type TurnstileApi = {
+  render: (
+    el: HTMLElement,
+    opts: {
+      sitekey: string;
+      callback: (token: string) => void;
+      "error-callback"?: () => void;
+      "expired-callback"?: () => void;
+      theme?: "auto" | "light" | "dark";
+      action?: string;
+    },
+  ) => string;
+  reset: (id?: string) => void;
+};
+declare global {
+  interface Window {
+    turnstile?: TurnstileApi;
+  }
+}
 
 const inputClass =
   "w-full rounded-lg border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:border-ring";
@@ -24,6 +48,30 @@ export function SubscribeForm({
   const [company, setCompany] = useState(""); // honeypot
   const [status, setStatus] = useState<Status>("idle");
   const [message, setMessage] = useState("");
+  const [token, setToken] = useState<string | null>(null);
+
+  const widgetRef = useRef<HTMLDivElement>(null);
+  const widgetId = useRef<string | null>(null);
+
+  // Render the Turnstile widget once the script is ready (explicit mode). Only
+  // when a site key is configured — otherwise the check is inert server-side.
+  useEffect(() => {
+    if (!TURNSTILE_SITE_KEY) return;
+    const interval = setInterval(() => {
+      if (window.turnstile && widgetRef.current && !widgetId.current) {
+        widgetId.current = window.turnstile.render(widgetRef.current, {
+          sitekey: TURNSTILE_SITE_KEY,
+          action: "newsletter",
+          theme: "auto",
+          callback: (t) => setToken(t),
+          "error-callback": () => setToken(null),
+          "expired-callback": () => setToken(null),
+        });
+        clearInterval(interval);
+      }
+    }, 150);
+    return () => clearInterval(interval);
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -35,7 +83,7 @@ export function SubscribeForm({
       const res = await fetch("/api/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, company, source }),
+        body: JSON.stringify({ email, company, source, turnstileToken: token }),
       });
       const data = await res.json();
 
@@ -50,10 +98,15 @@ export function SubscribeForm({
       } else {
         setStatus("error");
         setMessage(data.message ?? "Something went wrong. Please try again.");
+        // One-time tokens are consumed on use — reset for a retry.
+        window.turnstile?.reset(widgetId.current ?? undefined);
+        setToken(null);
       }
     } catch {
       setStatus("error");
       setMessage("Network error. Please try again.");
+      window.turnstile?.reset(widgetId.current ?? undefined);
+      setToken(null);
     }
   }
 
@@ -70,8 +123,16 @@ export function SubscribeForm({
     );
   }
 
+  const awaitingToken = Boolean(TURNSTILE_SITE_KEY) && !token;
+
   return (
     <form onSubmit={handleSubmit} className={cn("space-y-2", className)} noValidate>
+      {TURNSTILE_SITE_KEY && (
+        <Script
+          src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+          strategy="afterInteractive"
+        />
+      )}
       <label htmlFor={emailId} className="sr-only">
         Email address
       </label>
@@ -105,7 +166,11 @@ export function SubscribeForm({
           />
         </div>
 
-        <Button type="submit" disabled={status === "loading"} className="shrink-0">
+        <Button
+          type="submit"
+          disabled={status === "loading" || awaitingToken}
+          className="shrink-0"
+        >
           {status === "loading" ? (
             <>
               <Loader2 className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
@@ -116,6 +181,9 @@ export function SubscribeForm({
           )}
         </Button>
       </div>
+
+      {/* Cloudflare Turnstile widget (rendered into by the script, if configured) */}
+      {TURNSTILE_SITE_KEY && <div ref={widgetRef} className="min-h-[65px]" />}
 
       {/* Status / error live region (success handled above) */}
       <p

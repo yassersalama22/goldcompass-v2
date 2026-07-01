@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { getNewsletterProvider } from "@/server/newsletter";
 import { getClientIp, rateLimit, sweepExpired } from "@/server/rate-limit";
+import { verifyTurnstile } from "@/server/turnstile";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -17,6 +18,9 @@ const subscribeSchema = z.object({
   // Honeypot: real users leave this blank; bots tend to fill every field.
   company: z.string().optional(),
   source: z.string().max(60).optional(),
+  // Cloudflare Turnstile token from the form widget. Enforced server-side only
+  // when TURNSTILE_SECRET_KEY is configured (see verifyTurnstile).
+  turnstileToken: z.string().max(2048).optional(),
 });
 
 export async function POST(request: Request) {
@@ -47,6 +51,19 @@ export async function POST(request: Request) {
   // Honeypot tripped → pretend success, store nothing.
   if (parsed.data.company && parsed.data.company.trim() !== "") {
     return NextResponse.json({ ok: true, status: "subscribed" });
+  }
+
+  // Cloudflare Turnstile: proves the request came from the real form widget,
+  // not a script hitting this endpoint directly. Inert when unconfigured.
+  const humanVerified = await verifyTurnstile(
+    parsed.data.turnstileToken,
+    getClientIp(request),
+  );
+  if (!humanVerified) {
+    return NextResponse.json(
+      { ok: false, message: "Verification failed. Please try again." },
+      { status: 403 },
+    );
   }
 
   const provider = getNewsletterProvider();

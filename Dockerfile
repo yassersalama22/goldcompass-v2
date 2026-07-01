@@ -8,7 +8,13 @@ FROM node:22-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-ENV NEXT_TELEMETRY_DISABLED=1
+# NEXT_PUBLIC_* vars are inlined into the client bundle at build time, so the
+# Turnstile site key must be present here (not just at runtime). It is a public
+# value (shipped to browsers), so baking it into the image is fine. Unset = the
+# subscribe form stays inert (no widget); pair with TURNSTILE_SECRET_KEY at runtime.
+ARG NEXT_PUBLIC_TURNSTILE_SITE_KEY=""
+ENV NEXT_TELEMETRY_DISABLED=1 \
+    NEXT_PUBLIC_TURNSTILE_SITE_KEY=$NEXT_PUBLIC_TURNSTILE_SITE_KEY
 RUN npm run build
 
 FROM node:22-alpine AS runner

@@ -8,13 +8,18 @@ import type { NextConfig } from "next";
 // pipeline. This is defense-in-depth: the app renders no user/model raw HTML, so
 // there is no known injection sink. `img-src` allows https:/data: to leave room
 // for OG/remote images later.
+// challenges.cloudflare.com is Cloudflare Turnstile (bot check on the subscribe
+// form): its script, the iframe it renders the widget in, and its callbacks.
+const TURNSTILE = "https://challenges.cloudflare.com";
+
 const CSP = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline'",
+  `script-src 'self' 'unsafe-inline' ${TURNSTILE}`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: https:",
   "font-src 'self'",
-  "connect-src 'self'",
+  `connect-src 'self' ${TURNSTILE}`,
+  `frame-src ${TURNSTILE}`,
   "form-action 'self'",
   "frame-ancestors 'none'",
   "base-uri 'self'",

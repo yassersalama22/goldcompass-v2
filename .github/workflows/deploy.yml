@@ -27,6 +27,11 @@ jobs:
           platforms: linux/arm64
           push: true
           tags: ghcr.io/yassersalama22/goldcompass-v2:latest
+          # Turnstile site key is public (inlined into the client bundle at build
+          # time). Can be a repo secret or a plain `vars.` variable. Runtime
+          # TURNSTILE_SECRET_KEY lives in the box's .env, not here.
+          build-args: |
+            NEXT_PUBLIC_TURNSTILE_SITE_KEY=${{ secrets.NEXT_PUBLIC_TURNSTILE_SITE_KEY }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
       - name: Deploy to EC2

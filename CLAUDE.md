@@ -507,3 +507,32 @@ Match the current site's look and feel:
     after first real run review.
   - Next: **Phase 8 — Auth & accounts (deferred)**, or go-live tasks (real outlook run,
     Buttondown setup, Lighthouse audit, HSTS).
+- 2026-07-01: **Security hardening pass** (post-Phase-7 audit; fixes #1 headers + #2 subscribe abuse).
+  - **Security headers** (`next.config.ts` `async headers()`, all routes): strict `Content-Security-
+    Policy` (all same-origin; `'unsafe-inline'` for script/style since no nonce pipeline — defense-in-
+    depth, app renders no raw HTML), `X-Frame-Options: DENY` + CSP `frame-ancestors 'none'`
+    (clickjacking), **HSTS** (2yr, preload — closes the Phase 7 HSTS TODO), `X-Content-Type-Options:
+    nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy`. Verified emitted.
+  - **Rate limit on `POST /api/subscribe`**: `src/server/rate-limit.ts` — in-memory fixed-window
+    limiter (single standalone instance → no Redis), 5 req / 10 min per IP, 429 + `Retry-After`.
+    `getClientIp` prefers `CF-Connecting-IP` then `X-Forwarded-For`. Stops email-bombing /
+    Buttondown quota abuse. Stacks in front of the existing honeypot + zod email validation.
+  - **Cloudflare Turnstile on subscribe** (bot protection, the primary defense): `src/server/
+    turnstile.ts` (`verifyTurnstile`, server-side `siteverify`, **inert when `TURNSTILE_SECRET_KEY`
+    unset** so dev/CI work offline). Route enforces token → 403 on missing/invalid. Form
+    (`subscribe-form.tsx`) loads the widget via `next/script` in explicit mode (only when
+    `NEXT_PUBLIC_TURNSTILE_SITE_KEY` set), disables Submit until token, resets on error. CSP updated
+    for `challenges.cloudflare.com` (script/connect/frame-src). Verified: inert passes, enforced 403s.
+  - **Turnstile deploy wiring**: `NEXT_PUBLIC_TURNSTILE_SITE_KEY` is a **build-time** inline (public,
+    shipped to browser) → threaded as a Docker `ARG`→`ENV` before `npm run build` and passed via
+    `build-args` in `deploy.yml` (from a repo secret/var). `TURNSTILE_SECRET_KEY` is **runtime** (box
+    `.env`). **Both required** to enable — site key only at runtime = widget never renders → all real
+    submits 403. Verified the build-arg inlines into the client bundle.
+  - **TODO to switch Turnstile on**: create a Turnstile widget (Cloudflare dash), add repo secret
+    `NEXT_PUBLIC_TURNSTILE_SITE_KEY` (for the build) + `TURNSTILE_SECRET_KEY` to the box `.env`
+    (runtime), redeploy. Until then it stays safely inert.
+  - **Still open from the audit** (not code): rotate/remove the loose `EC2_SSH_Github_Secrete.secret`
+    private key from the working tree (gitignored, untracked, but shouldn't live in the repo dir);
+    lock the EC2 security group (80/443) to Cloudflare IP ranges so the origin can't be hit directly
+    (closes the `X-Forwarded-For` spoofing gap and makes edge rules enforceable); wire `npm audit`
+    into CI. See audit conversation for full detail.
