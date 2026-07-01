@@ -161,7 +161,7 @@ Match the current site's look and feel:
   Accessible forms, client-side calc, shareable. Validate math thoroughly.
 - **Phase 6 — About + legal/disclaimer + Subscribe**
   About page, disclaimer, newsletter subscribe (capture mechanism TBD).
-- **Phase 7 — Deployment**
+- **Phase 7 — Deployment** ✅ (see §13 status log 2026-07-01)
   Dockerize (standalone), reverse proxy (Caddy/Nginx), EC2 provisioning notes,
   Cloudflare DNS/cache/TLS, S3 for assets. Document the deploy runbook here.
 - **Phase 8 — Auth & accounts (deferred / future)**
@@ -182,7 +182,7 @@ Match the current site's look and feel:
 - Recommendation engine **built** (§12 + §13 Phase 3.5). LLM provider = **Claude
   `claude-opus-4-8`** with the `web_search_20260209` tool; needs `ANTHROPIC_API_KEY` for real runs.
 - Chart library **decided**: custom lightweight SVG (no chart dep) — see §13 Phase 3.
-- Final EC2 instance type + whether to go fully static export — Phase 7.
+- Final EC2 instance type + whether to go fully static export — **decided**: Docker standalone on **t4g.micro** (1GB RAM + 2GB swap). Static export not needed; standalone mode handles ISR/API routes.
 
 ## 12. Recommendation engine (Aureus v2) — design
 
@@ -475,3 +475,35 @@ Match the current site's look and feel:
     (+ host env), confirm double-opt-in email wording. Subscribe is inert (logs only) until then.
   - Next: **Phase 7 — Deployment** (Docker standalone, reverse proxy, EC2, Cloudflare, S3;
     remember `outputFileTracingIncludes` for `src/content/**`).
+- 2026-07-01: **Phase 7 complete.** Site live at https://goldcompass.app on t4g.micro + Cloudflare.
+  - **Files created**: `Dockerfile` (multi-stage Alpine, arm64, standalone), `.dockerignore`,
+    `deploy/docker-compose.yml` (app + caddy:2-alpine services), `deploy/Caddyfile` (auto-HTTPS
+    via Let's Encrypt), `.github/workflows/deploy.yml` (push-to-main trigger → QEMU arm64 build →
+    GHCR push → SSH deploy). `next.config.ts` updated: `output: "standalone"` +
+    `outputFileTracingIncludes` for `src/content/**/*.json` (so dynamic `fs` reads of articles
+    are traced into the standalone bundle).
+  - **EC2**: t4g.micro (1 vCPU, 1GB RAM), Amazon Linux 2023 arm64, 20GB gp3 root, Elastic IP,
+    2GB swapfile (persisted via /etc/fstab). Docker + Compose plugin installed (AL2023 `dnf`
+    + official aarch64 Compose binary). App deployed at `/opt/goldcompass/`.
+  - **GHCR**: image `ghcr.io/yassersalama22/goldcompass-v2:latest` set to **public** — no
+    registry credentials needed on the box; `docker compose pull` works unauthenticated.
+  - **GitHub secrets added**: `EC2_HOST`, `EC2_USER` (ec2-user), `EC2_SSH_KEY` (ed25519 deploy key).
+    Deploy key generated on box (`~/.ssh/deploy_key`); public key appended to `authorized_keys`.
+    EC2 SG: port 22 open to 0.0.0.0/0 (key-auth only; safe). Ports 80+443 open to all.
+  - **Cloudflare**: domain on Cloudflare, A records (`@` + `www`) → Elastic IP, proxied. SSL/TLS
+    Full (strict); Always Use HTTPS enabled. Caddy obtained Let's Encrypt cert automatically on
+    first request through the proxy.
+  - **Architecture note**: both content types (outlook JSON imported statically, articles read via
+    `fs` at runtime) are baked into the Docker image at build time — publish = merge PR to main →
+    deploy workflow rebuilds + redeploys. `/api/revalidate` still available for manual cache busts.
+  - **S3 deferred**: `public/` (11KB) and `src/content/` (32KB) are tiny — nothing to offload.
+    Revisit when real media/OG images are added.
+  - Verified: `docker compose ps` → both containers healthy; `curl -I https://goldcompass.app` →
+    200, valid cert; `/api/v1/price` + `/api/v1/recommendations` → valid JSON; push to main
+    triggers full deploy pipeline end-to-end.
+  - **TODO**: add `ANTHROPIC_API_KEY` + `REVALIDATE_SECRET` to box `.env` to enable the outlook +
+    articles generation pipelines; create Buttondown account + add `BUTTONDOWN_API_KEY` to enable
+    newsletter subscribe. Enable daily-outlook cron in `.github/workflows/daily-outlook.yml`
+    after first real run review.
+  - Next: **Phase 8 — Auth & accounts (deferred)**, or go-live tasks (real outlook run,
+    Buttondown setup, Lighthouse audit, HSTS).
