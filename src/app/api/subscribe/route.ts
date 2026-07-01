@@ -2,9 +2,15 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { getNewsletterProvider } from "@/server/newsletter";
+import { getClientIp, rateLimit, sweepExpired } from "@/server/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+// Per-IP throttle. Newsletter signup is low-frequency, so a small allowance
+// stops scripted abuse (email-bombing arbitrary addresses via double-opt-in
+// confirmations, Buttondown quota exhaustion) without hindering real users.
+const RATE_LIMIT = { limit: 5, windowMs: 10 * 60 * 1000 } as const;
 
 const subscribeSchema = z.object({
   email: z.string().trim().min(3).max(254).email(),
@@ -14,6 +20,15 @@ const subscribeSchema = z.object({
 });
 
 export async function POST(request: Request) {
+  sweepExpired();
+  const limit = rateLimit(`subscribe:${getClientIp(request)}`, RATE_LIMIT);
+  if (!limit.ok) {
+    return NextResponse.json(
+      { ok: false, message: "Too many requests. Please try again later." },
+      { status: 429, headers: { "Retry-After": String(limit.retryAfterSec) } },
+    );
+  }
+
   let payload: unknown;
   try {
     payload = await request.json();
