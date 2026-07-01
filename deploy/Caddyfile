@@ -1,0 +1,3 @@
+goldcompass.app, www.goldcompass.app {
+    reverse_proxy app:3000
+}

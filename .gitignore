@@ -44,3 +44,5 @@ next-env.d.ts
 
 # outlook pipeline intermediate (published artifact is current.json)
 /src/content/outlook/draft.json
+
+*.secret

@@ -1,6 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  output: "standalone",
+  outputFileTracingIncludes: {
+    "/*": ["./src/content/**/*.json"],
+  },
   async redirects() {
     // Insights and Articles were merged into one hub (/insights). Permanently
     // redirect the old /articles routes so links and search rankings carry over.

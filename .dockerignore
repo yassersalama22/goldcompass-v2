@@ -1,0 +1,8 @@
+node_modules
+.next
+.git
+.github
+.env*
+*.md
+scripts
+src/content/outlook/draft.json
