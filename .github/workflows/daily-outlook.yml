@@ -10,8 +10,8 @@ on:
   # Manual-only for now (run from the Actions tab). Enable the daily schedule
   # after release by uncommenting the cron below.
   workflow_dispatch: {}
-  # schedule:
-  #   - cron: "0 6 * * *" # 06:00 UTC daily
+  schedule:
+    - cron: "0 6 * * *" # 06:00 UTC daily
 
 permissions:
   contents: write
