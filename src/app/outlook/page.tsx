@@ -8,6 +8,8 @@ import { Analysis } from "@/components/outlook/analysis";
 import { KeyLevels } from "@/components/outlook/key-levels";
 import { OutlookCallCard } from "@/components/outlook/outlook-call-card";
 import { JsonLd } from "@/components/seo/json-ld";
+import { SubscribeCta } from "@/components/newsletter/subscribe-cta";
+import { formatSignedPct } from "@/lib/format";
 import { outlookArticleSchema } from "@/lib/structured-data";
 import { cn } from "@/lib/utils";
 import { getPublishedOutlook } from "@/server/outlook";
@@ -75,8 +77,7 @@ export default function OutlookPage() {
                   )}
                 >
                   <ChangeIcon className="size-4" aria-hidden="true" />
-                  {change > 0 ? "+" : ""}
-                  {change}%
+                  {formatSignedPct(change)}
                 </span>
               ) : null}
             </div>
@@ -163,6 +164,8 @@ export default function OutlookPage() {
               .
             </p>
           </section>
+
+          <SubscribeCta source="outlook" />
         </article>
       </Container>
     </>

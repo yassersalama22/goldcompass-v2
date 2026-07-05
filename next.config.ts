@@ -10,15 +10,19 @@ import type { NextConfig } from "next";
 // for OG/remote images later.
 // challenges.cloudflare.com is Cloudflare Turnstile (bot check on the subscribe
 // form): its script, the iframe it renders the widget in, and its callbacks.
+// static.cloudflareinsights.com serves the Cloudflare Web Analytics beacon
+// script; it reports page views back to cloudflareinsights.com.
 const TURNSTILE = "https://challenges.cloudflare.com";
+const CF_INSIGHTS_SCRIPT = "https://static.cloudflareinsights.com";
+const CF_INSIGHTS_CONNECT = "https://cloudflareinsights.com";
 
 const CSP = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline' ${TURNSTILE}`,
+  `script-src 'self' 'unsafe-inline' ${TURNSTILE} ${CF_INSIGHTS_SCRIPT}`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: https:",
   "font-src 'self'",
-  `connect-src 'self' ${TURNSTILE}`,
+  `connect-src 'self' ${TURNSTILE} ${CF_INSIGHTS_CONNECT}`,
   `frame-src ${TURNSTILE}`,
   "form-action 'self'",
   "frame-ancestors 'none'",

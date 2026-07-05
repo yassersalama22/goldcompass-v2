@@ -32,6 +32,8 @@ jobs:
           # TURNSTILE_SECRET_KEY lives in the box's .env, not here.
           build-args: |
             NEXT_PUBLIC_TURNSTILE_SITE_KEY=${{ secrets.NEXT_PUBLIC_TURNSTILE_SITE_KEY }}
+            NEXT_PUBLIC_CF_BEACON_TOKEN=${{ vars.NEXT_PUBLIC_CF_BEACON_TOKEN }}
+            NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION=${{ vars.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
       - name: Deploy to EC2

@@ -7,6 +7,7 @@ import { Container } from "@/components/layout/container";
 import { Prose } from "@/components/markdown/prose";
 import { Badge } from "@/components/ui/badge";
 import { JsonLd } from "@/components/seo/json-ld";
+import { SubscribeCta } from "@/components/newsletter/subscribe-cta";
 import { breadcrumbSchema, newsArticleSchema } from "@/lib/structured-data";
 import { readingTimeMinutes } from "@/lib/reading-time";
 import { getAllArticleSlugs, getArticleBySlug } from "@/server/articles";
@@ -118,6 +119,8 @@ export default async function InsightPage({
               </ul>
             </section>
           ) : null}
+
+          <SubscribeCta source="insight" />
 
           <p className="text-muted-foreground border-t pt-6 text-sm">
             Educational information only — not financial advice. See our{" "}

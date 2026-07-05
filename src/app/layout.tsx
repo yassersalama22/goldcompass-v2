@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
@@ -17,6 +18,14 @@ const geistMono = Geist_Mono({
 });
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://goldcompass.app";
+
+// Cloudflare Web Analytics beacon token (public, inlined at build time). Unset
+// = no analytics script is emitted, so dev/CI stay clean.
+const cfBeaconToken = process.env.NEXT_PUBLIC_CF_BEACON_TOKEN;
+
+// Google Search Console meta-tag verification (alternative to DNS TXT).
+const googleSiteVerification =
+  process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -50,6 +59,9 @@ export const metadata: Metadata = {
       "Clear gold-market outlooks, live price trends, and a smart gold calculator for everyday investors.",
   },
   robots: { index: true, follow: true },
+  ...(googleSiteVerification
+    ? { verification: { google: googleSiteVerification } }
+    : {}),
 };
 
 export default function RootLayout({
@@ -68,6 +80,13 @@ export default function RootLayout({
           {children}
         </main>
         <SiteFooter />
+        {cfBeaconToken ? (
+          <Script
+            src="https://static.cloudflareinsights.com/beacon.min.js"
+            strategy="afterInteractive"
+            data-cf-beacon={JSON.stringify({ token: cfBeaconToken })}
+          />
+        ) : null}
       </body>
     </html>
   );

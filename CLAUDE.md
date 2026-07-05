@@ -536,3 +536,32 @@ Match the current site's look and feel:
     lock the EC2 security group (80/443) to Cloudflare IP ranges so the origin can't be hit directly
     (closes the `X-Forwarded-For` spoofing gap and makes edge rules enforceable); wire `npm audit`
     into CI. See audit conversation for full detail.
+- 2026-07-02: **Growth foundations pass** (findable → shareable → sticky; code side of items 1–4).
+  - **Search Console**: root metadata emits `<meta name="google-site-verification">` when
+    `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` set (build-time; Docker ARG + deploy build-arg from a
+    repo **variable**). DNS TXT verification via Cloudflare is the preferred path (no rebuild).
+  - **Cloudflare Web Analytics**: beacon `<Script>` in root layout, gated on
+    `NEXT_PUBLIC_CF_BEACON_TOKEN` (build-time inline, same Turnstile pattern: Docker ARG →
+    deploy.yml build-arg from repo variable; unset = no script). CSP extended:
+    `static.cloudflareinsights.com` (script-src) + `cloudflareinsights.com` (connect-src).
+  - **Subscribe CTAs on content pages**: new `components/newsletter/subscribe-cta.tsx`
+    (server component, heading + copy + `SubscribeForm`) placed at the end of `/outlook`
+    (source=outlook) and `/insights/[slug]` (source=insight) — the retention hook after reading.
+  - **Dynamic OG images** (file-convention `opengraph-image.tsx`, `next/og`/satori, 1200×630 PNG):
+    site-wide brand card (`src/app/opengraph-image.tsx`), `/outlook` card (spot + signed change +
+    short/long signal chips from `getPublishedOutlook()`, regenerates with ISR), per-article card
+    (`/insights/[slug]`, category + title). Shared satori helpers in `src/lib/og.tsx` (hex
+    approximations of brand tokens — satori can't use oklch; compass mark from `icon.svg`).
+    Verified rendered PNGs + `og:image`/`twitter:image` meta emitted; localhost URLs in local
+    checks come from `.env.local` `NEXT_PUBLIC_SITE_URL` (prod falls back to goldcompass.app —
+    live canonical verified). Closes the Phase 1 OG-image TODO.
+  - **Fix**: `/outlook` header + OG card now format change via `formatSignedPct()` (artifact
+    stores a raw float, e.g. 2.243017928378964 — was rendered unrounded).
+  - Verified: `next build` ✓ (23 routes; OG routes static for / + /outlook, dynamic per slug),
+    `eslint` ✓, standalone runtime serves all 3 OG PNGs (next/og traced correctly), beacon script
+    + verification meta emitted when env set, subscribe CTA SSR'd on both page types.
+  - **User TODO to activate** (dashboard steps, not code): ① Search Console: add property
+    `goldcompass.app` via **DNS TXT** in Cloudflare, submit `sitemap.xml` (+ Bing Webmaster
+    import); ② Cloudflare dash → Analytics → Web Analytics → add site (manual install) → put the
+    token in repo **variable** `NEXT_PUBLIC_CF_BEACON_TOKEN`; ③ Buttondown account +
+    `BUTTONDOWN_API_KEY` in box `.env` (subscribe is still inert); ④ push/redeploy to bake ①–②.

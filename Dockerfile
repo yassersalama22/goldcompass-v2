@@ -13,8 +13,14 @@ COPY . .
 # value (shipped to browsers), so baking it into the image is fine. Unset = the
 # subscribe form stays inert (no widget); pair with TURNSTILE_SECRET_KEY at runtime.
 ARG NEXT_PUBLIC_TURNSTILE_SITE_KEY=""
+# Cloudflare Web Analytics beacon token + Google Search Console verification —
+# both public values inlined into the HTML at build time. Unset = feature off.
+ARG NEXT_PUBLIC_CF_BEACON_TOKEN=""
+ARG NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION=""
 ENV NEXT_TELEMETRY_DISABLED=1 \
-    NEXT_PUBLIC_TURNSTILE_SITE_KEY=$NEXT_PUBLIC_TURNSTILE_SITE_KEY
+    NEXT_PUBLIC_TURNSTILE_SITE_KEY=$NEXT_PUBLIC_TURNSTILE_SITE_KEY \
+    NEXT_PUBLIC_CF_BEACON_TOKEN=$NEXT_PUBLIC_CF_BEACON_TOKEN \
+    NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION=$NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
 RUN npm run build
 
 FROM node:22-alpine AS runner
