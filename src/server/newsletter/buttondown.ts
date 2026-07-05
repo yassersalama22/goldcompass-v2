@@ -24,6 +24,10 @@ export function createButtondownProvider(apiKey: string): NewsletterProvider {
             tags: ["goldcompass-web"],
             metadata: meta?.source ? { source: meta.source } : undefined,
           }),
+          // Fail fast if Buttondown hangs — otherwise the whole /api/subscribe
+          // request stalls until the proxy (Cloudflare 524) kills it with an
+          // HTML error page the form can't parse.
+          signal: AbortSignal.timeout(8000),
         });
 
         if (res.status === 201 || res.status === 200) {

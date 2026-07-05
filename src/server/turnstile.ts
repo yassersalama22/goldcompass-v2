@@ -35,6 +35,9 @@ export async function verifyTurnstile(
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body,
+      // Fail fast (verification denied) rather than hanging the request if
+      // siteverify is slow/unreachable.
+      signal: AbortSignal.timeout(8000),
     });
     if (!res.ok) return false;
 
