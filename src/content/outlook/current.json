@@ -1,15 +1,15 @@
 {
   "contractVersion": 1,
-  "date": "2026-07-05",
-  "updatedAt": "2026-07-05T09:02:03.072Z",
+  "date": "2026-07-07",
+  "updatedAt": "2026-07-07T09:44:42.035Z",
   "origin": "generated",
   "status": "published",
-  "summary": "Gold sits at $4,163/oz, essentially flat on the day but down about 3.6% over the past month after pulling back from June highs near $4,332. Price is consolidating in the middle of its 30-day range while holding well above the psychologically important $4,000 mark. We favor HOLD near-term as momentum cools, and BUY for the long run, where structural demand and rate-cut expectations remain supportive.",
+  "summary": "Gold sits near $4,122/oz, little changed on the day but down about 5% from its early-June peak as the market consolidates a powerful multi-month rally. Cooling ETF inflows and a firmer tone argue for patience near term, while resilient central-bank buying keeps the longer-term case intact. We favor HOLD short-term and BUY on the 3–12 month horizon, using pullbacks toward the low-$4,000s as accumulation zones.",
   "spot": {
-    "price": 4163.12,
+    "price": 4122.55,
     "currency": "USD",
-    "asOf": "2026-07-05T08:54:13.000Z",
-    "changePct": -0.007330006768009313
+    "asOf": "2026-07-07T09:42:55.000Z",
+    "changePct": -0.2425468453433066
   },
   "calls": [
     {
@@ -18,8 +18,8 @@
       "horizon": "Next 1–4 weeks",
       "signal": "HOLD",
       "confidence": "medium",
-      "reason": "Gold is flat on the day and roughly 4% below its recent high, suggesting a healthy consolidation rather than a fresh trend. With price mid-range and momentum neutral, chasing here offers poor risk/reward. Waiting for either a defended $4,000 support or a breakout above $4,330 gives a cleaner entry.",
-      "invalidation": "A daily close below $4,000 would flip the near-term bias to SELL; a decisive close above $4,330 (the 30-day high) would turn it to BUY."
+      "reason": "Gold has slipped roughly 4.8% over 30 days and trades mid-range between $3,999 and $4,332, a classic consolidation after a steep run. With ETF inflows slowing from a flood to a trickle and momentum cooling, the risk/reward for fresh chasing is poor here. Waiting for either a confirmed breakout above the June high or a dip toward the low-$4,000s is the disciplined play.",
+      "invalidation": "A daily close back above ~$4,332 (30-day high) flips the view bullish; a sustained break below ~$3,999 (30-day low) turns it toward SELL."
     },
     {
       "term": "long",
@@ -27,54 +27,63 @@
       "horizon": "Next 3–12 months",
       "signal": "BUY",
       "confidence": "medium",
-      "reason": "The multi-year uptrend that carried gold above $4,000 remains intact, underpinned by steady central-bank buying, diversification away from the dollar, and expectations for lower real yields. Pullbacks toward the $4,000–$4,100 zone have historically been accumulation opportunities within this cycle. The current dip is a chance to build positions gradually rather than a signal of trend reversal.",
-      "invalidation": "A sustained rise in real yields and a strong dollar breakout, or a weekly close below roughly $3,800, would undermine the structural thesis and warrant downgrading to HOLD."
+      "reason": "Structural demand from central banks remains firm and is expected to stay elevated through 2026, providing a durable price floor. Prices near $4,100, even after the pullback, reflect strong underlying safe-haven and diversification demand rather than froth. We view dips as accumulation opportunities for patient investors.",
+      "invalidation": "A decisive shift to central-bank net selling, a sharp rise in real yields, or a sustained monthly close below ~$3,900 would undermine the bullish thesis."
     }
   ],
   "keyLevels": [
     {
       "label": "Spot (XAU/USD)",
-      "value": "$4,163",
+      "value": "$4,122",
       "emphasis": true
     },
     {
-      "label": "30-day high (resistance)",
-      "value": "$4,332",
+      "label": "24h change",
+      "value": "-0.24%",
       "emphasis": false
     },
     {
-      "label": "Psychological support",
-      "value": "$4,000",
+      "label": "30-day high",
+      "value": "$4,332",
       "emphasis": true
     },
     {
       "label": "30-day low",
-      "value": "$4,000",
+      "value": "$3,999",
+      "emphasis": true
+    },
+    {
+      "label": "30-day change",
+      "value": "-4.84%",
       "emphasis": false
     },
     {
-      "label": "Major structural support",
-      "value": "~$3,800",
+      "label": "Accumulation zone",
+      "value": "$4,000–$4,050",
       "emphasis": false
     }
   ],
-  "analysisMarkdown": "## Market Overview\n\nGold is trading at **$4,163 per ounce**, virtually unchanged over the last 24 hours (-0.01%). Zoom out and the picture is a **cooling market**: bullion is down about **3.6% over the past 30 days**, having slipped from roughly $4,320 a month ago and from a swing high near **$4,332**. The good news for bulls is that the pullback has been **orderly and contained** — price is holding comfortably above the psychologically and technically important **$4,000** level, and it now sits near the middle of its 30-day range of roughly $4,000 to $4,332.\n\nIn plain terms: gold ran hard, got stretched, and is now catching its breath. That is normal behavior in a healthy bull market and does not, by itself, signal that the larger trend has broken.\n\n## Key Drivers\n\nSeveral forces continue to shape the gold tape:\n\n- **The US dollar and real yields.** Gold pays no interest, so it competes with cash and inflation-protected bonds. When the dollar firms or *real* (inflation-adjusted) yields rise, gold typically softens — which helps explain the recent month's give-back. Conversely, any sign that the Federal Reserve is leaning toward rate cuts tends to lift bullion.\n- **Central-bank demand.** Official-sector buying has been a defining feature of this cycle. Persistent accumulation by central banks — particularly among emerging-market economies diversifying reserves away from the dollar — provides a structural floor that limits how deep corrections tend to run.\n- **Geopolitics and safe-haven flows.** Elevated geopolitical uncertainty keeps a \"risk premium\" embedded in the price. These flows are episodic: they can spike gold quickly and fade just as fast, adding to short-term volatility.\n- **ETF and physical demand.** Investment demand through exchange-traded funds tends to chase momentum. After a strong run and a modest pullback, flows can stall — consistent with the flat, consolidating action we see now.\n\n## Technical Picture\n\nThe chart tells a story of **consolidation after a strong advance**:\n\n- **Resistance:** The 30-day high near **$4,332** is the level bulls must reclaim to signal the uptrend is resuming with force.\n- **Support:** The **$4,000** area is the key line in the sand. It is both a round-number psychological level and the base of the recent range. Holding it keeps the constructive structure intact.\n- **Momentum:** With price flat on the day and mid-range, momentum is **neutral** — neither buyers nor sellers are in clear control. This is precisely the kind of environment where patience is rewarded over aggression.\n\nA daily close back above the mid-$4,200s would tilt momentum positive again, while a break beneath $4,000 would open the door to a deeper test toward the **~$3,800** structural support.\n\n## Short-Term Outlook (1–4 Weeks): HOLD\n\nThe near-term setup argues for **patience, not action**. Gold is digesting a sharp prior rally, momentum is neutral, and the price sits in no-man's-land between clear support and resistance. Buying in the middle of a range offers a poor risk-to-reward trade. Existing holders have little reason to sell a market that is defending $4,000; new buyers are better served waiting for either a confirmed hold of support or a breakout above $4,330. **What would change our mind:** a decisive close below $4,000 (bearish) or above $4,330 (bullish).\n\n## Long-Term Outlook (3–12 Months): BUY\n\nThe bigger picture remains **constructive**. The forces that drove gold above $4,000 in the first place — steady central-bank accumulation, reserve diversification, geopolitical hedging, and the prospect of easier monetary policy and lower real yields — have not reversed. Within a durable uptrend, corrections toward well-defined support are typically **accumulation opportunities** rather than exit signals. Our preferred approach is to build exposure **gradually** (averaging in) rather than committing all at once, given elevated day-to-day volatility. **What would change our mind:** a sustained jump in real yields paired with a strong dollar breakout, or a weekly close below roughly $3,800, would signal the structural thesis is weakening and justify a downgrade to HOLD.\n\n## Risks to Watch\n\n- **Higher-for-longer rates.** If inflation proves sticky and the Fed keeps policy tight, rising real yields would be a headwind.\n- **Dollar strength.** A meaningful dollar rally usually pressures gold priced in USD.\n- **Positioning unwind.** After a strong run, crowded long positioning can amplify pullbacks if momentum funds head for the exits.\n- **Fading safe-haven premium.** If geopolitical tensions ease, some of the embedded risk premium could unwind quickly.\n\n**Bottom line:** Stand pat near-term while the market consolidates above $4,000, and use weakness as a chance to accumulate for the longer horizon — with clearly defined levels ($4,000 and ~$3,800 below, $4,332 above) to keep the plan disciplined.",
+  "analysisMarkdown": "## Market Overview\n\nGold is trading around **$4,122/oz**, essentially flat on the day (**-0.24%**) but down **4.84% over the past 30 days** from its early-June peak near **$4,332**. Price now sits roughly in the middle of the 30-day range of **$3,999–$4,332**. In plain terms: after a strong advance, gold is *catching its breath* rather than breaking down. Consolidations like this are normal and often healthy — they let an over-extended market reset before its next move.\n\nThe important context is that even after this pullback, gold remains at historically elevated levels. A ~5% dip from a record area is a shallow correction by gold's standards, and it has so far held well above the month's lows. That combination — a firm floor with a stalled ceiling — is the signature of a market in a *pause*, not a *reversal*.\n\n## Key Drivers\n\n**Central-bank demand (structural tailwind).** Official-sector buying continues to be the backbone of gold's multi-year bull case. Central banks resumed net buying in April, and central banks are buying more gold than expected, with purchases expected to increase further through 2026 according to Goldman Sachs. This steady, price-insensitive demand acts like a shock absorber on dips and is the single most important reason to stay constructive on the long-term horizon.\n\n**Investment/ETF flows (near-term headwind).** The speculative and investment side of the market has cooled. Gold ETF flows have shifted from a flood to a trickle. When ETF inflows fade, the marginal buyer that pushes price to new highs steps back — which helps explain why gold has drifted lower and range-bound over the last month. This is the main reason our short-term stance is HOLD rather than BUY.\n\n**Dollar and real yields.** Gold pays no interest, so it competes with the U.S. dollar and real (inflation-adjusted) bond yields. When the dollar strengthens or real yields rise, gold typically faces headwinds; when they ease, gold tends to shine. The recent softness is consistent with a market that has priced in a lot of good news and is now sensitive to any firmness in the dollar or yields. Investors should watch these two variables closely as the near-term swing factors.\n\n**Geopolitics and safe-haven demand.** Gold's role as portfolio insurance remains intact. Flare-ups in geopolitical or financial stress can trigger sharp, fast rallies — a key reason we would not be short gold even during this consolidation.\n\n## Technical Picture\n\n- **Range:** $3,999 (support) to $4,332 (resistance) over 30 days.\n- **Position:** Spot near $4,122 sits mid-range — no directional edge from price alone.\n- **Momentum:** The 30-day decline signals cooling momentum after the rally; the trend is now *neutral-to-consolidating* in the short term.\n- **Levels that matter:** A daily close above **$4,332** would signal the uptrend is resuming. A break and hold below **$3,999** would open the door to a deeper correction and shift the short-term bias to SELL.\n\nFor everyday investors, the practical takeaway is simple: **don't chase strength in the middle of a range.** Let the market tell you which way it wants to break, or accumulate on weakness toward the low-$4,000s where the risk/reward improves.\n\n## Short-Term Outlook (1–4 weeks): HOLD\n\nThe near-term setup is balanced. Fading ETF inflows and a ~5% pullback argue against aggressive buying at current levels, but firm central-bank demand and gold's safe-haven appeal argue against selling. That leaves **HOLD** as the disciplined call. Existing holders should stay the course; prospective buyers can wait for either a confirmed breakout or a dip into the **$4,000–$4,050** accumulation zone. *What would change this view:* a close above ~$4,332 (turn bullish) or a sustained break below ~$3,999 (turn bearish).\n\n## Long-Term Outlook (3–12 months): BUY\n\nThe multi-quarter case remains constructive. Persistent official-sector buying provides a durable demand floor, and the structural drivers behind gold ownership — diversification away from concentrated currency and sovereign risk — are not going away. We treat pullbacks as **buying opportunities** for patient, long-horizon investors, ideally scaling in rather than committing all capital at once. *What would change this view:* a clear pivot to central-bank net selling, a sharp and sustained rise in real yields, or a monthly close below ~$3,900.\n\n## Risks to Watch\n\n- **A stronger dollar or rising real yields** would pressure gold and could extend the pullback.\n- **A sharper drop in investment demand** (ETF outflows accelerating) would remove a key marginal buyer.\n- **A slowdown in central-bank purchases** would weaken the structural floor underpinning our long-term BUY.\n- **A rapid easing of geopolitical tensions** could reduce safe-haven demand.\n- **Two-sided volatility:** After a big run, both sharp shakeouts and fast rebounds are possible. Position sizing and patience matter more than precise timing.\n\n## Bottom Line\n\nGold is consolidating, not collapsing. Near term, patience is warranted — **HOLD** and buy dips rather than chase. Longer term, the demand backdrop keeps us constructive — **BUY** on weakness with a 3–12 month view.",
   "sources": [
     {
-      "title": "World Gold Council – Gold market data & research",
-      "url": "https://www.gold.org/goldhub"
+      "title": "Gold (XAU/USD) Price Forecast and Analysis — LiteFinance",
+      "url": "https://www.litefinance.org/blog/analysts-opinions/gold-price-prediction-forecast/daily-and-weekly/"
     },
     {
-      "title": "LBMA – Precious metals prices",
-      "url": "https://www.lbma.org.uk/prices-and-data"
+      "title": "Gold ETFs — Flows shift from flood to trickle | World Gold Council",
+      "url": "https://www.gold.org/goldhub/research/gold-etfs-holdings-and-flows/2026/06"
     },
     {
-      "title": "Reuters – Precious metals / gold coverage",
-      "url": "https://www.reuters.com/markets/commodities/"
+      "title": "Central bank gold statistics: Central banks resume net buying in April | World Gold Council",
+      "url": "https://www.gold.org/goldhub/gold-focus/2026/06/central-bank-gold-statistics-central-banks-resume-net-buying-april"
     },
     {
-      "title": "Kitco – Gold spot price and news",
-      "url": "https://www.kitco.com/price/precious-metals"
+      "title": "Central banks are buying more gold than expected, purchases to increase through 2026 – Goldman Sachs | Kitco News",
+      "url": "https://www.kitco.com/news/article/2026-05-19/central-banks-are-buying-more-gold-expected-and-purchases-will-increase"
+    },
+    {
+      "title": "Gold Price Predictions for 2026 and 2027 | J.P. Morgan Global Research",
+      "url": "https://www.jpmorgan.com/insights/global-research/commodities/gold-prices"
     }
   ]
 }
