@@ -56,3 +56,4 @@ jobs:
           add-paths: |
             src/content/outlook/current.json
           delete-branch: true
+          assignees: yassersalama22
