@@ -62,3 +62,4 @@ jobs:
           add-paths: |
             src/content/articles
           delete-branch: true
+          assignees: yassersalama22
