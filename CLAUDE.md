@@ -688,3 +688,49 @@ Match the current site's look and feel:
   - **Never done**: a real browser Lighthouse / axe run against production. Phase 1 verified colour
     contrast numerically (`scripts/check-contrast.mjs`), but keyboard + screen-reader passes and
     field Core Web Vitals remain unmeasured, on a project whose #1 goal is SEO/perf.
+    *(Done same day — see the audit entry below.)*
+- 2026-07-27: **First production Lighthouse + axe audit** (mobile emulation, Lighthouse 12 via
+  headless Chrome; axe-core 4.12 WCAG 2.0/2.1 A+AA + best-practice over 9 pages).
+  | page | Perf | A11y | BP | SEO | LCP | TBT |
+  |---|---|---|---|---|---|---|
+  | `/` | 42 | 96 | 82 | 100 | 5.4s | 2643ms |
+  | `/outlook` | 60 | 96 | 82 | 100 | 3.6s | 2493ms |
+  | `/trends` | **68** | 96 | **96** | 100 | 5.8s | **45ms** |
+  | `/calculator` | 39 | 96 | 82 | 100 | 6.0s | 2014ms |
+  | `/insights` | 41 | 96 | 82 | 100 | 6.3s | 2288ms |
+  | `/insights/[slug]` | 38 | 96 | 82 | 100 | 6.7s | 2320ms |
+  | `/about` | 52 | 96 | 82 | 100 | 6.1s | 590ms |
+  - **SEO 100 and CLS 0 everywhere** — the Phase 0–6 SEO work holds up. Accessibility is 96 on
+    every page, and axe found exactly **one** violation type site-wide (below). The performance
+    scores are the story, and **the dominant cause is not our code**.
+  - **① Cloudflare Bot Fight Mode / JS Detections is the main perf problem.** Cloudflare injects
+    `/cdn-cgi/challenge-platform/scripts/jsd/main.js` into HTML responses; it burns **4.5–5.3s of
+    main-thread scripting** under mobile CPU throttling, which *is* the ~2–2.6s TBT and most of
+    LCP's render delay (home: 4.66s of the 5.4s LCP was render delay, not network). The proof is
+    `/trends`, the one page where the script didn't run: TBT **45ms** vs ~2300ms and Best Practices
+    96 vs 82 (the 3 deprecation warnings — `SharedStorage`, `StorageType.persistent`, `Fledge` —
+    all come from that script too). It is a **dashboard toggle**, not a code change: Cloudflare →
+    Security → Bots → Bot Fight Mode off (or JS Detections off). Turnstile already protects the
+    only write endpoint, so the crude free-tier bot filter is buying little here.
+  - **② Cloudflare is not caching HTML at all** — every page returns `cf-cache-status: DYNAMIC`
+    despite the app sending `s-maxage` (e.g. `/outlook`: `s-maxage=1800, swr=31534200`).
+    Cloudflare's default rules never cache HTML; it needs an explicit **Cache Rule** ("Eligible for
+    cache" + respect origin TTL). Consequence: every view is a full round trip to a single
+    t4g.micro in us-east-1 → ~620–760ms TTFB, even though origin *processing* is only **43ms**.
+    Fixing this is the biggest remaining win after ①, and it also cuts load on the box.
+  - **③ A11y: the logo wordmark fails contrast** — the only axe violation, on **all 9 pages**
+    (serious, WCAG 1.4.3). `logo.tsx:27` and `mobile-nav.tsx:36` render `<span className="text-gold">`
+    for "Compass": **2.48:1** in the header, **2.39:1** in the footer, needs 4.5:1. This is exactly
+    the trap the Phase 1 entry warned about ("never use `text-gold` for small text on light bg —
+    use `text-gold-strong`"); the rule was recorded but the Logo component was never converted.
+  - **④ Hydration mismatch on `/trends`** (React error #418 in the console): `price-ticker.tsx:14`
+    builds `Intl.DateTimeFormat` with `timeZoneName: "short"` but **no `timeZone`**, so the server
+    (container = UTC) and the browser (viewer's zone) render different text for "As of …". React
+    throws away that SSR subtree and re-renders on the client. Fix by pinning a `timeZone`, or by
+    rendering the timestamp after mount / `suppressHydrationWarning`.
+  - **⑤ Minor**: no `preconnect` to `challenges.cloudflare.com` + `static.cloudflareinsights.com`
+    (~420ms est.); 14KB legacy JS transpiled for old browsers; 28KB (40%) of the main app chunk
+    unused on first load. All small next to ① and ②. Our own JS is genuinely lean — the 821KB page
+    weight is mostly third-party (JSD + Turnstile + beacon).
+  - **Method note**: article slugs include the date prefix (`/insights/2026-07-27-why-fed-…`);
+    a slug-only URL 404s, which silently scores a Lighthouse run as 0 across all categories.
