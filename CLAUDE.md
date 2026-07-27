@@ -752,3 +752,30 @@ Match the current site's look and feel:
       browser-local, tester in `Africa/Cairo`): SSR emits `As of 12:22 PM UTC`, the client shows
       `3:22 PM GMT+3`, and **zero React hydration errors** in the console (was error #418).
       `next build` ✓, `eslint` ✓, `tsc --noEmit` ✓.
+- 2026-07-27: **Edge caching enabled (audit items ① + ②).** Bot Fight Mode turned off and
+  Cloudflare Cache Rules added for public HTML — HTML now returns `cf-cache-status: MISS/HIT`
+  instead of `DYNAMIC`, with a 120s browser-TTL override so a purge reaches repeat visitors.
+  - **⚠ `Vary` is ignored by Cloudflare (except `Accept-Encoding`).** Next serves two different
+    bodies at one URL — the HTML document, and the RSC flight payload when the client router
+    prefetches/navigates (`RSC: 1` request header, `content-type: text/x-component`) — and
+    advertises that via `Vary: RSC`. Cloudflare does not honour it, so **whichever body is fetched
+    first is cached and served to everyone**. A Cache Rule bypassing
+    `any(http.request.headers["rsc"][*] eq "1")` is what keeps them apart.
+    **Status: not working yet** — `curl -H "RSC: 1" https://goldcompass.app/` returns
+    `cf-cache-status: HIT` with `content-type: text/html`, i.e. the flight request is being served
+    the cached document. Harmless-ish today (the router falls back to a full navigation), but the
+    reverse race — a prefetch populating the cache first — serves raw flight text to real
+    visitors. **Re-check this rule.**
+  - **⚠ JavaScript Detections is a separate toggle from Bot Fight Mode.** The JSD script is still
+    injected: a cache-busted URL (guaranteed origin fetch) still contains
+    `challenge-platform/scripts/jsd/main.js`, so this is not a stale cached copy. Turn off
+    **Security → Bots → JavaScript Detections** as well, then purge once — the JSD script is
+    injected at the edge *before* the response is stored, so cached copies keep serving it.
+  - **No purge-on-deploy, by decision** (user, 2026-07-27) — purging is manual via the dashboard.
+    **Consequence + rule**: with the edge now honouring origin TTLs, any page that renders
+    pipeline-generated content **must carry its own `revalidate`**, because nothing flushes the
+    edge on merge. Fully static pages emit `s-maxage=31536000` (a **year**).
+  - **Fix applied**: `src/app/page.tsx` had no `revalidate` while rendering the current outlook +
+    3 latest articles → it would have gone stale at the edge for up to a year. Now
+    `export const revalidate = 1800` (build output: `/` Revalidate 30m, was blank). Matches
+    `/outlook`. `next build` ✓, `eslint` ✓.

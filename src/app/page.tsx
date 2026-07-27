@@ -12,6 +12,12 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
+// This page renders the current outlook and the three latest articles, so it has
+// to age like they do. Without this it prerenders fully static and emits
+// `s-maxage=31536000`, which Cloudflare now honours — a merged outlook PR would
+// stay invisible at the edge for a year unless someone purged by hand.
+export const revalidate = 1800;
+
 export default function HomePage() {
   return (
     <>
