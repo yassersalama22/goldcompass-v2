@@ -80,6 +80,18 @@ The rewrite must be **fully independent** (no Lovable lock-in) and is being buil
 - **Static where possible**: articles, about, outlook pages should be statically generated and
   revalidated on a schedule (ISR) rather than rendered per-request.
 - **Progressive enhancement**: core content readable without JS; interactivity layers on top.
+- **Forward the visitor's IP to third-party services** — **RULE.** Production is a *single* EC2
+  box behind one Elastic IP, fronted by Cloudflare. Every server-side outbound call therefore
+  originates from that one address, so any upstream doing per-IP abuse scoring or rate limiting
+  sees **all** our users as one client. Left unhandled this fails closed and *all at once* —
+  one flagged IP blocks every user, not a subset. So: whenever an upstream accepts a client-IP
+  field, pass the real visitor IP through the data-access layer (`getClientIp(request)` in
+  `src/server/rate-limit.ts`, which prefers `CF-Connecting-IP` → `X-Forwarded-For`). Omit the
+  field when the IP is unknown rather than sending a placeholder. Precedent:
+  `NewsletterProvider.subscribe(email, { ip })` → Buttondown `ip_address`.
+  Corollary: never "fix" an upstream IP block by allowlisting the Elastic IP — that disables the
+  upstream's abuse filter for the entire site. Our own defenses (rate limit, honeypot, Turnstile)
+  are per-visitor and must carry that load instead.
 
 ## 5. Branding & visual identity
 
@@ -565,3 +577,51 @@ Match the current site's look and feel:
     import); ② Cloudflare dash → Analytics → Web Analytics → add site (manual install) → put the
     token in repo **variable** `NEXT_PUBLIC_CF_BEACON_TOKEN`; ③ Buttondown account +
     `BUTTONDOWN_API_KEY` in box `.env` (subscribe is still inert); ④ push/redeploy to bake ①–②.
+- 2026-07-27: **Newsletter live.** Buttondown account created; subscribe works end-to-end in
+  production (double opt-in confirmed). Closes the Phase 6 "subscribe is inert" TODO.
+  - **New §4 rule: forward the visitor's IP to third-party services.** Prod is one EC2 box behind
+    one Elastic IP, so upstreams doing per-IP abuse scoring see every user as one client — and a
+    flag blocks *everyone* simultaneously. `NewsletterProvider.subscribe()` now takes
+    `meta.ip` (from `getClientIp(request)`, Cloudflare-aware) → Buttondown `ip_address`, omitted
+    when unknown. Verified against the live API that create accepts + stores it.
+  - **Buttondown firewall**: blocks by source IP (`subscriber_blocked`), silently — a blocked
+    signup creates **no** subscriber record. Hit during local testing (dev IP flagged after
+    repeated API calls); fixed by allowlisting in the Buttondown dashboard. Do **not** allowlist
+    the Elastic IP as a fix — see the §4 corollary.
+  - **`buttondown.ts` hardening**: error handling now matches Buttondown's structured `code`
+    (`email_already_exists`) instead of substring-matching the body. The old
+    `/already|exists|subscribed/i` regex was one letter from reading `subscriber_blocked` as an
+    already-subscribed **success** — i.e. telling users they were subscribed when they were
+    rejected. Non-2xx responses now log status + code + body server-side (the route returns a
+    generic message, so that log is the only diagnostic).
+  - **`turnstileToken` fix**: the client sends `null` when Turnstile is unconfigured, but the zod
+    schema was `.optional()` (accepts `undefined`, not `null`) → every submit failed the whole
+    payload and returned "Please enter a valid email address". Now `.nullable().optional()`, with
+    `?? undefined` at the `verifyTurnstile` call. Not a security change: `verifyTurnstile` already
+    returns `true` when `TURNSTILE_SECRET_KEY` is unset and treats any falsy token as a failure
+    when it is set.
+  - **`/subscribed` page** (`src/app/subscribed/page.tsx`, static): the newsletter provider's
+    "after confirming" redirect target — confirmation + "Start here" cards into
+    outlook/trends/calculator/insights + disclaimer. `robots: noindex, follow` and deliberately
+    **not** in `sitemap.ts` (thin page, no search intent; the allowlist in `sitemap.ts` excludes
+    it automatically). Set Buttondown → Settings → Subscribing → "After confirming" to
+    `https://goldcompass.app/subscribed`. Note it cannot verify the visitor actually confirmed —
+    it's just a redirect target with no token, and the URL is guessable.
+  - **⚠ Deploy traps (cost real debugging time — read before touching box `.env`):**
+    ① Compose `env_file:` does **not** strip quotes. `KEY="abc"` sends the quote characters as
+    part of the value → upstream 401. Write values bare: no quotes, no spaces around `=`, no
+    trailing whitespace/CRLF. Inspect with `grep KEY /opt/goldcompass/.env | cat -A`.
+    ② `docker compose restart` does **not** re-read `env_file` — it restarts the process with the
+    container's existing env. Use `docker compose up -d` to recreate after any `.env` edit.
+    ③ Failure-mode tell: a **missing** `BUTTONDOWN_API_KEY` falls back to the inert provider and
+    returns **200**; a **present-but-invalid** one returns **502**. So 502 means the key is
+    reaching the container and is wrong — not absent.
+  - **Buttondown free tier**: custom transactional/confirmation email templates are **Standard
+    plan or higher**. A branded confirmation-email HTML template (design-system colors as hex,
+    table layout, no SVG — email clients strip it) was drafted but is unusable on free. Checked
+    alternatives: MailerLite gates DOI editing behind paid too (and cut its free tier to 250
+    subs / 2,500 emails per month on 2026-07-01); **Brevo** free does allow custom DOI templates
+    (300 emails/day, unlimited contacts) if this is ever worth switching for. The free
+    "after confirming" redirect to `/subscribed` was chosen instead — same brand payoff, own site.
+  - **Still open**: Turnstile remains inert (both keys unset) → subscribe is defended only by the
+    in-memory rate limit + honeypot. Enable it before the list is worth attacking.
