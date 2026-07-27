@@ -766,11 +766,25 @@ Match the current site's look and feel:
     the cached document. Harmless-ish today (the router falls back to a full navigation), but the
     reverse race — a prefetch populating the cache first — serves raw flight text to real
     visitors. **Re-check this rule.**
-  - **⚠ JavaScript Detections is a separate toggle from Bot Fight Mode.** The JSD script is still
-    injected: a cache-busted URL (guaranteed origin fetch) still contains
-    `challenge-platform/scripts/jsd/main.js`, so this is not a stale cached copy. Turn off
-    **Security → Bots → JavaScript Detections** as well, then purge once — the JSD script is
-    injected at the edge *before* the response is stored, so cached copies keep serving it.
+  - **⚠ JS Detections cannot be turned off on the Free plan — not by the dashboard, and turning
+    off Bot Fight Mode does not stop it.** Established the hard way, after two wrong guesses:
+    ✗ "JSD is a separate dashboard toggle" — it is, but **only** for Super Bot Fight Mode
+      (Pro/Business) and Enterprise Bot Management. Free has no such control.
+    ✗ "JSD injecting proves BFM is still on" — **false**. Enabling BFM enables JSD, but
+      *disabling BFM does not disable JSD*. Confirmed on this zone: the Bot fight mode card shows
+      the toggle **off** with `Configurations → JS Detections: On` as read-only text beneath it,
+      and a cache-busted fetch still returns the edge-injected
+      `window.__CF$cv$params={…}; a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js'`.
+    The API field is `enable_js` (`PUT /zones/{zone_id}/bot_management`), but community reports
+    say Free zones reject or ignore it ("on free zones JSD is always on"). Worth one attempt;
+    don't expect it to stick.
+    **Consequence**: ~4.6s of throttled main-thread scripting stays on every HTML page, holding
+    lab Performance in the 40s. Remember this is **Lighthouse lab data under 4× CPU throttling** —
+    the SEO-relevant signal is field CrUX (Search Console → Core Web Vitals), where async-injected
+    JSD costs less. Judge the real impact there before paying to escape it.
+    **Escape routes, in order**: (1) try `enable_js: false` via API; (2) accept it and watch field
+    CWV; (3) Pro plan, where SBFM exposes the toggle. Dashboard path for the BFM toggle itself
+    (the UI moved; `Security → Bots` is legacy): **Security Settings** → filter **Bot traffic**.
   - **No purge-on-deploy, by decision** (user, 2026-07-27) — purging is manual via the dashboard.
     **Consequence + rule**: with the edge now honouring origin TTLs, any page that renders
     pipeline-generated content **must carry its own `revalidate`**, because nothing flushes the
@@ -779,3 +793,29 @@ Match the current site's look and feel:
     3 latest articles → it would have gone stale at the edge for up to a year. Now
     `export const revalidate = 1800` (build output: `/` Revalidate 30m, was blank). Matches
     `/outlook`. `next build` ✓, `eslint` ✓.
+  - **🔥 Cache Rules do NOT stop at the first match** — unlike WAF rules, every matching rule in
+    the phase is evaluated **in order and later rules override earlier ones**. A "Bypass RSC"
+    rule at position 1 was therefore *overridden* by "Cache public pages" at position 3, because
+    an RSC request to `/` matches both. Result, observed in production: the RSC request came back
+    `MISS` (not `BYPASS`), so the **flight payload was stored under the `/` cache key** and real
+    browsers — correct UA, `Accept: text/html` — were served
+    `content-type: text/x-component` with a body starting `1:"$Sreact.fragment"` and **no
+    `<!DOCTYPE html>`**. The home page was effectively broken at that PoP.
+    **Fix**: the negation must live *inside* the caching rule, not in a separate earlier rule —
+    append `and not any(http.request.headers["rsc"][*] eq "1")` to the "Cache public pages"
+    expression so the two rules can never both match. Then purge (fixing after a purge just
+    re-poisons). Verified after the fix: an RSC-first request to a fresh URL returns `DYNAMIC`
+    (not stored) and a subsequent normal GET on that same URL returns `text/html` + doctype.
+  - **Residual, accepted**: an RSC request to an already-cached URL is still served the cached
+    HTML (`HIT`, `text/html`) rather than a flight payload, so client-side soft navigation falls
+    back to a full page load. Verified in a real browser that navigation still works (home → click
+    Outlook → correct `<h1>`, no React errors). Separating the two bodies properly would need the
+    `RSC` header in the **cache key**, which is not available on this plan.
+  - **Measured after enabling caching**: root-document `server-response-time` **620ms → 90ms**.
+    Performance is still 41–47 because the JSD script is still injecting (4,637ms of scripting) —
+    i.e. Bot Fight Mode is still enabled somewhere in the reorganised dashboard (see above:
+    on Free, JSD cannot be disabled separately, so its presence *is* the BFM indicator).
+    **Accessibility is now 100** on `/` and `/outlook` (was 96) — the contrast fix is deployed.
+    Hydration fix confirmed live: `/trends` SSRs `As of 12:57 PM UTC` and the browser reports
+    **0 React hydration errors** (was #418). The remaining console noise
+    (`%c%d font-size:0;color:transparent NaN`) comes from the Cloudflare JSD script, not our code.
