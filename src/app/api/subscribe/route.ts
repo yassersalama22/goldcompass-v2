@@ -20,7 +20,7 @@ const subscribeSchema = z.object({
   source: z.string().max(60).optional(),
   // Cloudflare Turnstile token from the form widget. Enforced server-side only
   // when TURNSTILE_SECRET_KEY is configured (see verifyTurnstile).
-  turnstileToken: z.string().max(2048).optional(),
+  turnstileToken: z.string().max(2048).nullable().optional(),
 });
 
 export async function POST(request: Request) {
@@ -56,7 +56,7 @@ export async function POST(request: Request) {
   // Cloudflare Turnstile: proves the request came from the real form widget,
   // not a script hitting this endpoint directly. Inert when unconfigured.
   const humanVerified = await verifyTurnstile(
-    parsed.data.turnstileToken,
+    parsed.data.turnstileToken ?? undefined,
     getClientIp(request),
   );
   if (!humanVerified) {

@@ -34,16 +34,32 @@ export function createButtondownProvider(apiKey: string): NewsletterProvider {
           return { ok: true, status: "subscribed" };
         }
 
-        // Buttondown returns 400 with a code when the email already exists.
+        // Buttondown signals failures with a structured `code`. Match on that
+        // rather than substring-matching the raw body: "subscriber_blocked"
+        // (firewall) contains "subscriber", which a loose /subscribed/ test
+        // very nearly treats as an already-subscribed success.
         const body = await res.text();
-        if (res.status === 400 && /already|exists|subscribed/i.test(body)) {
+        let code: string | undefined;
+        try {
+          code = (JSON.parse(body) as { code?: string }).code;
+        } catch {
+          // Non-JSON body (proxy error page) — fall through to provider_error.
+        }
+
+        if (code === "email_already_exists") {
           return { ok: true, status: "already_subscribed" };
         }
+
+        // Surface the real reason server-side; the route returns a generic
+        // message to the client, so this log is the only diagnostic there is.
+        console.error(
+          `[newsletter] Buttondown ${res.status}${code ? ` ${code}` : ""}: ${body.slice(0, 300)}`,
+        );
 
         return {
           ok: false,
           error: "provider_error",
-          message: `Buttondown responded ${res.status}`,
+          message: `Buttondown responded ${res.status}${code ? ` (${code})` : ""}`,
         };
       } catch (err) {
         return {
