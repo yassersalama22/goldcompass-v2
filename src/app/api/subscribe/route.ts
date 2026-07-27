@@ -69,6 +69,7 @@ export async function POST(request: Request) {
   const provider = getNewsletterProvider();
   const result = await provider.subscribe(parsed.data.email, {
     source: parsed.data.source ?? "website",
+    ip: getClientIp(request),
   });
 
   if (!result.ok) {

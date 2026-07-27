@@ -23,6 +23,11 @@ export function createButtondownProvider(apiKey: string): NewsletterProvider {
             email_address: email,
             tags: ["goldcompass-web"],
             metadata: meta?.source ? { source: meta.source } : undefined,
+            // Attribute the signup to the visitor. Omitted (rather than sent as
+            // a placeholder) when unknown, so Buttondown falls back to the
+            // request IP instead of scoring a bogus address.
+            ip_address:
+              meta?.ip && meta.ip !== "unknown" ? meta.ip : undefined,
           }),
           // Fail fast if Buttondown hangs — otherwise the whole /api/subscribe
           // request stalls until the proxy (Cloudflare 524) kills it with an

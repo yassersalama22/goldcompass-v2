@@ -13,6 +13,13 @@ export interface NewsletterProvider {
   /**
    * Subscribe an email. `email` is already validated by the caller.
    * Should never throw — return a `provider_error` result instead.
+   *
+   * `meta.ip` is the *visitor's* IP, not the server's. Without it the provider
+   * sees every signup coming from our single origin IP, which its abuse
+   * heuristics will eventually flag — blocking all subscribes at once.
    */
-  subscribe(email: string, meta?: { source?: string }): Promise<SubscribeResult>;
+  subscribe(
+    email: string,
+    meta?: { source?: string; ip?: string },
+  ): Promise<SubscribeResult>;
 }
