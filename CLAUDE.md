@@ -625,3 +625,66 @@ Match the current site's look and feel:
     "after confirming" redirect to `/subscribed` was chosen instead — same brand payoff, own site.
   - **Still open**: Turnstile remains inert (both keys unset) → subscribe is defended only by the
     in-memory rate limit + honeypot. Enable it before the list is worth attacking.
+    *(Closed same day — see the ops entry below.)*
+- 2026-07-27: **Ops catch-up + origin lockdown.** Records the July operational changes that landed
+  between the Phase 7 audit and now, and closes the last open item from that audit.
+  - **EC2 origin locked to Cloudflare** (closes the 2026-07-01 audit item). The security group no
+    longer accepts 80/443 from `0.0.0.0/0` — only Cloudflare's published ranges. This matters
+    beyond "less exposed surface": `getClientIp()` trusts `CF-Connecting-IP` / `X-Forwarded-For`,
+    which **any** direct caller could forge to defeat the per-IP rate limit and to poison the
+    `ip_address` we forward to Buttondown (§4). With the origin reachable only via Cloudflare,
+    those headers are edge-set and trustworthy, and Cloudflare rules (WAF, bot rules) can't be
+    bypassed by hitting the Elastic IP directly.
+  - **Script: `deploy/whitelist-cloudflare-ips.sh`** — **idempotent reconciler**. Fetches
+    `cloudflare.com/ips-v4` + `ips-v6`, diffs them against the group's current ingress rules, then
+    adds what's missing and revokes what is no longer a Cloudflare range. Run with no args it
+    prints a **plan and changes nothing**; `--apply` executes. `SG_ID` / `AWS_REGION` default to
+    prod and are env-overridable. Design notes:
+    - Manages **only** rules whose port range is exactly `80-80` or `443-443`. SSH (22) is
+      untouched. A rule that exposes a managed port some *other* way (a wide `0-65535` range,
+      protocol `-1`) is **warned about, not revoked** — that's either deliberate or a mistake
+      that deserves a human, and it's also the one shape that would silently defeat the lockdown.
+    - Refuses to reconcile if the fetched list looks implausible (<5 IPv4 / <3 IPv6 ranges), so a
+      truncated or hijacked response can't revoke the whole allowlist and black-hole the origin.
+    - Source-SG and prefix-list rules (no CIDR) are skipped; revokes go by rule ID, not by
+      re-specifying the permission.
+  - **⚠ It cannot run as-is with the current AWS credentials**: IAM user `yasser.salama` has
+    **no EC2 read permissions** (`ec2:DescribeSecurityGroupRules` *and* `ec2:DescribeSecurityGroups`
+    both `UnauthorizedOperation`) — which is why the original add-only version worked, it only ever
+    called `authorize`. Reconciling needs to read current state, so **grant
+    `ec2:DescribeSecurityGroupRules`** (EC2 `Describe*` only supports `Resource: "*"`; it's
+    read-only and grants no mutation ability). Until then the script exits 1 with that hint and
+    changes nothing. Verified end-to-end against stubbed `aws`/`curl` fixtures: keeps in-sync
+    rules, revokes stale ones, skips SSH + prefix-list rules, warns on overlapping wide rules,
+    handles CRLF/blank lines in the IPv6 list, and emits correct IPv4 vs IPv6 shorthand.
+    Minimal policy to attach: `deploy/iam-cloudflare-sg-policy.json` (Describe on `*`,
+    authorize/revoke scoped to the one SG ARN).
+  - **Run it from a workstation, not the EC2 box** (decided). The box has no instance profile
+    (`aws` there → "Unable to locate credentials") and should keep it that way: a role that can
+    edit its own security group turns any RCE/SSRF on the public-facing app into "attacker opens
+    22 to the world" (SSRF→IMDS is the classic path). It's also not a deploy-time task —
+    Cloudflare's ranges change ~annually — and if the rules are ever wrong the box is unreachable,
+    so the fix has to come from outside. If it ever *must* run on an instance: attach a role with
+    the scoped policy above and set IMDSv2 required with `--http-put-response-hop-limit 1`, which
+    keeps Docker containers (the app) from reaching IMDS at all.
+    **Placement convention**: operational/infra scripts live in `deploy/` (with the Caddyfile and
+    compose file); `scripts/` is the app content pipeline (tsx/mjs, run via npm); `support_files/`
+    is **archived reference material** from the old Lovable/Aureus engine — not a code location.
+  - **Generation pipelines are live in production.** `ANTHROPIC_API_KEY` is set as a repo secret;
+    the daily-outlook `cron` (06:00 UTC) is **enabled** (commit `3c8271b`) and has been opening +
+    merging real PRs most days since ~2026-07-05 — closes the Phase 3.5 / Phase 7 "enable the cron
+    after a real run review" TODOs. Both workflows now auto-assign the PR to the repo owner.
+    The **articles** workflow is still `workflow_dispatch`-only (3-day cron still commented out);
+    it has been run manually ~4 times in July, so `src/content/articles/` now holds 3 editorial
+    seeds + 4 generated pieces.
+  - **Turnstile is fully enabled** (both keys set: site key baked in at build via the Docker
+    build-arg, `TURNSTILE_SECRET_KEY` in the box `.env`) → `POST /api/subscribe` now genuinely
+    403s a missing/invalid token. Supersedes the "still open / inert" note in the entry above.
+  - **Fetch timeouts** (commit `71e4d7c`): Buttondown and Turnstile calls now use an abort timeout.
+    Without one, a hung upstream would pin a request on the single-container box until Node's
+    default socket timeout — a cheap self-DoS on a 1GB instance.
+  - **Still open from the 2026-07-01 audit**: `npm audit` is not wired into CI (only remaining
+    item — the loose `EC2_SSH_*.secret` private key is no longer in the working tree).
+  - **Never done**: a real browser Lighthouse / axe run against production. Phase 1 verified colour
+    contrast numerically (`scripts/check-contrast.mjs`), but keyboard + screen-reader passes and
+    field Core Web Vitals remain unmeasured, on a project whose #1 goal is SEO/perf.
