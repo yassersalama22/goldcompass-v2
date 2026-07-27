@@ -734,3 +734,21 @@ Match the current site's look and feel:
     weight is mostly third-party (JSD + Turnstile + beacon).
   - **Method note**: article slugs include the date prefix (`/insights/2026-07-27-why-fed-…`);
     a slug-only URL 404s, which silently scores a Lighthouse run as 0 across all categories.
+  - **③ + ④ fixed (code, in this session)** — ① and ② are Cloudflare dashboard changes, still open.
+    - **Contrast**: the wordmark now uses `text-gold-strong` in `logo.tsx` + `mobile-nav.tsx`.
+      The compass SVG keeps bright `text-gold` — it's `aria-hidden` decoration, not text.
+      Re-verified with axe against a local production build: **0 violations** on `/`, `/trends`,
+      `/insights`, `/about` (was 2 serious nodes on every page).
+    - **Hydration**: `price-ticker.tsx` renders the "As of" time in **UTC for SSR + the hydrating
+      render, then local time once mounted**, gated by `useSyncExternalStore(subscribeNoop,
+      () => true, () => false)`. Note the obvious `useState(false)` + `useEffect(setMounted)`
+      version **fails lint** (`react-hooks/set-state-in-effect`) — `useSyncExternalStore` is the
+      hydration-safe API and needs no effect.
+    - Also pinned `formatShortDate` (`src/lib/format.ts`) to `timeZone: "UTC"` — same latent bug
+      class in the SSR'd chart axis + `sr-only` table, where a point near midnight would label
+      differently on server vs client. Upstream keys daily points by UTC day, so UTC is also the
+      more correct label.
+    - Verified by running the production build with `TZ=UTC` (reproducing container-UTC vs
+      browser-local, tester in `Africa/Cairo`): SSR emits `As of 12:22 PM UTC`, the client shows
+      `3:22 PM GMT+3`, and **zero React hydration errors** in the console (was error #418).
+      `next build` ✓, `eslint` ✓, `tsc --noEmit` ✓.

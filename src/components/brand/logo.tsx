@@ -22,9 +22,11 @@ export function Logo({
         className,
       )}
     >
+      {/* The mark is decorative (aria-hidden) so it keeps the bright brand gold;
+          the wordmark is text and must clear 4.5:1 — see the Phase 1 contrast note. */}
       <CompassMark className="text-gold size-7 shrink-0 transition-transform group-hover:rotate-45" />
       <span>
-        Gold<span className="text-gold">Compass</span>
+        Gold<span className="text-gold-strong">Compass</span>
       </span>
     </Link>
   );

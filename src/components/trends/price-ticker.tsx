@@ -11,11 +11,26 @@ type Status = "live" | "delayed" | "error";
 
 const POLL_MS = 60_000;
 
-const timeFmt = new Intl.DateTimeFormat("en-US", {
+// The server container runs UTC while the visitor's browser formats in their own
+// zone, so a single formatter renders different text on each side and React bails
+// out of hydrating this subtree (error #418). Render UTC for the first paint —
+// which is what the server emitted — then switch to local time once mounted.
+const utcTimeFmt = new Intl.DateTimeFormat("en-US", {
+  hour: "numeric",
+  minute: "2-digit",
+  timeZoneName: "short",
+  timeZone: "UTC",
+});
+
+const localTimeFmt = new Intl.DateTimeFormat("en-US", {
   hour: "numeric",
   minute: "2-digit",
   timeZoneName: "short",
 });
+
+// The "external store" here never changes; only the server/client snapshot split
+// matters, which is what makes this hydration-safe without a setState effect.
+const subscribeNoop = () => () => {};
 
 export function PriceTicker({
   initialQuote,
@@ -28,6 +43,8 @@ export function PriceTicker({
   const [status, setStatus] = React.useState<Status>(
     initialQuote ? (initialStale ? "delayed" : "live") : "error",
   );
+  // false during SSR and the hydrating render, true afterwards.
+  const mounted = React.useSyncExternalStore(subscribeNoop, () => true, () => false);
 
   React.useEffect(() => {
     let cancelled = false;
@@ -116,7 +133,8 @@ export function PriceTicker({
       </div>
 
       <p className="text-muted-foreground text-xs">
-        As of {timeFmt.format(new Date(quote.asOf))} · {quote.source}
+        As of {(mounted ? localTimeFmt : utcTimeFmt).format(new Date(quote.asOf))} ·{" "}
+        {quote.source}
       </p>
     </div>
   );

@@ -33,7 +33,7 @@ export function MobileNav() {
       <SheetContent side="right" className="w-72">
         <SheetHeader>
           <SheetTitle>
-            Gold<span className="text-gold">Compass</span>
+            Gold<span className="text-gold-strong">Compass</span>
           </SheetTitle>
         </SheetHeader>
         <nav aria-label="Mobile" className="flex flex-col gap-1 px-4 pb-6">
