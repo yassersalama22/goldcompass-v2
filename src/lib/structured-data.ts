@@ -86,6 +86,34 @@ export function aboutPageSchema() {
   };
 }
 
+/**
+ * schema.org WebPage for /methodology. Declaring the publisher and the pages
+ * it describes is an E-E-A-T signal for YMYL content: it tells search engines
+ * this is the documented process behind our market calls.
+ */
+export function methodologyPageSchema() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: `Methodology — how ${siteConfig.name} works`,
+    url: `${siteConfig.url}/methodology`,
+    description:
+      "How GoldCompass produces its gold-market outlook: data sources, AI drafting with human review, what the signals mean, and known limitations.",
+    isPartOf: { "@type": "WebSite", name: siteConfig.name, url: siteConfig.url },
+    publisher: {
+      "@type": "Organization",
+      name: siteConfig.name,
+      url: siteConfig.url,
+      logo: { "@type": "ImageObject", url: `${siteConfig.url}/icon.svg` },
+    },
+    about: [
+      { "@type": "WebPage", url: `${siteConfig.url}/outlook` },
+      { "@type": "WebPage", url: `${siteConfig.url}/insights` },
+      { "@type": "WebPage", url: `${siteConfig.url}/calculator` },
+    ],
+  };
+}
+
 /** schema.org FAQPage for the gold calculator page. */
 export function calculatorFaqSchema() {
   return {
