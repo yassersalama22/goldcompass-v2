@@ -342,8 +342,8 @@ export default function MethodologyPage() {
                 your goals, and nothing here is tailored to them.
               </p>
               <p>
-                If you spot an error, we would genuinely like to know. Corrections are made to the
-                published page and the update timestamp reflects the change.
+                Every outlook and article carries the date it was last updated, so you can always
+                judge how current a view is before you rely on it.
               </p>
             </div>
           </section>
