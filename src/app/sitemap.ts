@@ -3,7 +3,16 @@ import type { MetadataRoute } from "next";
 import { siteConfig } from "@/config/site";
 import { getAllArticles } from "@/server/articles";
 
-const routes = ["", "/outlook", "/trends", "/insights", "/calculator", "/about", "/disclaimer"];
+const routes = [
+  "",
+  "/outlook",
+  "/trends",
+  "/insights",
+  "/calculator",
+  "/about",
+  "/methodology",
+  "/disclaimer",
+];
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const staticEntries: MetadataRoute.Sitemap = routes.map((route) => ({

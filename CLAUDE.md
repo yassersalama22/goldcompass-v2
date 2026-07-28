@@ -819,3 +819,46 @@ Match the current site's look and feel:
     Hydration fix confirmed live: `/trends` SSRs `As of 12:57 PM UTC` and the browser reports
     **0 React hydration errors** (was #418). The remaining console noise
     (`%c%d font-size:0;color:transparent NaN`) comes from the Cloudflare JSD script, not our code.
+- 2026-07-28: **Audit follow-ups + `/methodology`.** Branch `chore/security-audit-ci` (3 commits,
+  not yet merged — merging main triggers the deploy pipeline).
+  - **Decided to stop chasing the JSD perf item** (audit ① ): it only moves *lab* numbers, cannot
+    be disabled on Free, and field CrUX is the SEO-relevant signal. Search Console is set up and
+    verified by DNS TXT. Articles cron stays **manual** by preference — topics are chosen against
+    current affairs. IAM grant for the SG reconciler (audit ④) deferred.
+  - **RSC cache rule now verified working** (was flagged "re-check this" on 2026-07-27):
+    `curl -H "RSC: 1" /` → `text/x-component` + `cf-cache-status: DYNAMIC`, and normal GETs return
+    cached HTML. The `and not any(http.request.headers["rsc"][*] eq "1")` fix held.
+  - **`npm audit` wired into CI** — `.github/workflows/security-audit.yml`. Weekly Monday cron +
+    PRs touching `package*.json` + manual. **Deliberately separate from `deploy.yml`** so a new
+    CVE can't block a hotfix. The weekly cron is the real trigger: deps change rarely here (bot
+    PRs only touch `src/content`), so a PR-only trigger would idle for months.
+    Closes the last open item from the 2026-07-01 audit.
+  - **Wiring it up surfaced 10 advisories (7 high); all production ones fixed** rather than
+    landing a red gate: `npm audit fix` cleared the shadcn CLI tree; **next 16.2.9 → 16.2.12**
+    (patch) closed 9 Next advisories; next *vendors* `postcss@8.4.31` + optional `sharp@^0.34.5`
+    with no in-range fix (npm proposed downgrading to next@9 — ignore that), so both are pinned
+    forward via **`overrides`** in `package.json`. Low risk *here specifically*: **nothing in
+    `src/` imports `next/image`**, so sharp is unreferenced, and Tailwind already resolved
+    `postcss@8.5.24` in the same tree. Production tree: **0 vulnerabilities**.
+  - **Gate is `--omit=dev --audit-level=high`.** The 9 remaining dev-only highs are all a ReDoS in
+    `brace-expansion` reachable through eslint's glob matching; the fix is an **eslint v10 major**,
+    judged out of scope. The full dev-inclusive report still prints every run. Revisit if a
+    dev advisory ever implies build-time code execution.
+  - **Preconnect hints** (audit ⑤) in `layout.tsx` for `challenges.cloudflare.com` +
+    `static.cloudflareinsights.com` (~420ms). **Each is gated on the same env var that gates the
+    resource itself** — don't preconnect to a host a given deployment never contacts. React 19
+    hoists them into `<head>` (verified in the prerendered HTML).
+  - **`/methodology` page** (`src/app/methodology/page.tsx`, static) — closes the Phase 2 TODO.
+    The outlook's "How we form this view" box promised a methodology link and never had one.
+    Covers: price source **and explicitly that PAXG is a proxy, not the London fix**; the
+    generation pipeline; what human review does *and does not* check; signal / confidence /
+    invalidation semantics (kept in sync with `signalSchema`); cadence; calculator arithmetic
+    (incl. why purity cancels out of break-even); limitations + independence.
+    **Discloses plainly that analysis is AI-drafted and human-reviewed** — on YMYL that
+    disclosure is the trust play; undisclosed AI financial content is what quality guidance
+    targets. Wired in: `methodologyPageSchema()` (WebPage JSON-LD), footer *Resources* nav,
+    `sitemap.ts`, and the link from `/outlook`.
+  - Verified: `tsc --noEmit` ✓, `eslint` ✓, `next build` ✓ (`/methodology` static), runtime 200,
+    single `<h1>`, valid JSON-LD, sitemap + footer + outlook links present.
+  - **Still open**: eslint v10 major upgrade (optional); IAM `ec2:DescribeSecurityGroupRules` for
+    `deploy/whitelist-cloudflare-ips.sh`; field CWV review in Search Console once data lands.

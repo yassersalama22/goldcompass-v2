@@ -1,0 +1,49 @@
+name: Security audit
+
+# Deliberately NOT part of deploy.yml: a newly-disclosed CVE in a transitive
+# dep should not block shipping a hotfix. This runs on its own and reports.
+#
+# The weekly cron is the point of this workflow. Dependencies here change
+# rarely (the daily outlook/articles PRs only touch src/content), so a
+# PR-only trigger would go months without running while advisories pile up.
+on:
+  schedule:
+    - cron: "0 5 * * 1" # Mondays 05:00 UTC
+  pull_request:
+    paths:
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/security-audit.yml"
+  push:
+    branches: [main]
+    paths:
+      - "package.json"
+      - "package-lock.json"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      # Full tree, dev included, always visible in the log even when the gate
+      # below passes. Read this step when triaging.
+      - name: Report all advisories (incl. dev)
+        run: npm audit || true
+
+      # The gate covers what actually ships in the container. Dev-only
+      # advisories are reported above but do not fail CI: as of 2026-07-28 the
+      # only ones outstanding are a ReDoS in brace-expansion reachable through
+      # eslint's glob matching, whose fix is an eslint v10 major. Blocking
+      # deploys of a public marketing site on that is noise, not security.
+      # Revisit if a dev advisory ever implies build-time code execution.
+      - name: Fail on high or critical in production deps
+        run: npm audit --omit=dev --audit-level=high

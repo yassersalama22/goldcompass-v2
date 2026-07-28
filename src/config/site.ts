@@ -24,6 +24,7 @@ export const siteConfig = {
     ] satisfies NavItem[],
     resources: [
       { title: "About", href: "/about" },
+      { title: "Methodology", href: "/methodology" },
       { title: "Disclaimer", href: "/disclaimer" },
     ] satisfies NavItem[],
   },

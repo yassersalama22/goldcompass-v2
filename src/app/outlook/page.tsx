@@ -148,8 +148,17 @@ export default function OutlookPage() {
             <p className="text-muted-foreground">
               Our outlook combines live market data (spot price and momentum)
               with analysis of the key macro drivers — the US dollar, real
-              yields, central-bank demand, and positioning. Recommendations are
-              reviewed before publishing and updated as conditions change.
+              yields, central-bank demand, and positioning. The analysis is
+              AI-drafted on top of that data and reviewed by a human before it
+              publishes; the price figures are fetched from a market data
+              source, never generated. Read our{" "}
+              <Link
+                href="/methodology"
+                className="text-gold-strong underline underline-offset-4"
+              >
+                full methodology
+              </Link>{" "}
+              for the sources, the review process, and the limitations.
             </p>
             <p className="text-muted-foreground">
               This is educational information only and{" "}
