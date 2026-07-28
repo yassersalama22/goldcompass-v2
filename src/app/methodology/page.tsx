@@ -146,7 +146,7 @@ export default function MethodologyPage() {
               <ol className="ml-1 space-y-3">
                 {[
                   "Market data is fetched first, from the source described above, and passed into the drafting step as fixed ground truth the model is not permitted to alter.",
-                  "A large language model (Anthropic's Claude) drafts the analysis on top of that data. It has web search available so it can take account of recent, relevant market news, and it is required to cite the sources it relies on.",
+                  "A large language model drafts the analysis on top of that data. It has web search available so it can take account of recent, relevant market news, and it is required to cite the sources it relies on.",
                   "The draft is validated against a strict schema. Anything missing a required field — a signal, a rationale, a source — is rejected outright rather than published in part.",
                   "The result is opened as a change for review. A human reads it and decides whether it publishes. Nothing reaches the site automatically.",
                 ].map((step, i) => (
