@@ -112,6 +112,7 @@ export function methodologyPageSchema() {
       { "@type": "WebPage", url: `${siteConfig.url}/insights` },
       { "@type": "WebPage", url: `${siteConfig.url}/calculator` },
     ],
+    significantLink: `${siteConfig.url}/ai-disclosure`,
   };
 }
 
@@ -154,6 +155,31 @@ export function calculatorFaqSchema() {
         },
       },
     ],
+  };
+}
+
+/**
+ * schema.org WebPage for /ai-disclosure. Kept distinct from the methodology
+ * schema so the two pages declare different subjects rather than competing for
+ * the same one.
+ */
+export function aiDisclosurePageSchema(lastUpdated: string) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: `AI Disclosure — ${siteConfig.name}`,
+    url: `${siteConfig.url}/ai-disclosure`,
+    description:
+      "Where AI is used on GoldCompass and where it is not: the drafting system, the data it is given, what it is never allowed to produce, the review gate, and the known failure modes.",
+    dateModified: lastUpdated,
+    isPartOf: { "@type": "WebSite", name: siteConfig.name, url: siteConfig.url },
+    publisher: {
+      "@type": "Organization",
+      name: siteConfig.name,
+      url: siteConfig.url,
+      logo: { "@type": "ImageObject", url: `${siteConfig.url}/icon.svg` },
+    },
+    significantLink: `${siteConfig.url}/methodology`,
   };
 }
 

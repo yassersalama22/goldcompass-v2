@@ -167,6 +167,18 @@ export default function MethodologyPage() {
               </p>
               <p>
                 Our{" "}
+                <Link
+                  href="/ai-disclosure"
+                  className="text-gold-strong underline underline-offset-4"
+                >
+                  AI disclosure
+                </Link>{" "}
+                goes further: what the drafting system is, exactly which parts of the site it
+                writes and which it never touches, what happens to its output before publication,
+                and the failure modes that survive all of it.
+              </p>
+              <p>
+                Our{" "}
                 <Link href="/insights" className="text-gold-strong underline underline-offset-4">
                   insights articles
                 </Link>{" "}

@@ -12,6 +12,7 @@ const routes = [
   "/calculator",
   "/about",
   "/methodology",
+  "/ai-disclosure",
   "/disclaimer",
 ];
 

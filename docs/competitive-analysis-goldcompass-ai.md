@@ -250,11 +250,22 @@ gold/silver ratio** at minimum. Two payoffs — better-grounded analysis, and a 
 `/outlook` (and possibly its own page) that is both useful and indexable. Fits the existing
 `PriceProvider` abstraction; the constraint is finding free sources with acceptable terms.
 
-### P1 — `/ai-disclosure` page
+### ~~P1 — `/ai-disclosure` page~~ ✅ done 2026-07-30
 Standalone URL, linked from footer and `/methodology`. State the model, the web-search grounding,
 the deterministic-inputs-vs-narrative split, the sanitisation step, the human-approval gate, and
 the honest limitations. Ours is a *stronger* document than theirs because we have a real process
 to describe — lead with that.
+
+**Implemented**, all six elements, written against the pipeline source rather than from memory.
+Leads with "the dividing line" — a two-column split of what AI drafts versus what it never touches
+— because that separation is the substantive difference from their disclosure. Their eight failure
+modes are matched with six, but each is a **risk / what we do / what remains** triple: listing the
+safeguard without the residual would be the dishonest version. Adds two things the brief did not
+ask for: a "nothing you type goes to a model" section (verified — no `src/app` route touches the
+LLM, and the calculators are client-side), and an explicit "things we will not do" list.
+**Deliberately omits a corrections channel** — commit `8b88bea` removed exactly that claim from
+`/methodology` on the grounds that no contact channel exists, and re-introducing it here would
+repeat the error. See `CLAUDE.md` 2026-07-30.
 
 ### P2 — Surface confidence more prominently on `/outlook`
 Give conviction equal visual weight to the BUY/SELL badge. Consider a banded label

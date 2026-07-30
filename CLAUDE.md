@@ -985,3 +985,49 @@ Match the current site's look and feel:
   - Next from the gap analysis: **P1 `/ai-disclosure`** (small, pure trust win), then **P1 macro
     inputs into Aureus** (DXY / real yields / silver — the constraint is free sources with
     acceptable terms).
+- 2026-07-30: **`/ai-disclosure` shipped** (P1 from the gap analysis). Standalone static page,
+  `aiDisclosurePageSchema(lastUpdated)` (WebPage JSON-LD w/ `dateModified`), linked from the
+  footer *Resources* nav, `/methodology`, and `sitemap.ts` (**20 → 21 URLs**). No new deps.
+  - **Written against the pipeline source, not from memory.** Every claim traces to code:
+    `server/llm/grounded-json.ts` (model, `web_search_20260209`, adaptive thinking, schema
+    validation + **one** corrective retry with search off), `outlook/generator/claude.ts` +
+    `articles/generator/claude.ts` (`claude-opus-4-8` default, medium effort, search capped at
+    4/5 uses), `server/llm/sanitize.ts` (`stripHtml`), the generator `schema.ts` files (articles
+    require **≥1 source**; deterministic fields are added by the pipeline, never the model), and
+    `daily-outlook.yml` (PR-based human approval gate).
+  - **Leads with the dividing line** — a two-column "AI drafts this / AI never touches this" split
+    — because retrieval-vs-reasoning separation is the substantive difference from the competitor's
+    disclosure, which lists 8 failure modes and has **no human in the loop** at all.
+  - **Failure modes are risk / what we do / what remains triples.** Listing mitigations without
+    residuals would be the dishonest version of the page, and the residuals are the part a reader
+    on a YMYL site actually needs.
+  - **Verified claim: nothing a visitor types reaches a model.** `grep` confirms no route or
+    component under `src/app` or `src/components` imports the generators or the Anthropic SDK —
+    generation runs only in the `.mts` scripts under GitHub Actions. Calculators are client-side;
+    the sole write endpoint is `/api/subscribe` → Buttondown.
+  - **Deliberately no corrections/contact section.** Commit `8b88bea` removed that exact claim
+    from `/methodology` because no contact channel exists. **This is now the second page that
+    wants one** — worth adding a contact route before a third does.
+  - **No vendor or model version is named anywhere user-facing** (decided with user, same day).
+    The page says "a general-purpose large language model from a commercial AI provider" and
+    explains *why* it declines to name a version. Rationale: (a) **no disclosure regime requires
+    it** — EU AI Act Art. 50 obliges disclosing that text is *artificially generated*, not whose
+    system made it (and its carve-out is human review with editorial responsibility, which we
+    have); Google requires no AI disclosure at all; FTC-style rules police the claims you *do*
+    make, e.g. our "human reviewed" statement. (b) **`OUTLOOK_MODEL` / `ARTICLE_MODEL` are
+    env-overridable**, so a named version can silently become false via a config change on the
+    box — a trust page that is wrong is worse than one that is general. The page instead pins the
+    guarantees to the *process* ("handed the numbers rather than asked for them… those guarantees
+    belong to our process, not to any vendor's"). Verified: 0 vendor-name hits across 7 rendered
+    pages. Keep it that way — model/vendor names belong in `CLAUDE.md` and code, not in copy.
+  - **Content-overlap guard vs `/methodology`**: methodology owns data sources, signal/confidence
+    semantics, cadence, and calculator math; ai-disclosure owns the model, the pipeline internals,
+    privacy, and failure modes. Human review is summarised in one paragraph here and linked, not
+    duplicated. Same duplicate-content lesson as the 2026-06-23 `/insights` ↔ `/articles` merge.
+  - Verified: `tsc --noEmit` ✓, `eslint` ✓, `next build` ✓ (static, 34 routes), runtime 200,
+    single `<h1>`, valid WebPage JSON-LD w/ `dateModified`, footer + methodology + sitemap links
+    present, **axe-core 0 violations** on `/ai-disclosure` and `/methodology`.
+  - Next from the gap analysis: **P1 macro inputs into Aureus** (DXY / real yields / silver as
+    deterministic ground truth + a "macro pressure" panel — the constraint is free sources with
+    acceptable terms), then the P2s (confidence prominence, `/insights` explainer/news split,
+    evergreen explainer cluster).
