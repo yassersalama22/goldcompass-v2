@@ -862,3 +862,48 @@ Match the current site's look and feel:
     single `<h1>`, valid JSON-LD, sitemap + footer + outlook links present.
   - **Still open**: eslint v10 major upgrade (optional); IAM `ec2:DescribeSecurityGroupRules` for
     `deploy/whitelist-cloudflare-ips.sh`; field CWV review in Search Console once data lands.
+- 2026-07-30: **Competitor gap analysis — goldcompass.ai** →
+  `docs/competitive-analysis-goldcompass-ai.md` (full report; read it before acting on any item).
+  - They are an **app for leveraged XAUUSD traders** (lots/pips/margin, M15–H4, freemium
+    subscription); the website is an install funnel. Different ICP to ours (physical-gold
+    investors). **Brand collision** (`.ai` vs our `.app`) is the main unfixable risk.
+  - Their real advantage is **SEO surface area**: 28 sitemap URLs to our 16, built by splitting
+    ONE calculator into 7 pages (each with breadcrumb + `FAQPage` + `SoftwareApplication` JSON-LD,
+    worked example, "common mistakes", sibling-tool sidebar). Two of their six tools (karat purity,
+    unit converter) target **our** retail audience, not their trader one.
+  - We are ahead on trust: we make a directional call with an invalidation level (**they
+    explicitly refuse to** — "not a signal app"), we cite sources everywhere, and we disclose
+    human review. Their `/ai-disclosure` lists 8 failure modes and **no human in the loop**.
+    Their `/blog/news` is empty. We also have a real public API; they have only "API Terms".
+  - Top recommendations, not yet done: **tool hub** (split `/calculator` into sibling pages);
+    **feed DXY / real yields / silver / crude into the Aureus prompt** as deterministic ground
+    truth + a "macro pressure" panel (already foreshadowed in §12); standalone `/ai-disclosure`;
+    split `/insights` into Explainers vs Market Updates. Explicitly **rejected**: a mobile app,
+    trader tools (lots/pips/margin), a paywall, and dropping our directional call.
+- 2026-07-30: **Generated-article slugs fixed** (P0 from the gap analysis above).
+  - **Was**: `generate-article.mts` built `slug = ${date}-${kebab(title)}` with `kebab()` doing a
+    blind `.slice(0, 60)` → `/insights/2026-07-30-fed-holds-…-means-for-go`. Three problems: the
+    date prefix pushed keywords right and permanently dated the URL, the truncation cut **mid-word**
+    (losing "gold" from a gold article), and it was inconsistent with the hand-seeded editorial
+    articles, which already used `slug = kebab(title)` + filename `date-slug`.
+  - **Now**: the slug carries **no date** — the date lives only in the artifact **filename**, which
+    keeps the directory chronological. `MAX_SLUG_LENGTH` raised 60 → **80** (the slug no longer
+    spends 11 chars on a date prefix, so real titles fit whole) and truncation lands on a **word
+    boundary**. Every current title now fits intact.
+  - **Also fixed a latent silent-overwrite bug**: dropping the date prefix means two articles could
+    derive the same slug, so `uniqueSlug()` + `existingSlugs()` disambiguate (`-2`, `-3`, …). Under
+    the old scheme a same-day rerun with the same title produced an identical filename and
+    **silently overwrote the previous artifact**; it would also have broken `getArticleBySlug`
+    (first match wins) and emitted a duplicate `generateStaticParams` route.
+  - **Migrated the 5 published generated artifacts** (slug field rewritten; one file renamed, git
+    detects it as a rename). Diff is the slug line only — no content touched. Added **5 explicit
+    308 redirects** in `next.config.ts`. Deliberately explicit rather than a generic
+    date-stripping rule: the truncated URL's new slug differs by more than the prefix
+    (`…means-for-go` → `…means-for-gold`), so a regex strip would 404 it.
+  - Verified against a production build: all 5 old URLs → **308** to the right target (chain ends
+    **200**); all 5 new URLs **200**; sitemap, RSS, `canonical`, and `/api/v1/articles` all emit the
+    new slugs; the pre-existing `/articles/*` redirects still work; mock generator run twice
+    produced a date-free slug then the `-2` suffix. `tsc --noEmit` ✓, `eslint` ✓, `next build` ✓
+    (8 `/insights/[slug]` pages SSG'd).
+  - Note: content changes are **staged but not committed** (staging is what makes the rename
+    visible). Merging to main triggers the deploy pipeline.

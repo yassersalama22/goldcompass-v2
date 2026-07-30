@@ -56,12 +56,45 @@ const nextConfig: NextConfig = {
     return [{ source: "/:path*", headers: SECURITY_HEADERS }];
   },
   async redirects() {
-    // Insights and Articles were merged into one hub (/insights). Permanently
-    // redirect the old /articles routes so links and search rankings carry over.
     return [
+      // Insights and Articles were merged into one hub (/insights). Permanently
+      // redirect the old /articles routes so links and search rankings carry over.
       { source: "/articles", destination: "/insights", permanent: true },
       { source: "/articles/rss.xml", destination: "/insights/rss.xml", permanent: true },
       { source: "/articles/:slug", destination: "/insights/:slug", permanent: true },
+
+      // Generated articles used to bake the publish date into the slug
+      // (`2026-07-30-fed-holds-…`), which buried the keywords and permanently
+      // dated the URL; one was also truncated mid-word (`…means-for-go`).
+      // The date now lives only in the artifact filename. These five URLs were
+      // indexed under the old scheme, so redirect them explicitly — a generic
+      // date-stripping rule would miss the truncated one, whose new slug
+      // differs by more than the prefix.
+      {
+        source: "/insights/2026-07-01-what-a-4-000-gold-price-really-means-for-everyday-investors",
+        destination: "/insights/what-a-4-000-gold-price-really-means-for-everyday-investors",
+        permanent: true,
+      },
+      {
+        source: "/insights/2026-07-12-why-gold-slipped-this-week-even-as-u-s-iran-tensions-flared",
+        destination: "/insights/why-gold-slipped-this-week-even-as-u-s-iran-tensions-flared",
+        permanent: true,
+      },
+      {
+        source: "/insights/2026-07-14-energy-driven-inflation-and-gold-what-rising-fuel-costs-mean",
+        destination: "/insights/energy-driven-inflation-and-gold-what-rising-fuel-costs-mean",
+        permanent: true,
+      },
+      {
+        source: "/insights/2026-07-27-why-fed-rate-cuts-matter-for-gold-and-where-2026-stands",
+        destination: "/insights/why-fed-rate-cuts-matter-for-gold-and-where-2026-stands",
+        permanent: true,
+      },
+      {
+        source: "/insights/2026-07-30-fed-holds-rates-again-what-warsh-s-hawkish-hold-means-for-go",
+        destination: "/insights/fed-holds-rates-again-what-warsh-s-hawkish-hold-means-for-gold",
+        permanent: true,
+      },
     ];
   },
 };

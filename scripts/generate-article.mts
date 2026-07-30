@@ -10,7 +10,7 @@
  * Does NOT publish. Run `publish-article` (or merge the PR) to go live.
  * Optional steer: ARTICLE_TOPIC="China central-bank gold buying" npm run articles:generate
  */
-import { writeFile, mkdir } from "node:fs/promises";
+import { writeFile, mkdir, readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 
 import { coinGeckoProvider } from "@/server/price/coingecko";
@@ -21,16 +21,67 @@ import {
 } from "@/server/articles/generator";
 import { ARTICLE_CONTRACT_VERSION, articleSchema, type Article } from "@/types/article";
 
+/**
+ * Slug length cap. Generous on purpose: the slug no longer carries a date
+ * prefix, so almost every real title fits whole and the truncation below is
+ * only a safety net for outliers.
+ */
+const MAX_SLUG_LENGTH = 80;
+
 function kebab(s: string): string {
-  return (
-    s
-      .toLowerCase()
-      .normalize("NFKD")
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "")
-      .slice(0, 60)
-      .replace(/-+$/g, "") || "article"
-  );
+  const base = s
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  if (base.length <= MAX_SLUG_LENGTH) return base || "article";
+
+  // Truncate on a word boundary. Slicing blind used to emit half a word
+  // (…hawkish-hold-means-for-go), which reads as broken in search results.
+  // Take one char past the cap: if it is the separator, the slug already ends
+  // on a complete word; otherwise drop back to the last separator.
+  const cut = base.slice(0, MAX_SLUG_LENGTH + 1);
+  const lastSeparator = cut.lastIndexOf("-");
+  const trimmed =
+    lastSeparator > 0 ? cut.slice(0, lastSeparator) : base.slice(0, MAX_SLUG_LENGTH);
+  return trimmed.replace(/-+$/g, "") || "article";
+}
+
+/**
+ * Existing slugs, read from the artifacts themselves (authoritative — the
+ * filename is only a storage/ordering detail).
+ */
+async function existingSlugs(dir: string): Promise<Set<string>> {
+  const slugs = new Set<string>();
+  let files: string[];
+  try {
+    files = (await readdir(dir)).filter((f) => f.endsWith(".json"));
+  } catch {
+    return slugs; // nothing generated yet
+  }
+  for (const file of files) {
+    try {
+      const parsed = JSON.parse(await readFile(path.join(dir, file), "utf8"));
+      if (typeof parsed?.slug === "string") slugs.add(parsed.slug);
+    } catch {
+      // Unreadable/invalid artifact — the data layer warns about it; ignore here.
+    }
+  }
+  return slugs;
+}
+
+/**
+ * Dropping the date prefix means two articles on the same topic can now derive
+ * the same slug. That would be a real bug — `getArticleBySlug` takes the first
+ * match and `generateStaticParams` would emit a duplicate route — so disambiguate.
+ */
+function uniqueSlug(base: string, taken: Set<string>): string {
+  if (!taken.has(base)) return base;
+  for (let n = 2; ; n++) {
+    const candidate = `${base}-${n}`;
+    if (!taken.has(candidate)) return candidate;
+  }
 }
 
 async function getSpot() {
@@ -54,7 +105,13 @@ async function main() {
 
   const generated = sanitizeGeneratedArticle(await generator.generate({ date, spot, topic }));
 
-  const slug = `${date}-${kebab(generated.title)}`;
+  // The slug is the public URL and carries NO date: a date prefix pushes the
+  // keywords rightwards and permanently dates the URL. The date stays in the
+  // *filename* only, which keeps the directory chronological. This matches the
+  // hand-seeded editorial articles.
+  const dir = path.join(process.cwd(), "src", "content", "articles");
+  const slug = uniqueSlug(kebab(generated.title), await existingSlugs(dir));
+
   const article: Article = {
     contractVersion: ARTICLE_CONTRACT_VERSION,
     slug,
@@ -72,12 +129,12 @@ async function main() {
 
   const validated = articleSchema.parse(article);
 
-  const dir = path.join(process.cwd(), "src", "content", "articles");
   await mkdir(dir, { recursive: true });
-  const out = path.join(dir, `${slug}.json`);
+  const out = path.join(dir, `${date}-${slug}.json`);
   await writeFile(out, JSON.stringify(validated, null, 2) + "\n", "utf8");
 
   console.log(`[article] wrote ${out}`);
+  console.log(`[article] slug=${slug}`);
   console.log(`[article] title="${validated.title}" category=${validated.category} sources=${validated.sources.length}`);
 }
 

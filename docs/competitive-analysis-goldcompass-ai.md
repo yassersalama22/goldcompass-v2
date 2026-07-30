@@ -215,7 +215,7 @@ Each with: breadcrumb, `FAQPage` JSON-LD, "About" prose with a worked example at
 price, a "Common mistakes" block, and a sibling-tool sidebar. Reuse `Prose` and the existing
 `calculatorFaqSchema()` helper. Roughly doubles our indexable surface using code we already have.
 
-### P0 — Fix generated-article slugs
+### ~~P0 — Fix generated-article slugs~~ ✅ done 2026-07-30
 `scripts/generate-article.mts:57` builds `${date}-${kebab(title)}` with `kebab()` truncating at
 60 chars, producing:
 
@@ -228,6 +228,13 @@ truncation cuts mid-word (`-go`); and it's inconsistent with our seeded articles
 clean slugs (`/insights/why-central-banks-keep-buying-gold`). Strip the date prefix from the
 slug (keep it in the filename for ordering), truncate on a word boundary, and 308-redirect the
 five existing generated URLs.
+
+**Implemented.** Slug is now date-free with the date retained in the filename; `MAX_SLUG_LENGTH`
+raised 60 → 80 (the prefix no longer consumes 11 chars) with word-boundary truncation, so every
+current title fits whole and `…means-for-go` became `…means-for-gold`. Five artifacts migrated,
+five 308 redirects added. This also closed a latent **silent-overwrite** bug: a same-day rerun on
+the same title previously produced an identical filename and clobbered the earlier artifact — a
+`uniqueSlug()` guard now disambiguates. See `CLAUDE.md` 2026-07-30 for the full record.
 
 ### P1 — Feed macro inputs into Aureus + ship a "Macro pressure" panel
 Extend the deterministic ground-truth block beyond spot: **DXY, 10Y real yield, silver, and
