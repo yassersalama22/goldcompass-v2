@@ -10,7 +10,8 @@
     "outlook:generate": "tsx scripts/generate-outlook.mts",
     "outlook:publish": "tsx scripts/publish-outlook.mts",
     "articles:generate": "tsx scripts/generate-article.mts",
-    "articles:publish": "tsx scripts/publish-article.mts"
+    "articles:publish": "tsx scripts/publish-article.mts",
+    "brand:assets": "tsx scripts/generate-brand-assets.mts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.105.0",

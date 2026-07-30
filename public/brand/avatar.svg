@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400" role="img" aria-label="GoldCompass">
+  <!--
+    GoldCompass social avatar. Same compass mark as src/app/icon.svg and the
+    header Logo, re-proportioned for a circular crop (X/Twitter, LinkedIn):
+      - Full-bleed square background, so the circular crop never exposes a corner.
+      - Mark scaled to ~73% of the frame (the 32px favicon sits at 62%) and the
+        stroke thickened to match, because timeline avatars render as small as 48px.
+      - No wordmark: "GoldCompass" is unreadable at that size.
+    Colours are the brand hexes from src/lib/og.tsx.
+  -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1a1714"/>
+      <stop offset="1" stop-color="#2b2318"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="400" fill="url(#bg)"/>
+  <circle cx="200" cy="200" r="135" fill="none" stroke="#d4a72c" stroke-width="22"/>
+  <polygon points="200,78.5 240.5,200 200,321.5 159.5,200" fill="#d4a72c"/>
+  <circle cx="200" cy="200" r="21" fill="#1a1714"/>
+</svg>

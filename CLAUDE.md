@@ -907,3 +907,27 @@ Match the current site's look and feel:
     (8 `/insights/[slug]` pages SSG'd).
   - Note: content changes are **staged but not committed** (staging is what makes the rename
     visible). Merging to main triggers the deploy pipeline.
+- 2026-07-30: **Brand raster assets** (`public/brand/`) — first raster assets in the repo. The
+  compass mark previously existed only as inline SVG in three places (`src/app/icon.svg`,
+  `components/brand/logo.tsx`, `lib/og.tsx`) with nothing exportable for social profiles.
+  - `avatar.svg` + `avatar-{400,1000}.png` — social profile photo. **Not** the favicon rescaled:
+    the favicon is a rounded square and X/LinkedIn crop avatars to a **circle**, so this is a
+    full-bleed square (no corner can be exposed) with the mark at ~73% of frame vs the favicon's
+    62%, and a thicker stroke. No wordmark — illegible at the 48px timeline size.
+  - `x-header-1500x500.png` — X banner. **The profile photo overlaps the banner's bottom-left**
+    (≈ x 40–372, y 334–500 in asset coordinates); content is padded up so the last line lands at
+    y≈312. Verified by compositing a mock avatar over the output — the disclaimer line is the
+    first thing to get clipped if that padding shrinks.
+  - **`scripts/generate-brand-assets.mts`** (`npm run brand:assets`) regenerates all of it, so the
+    PNGs are reproducible rather than hand-made binaries. Avatars via `sharp`; banner via
+    `next/og`, which works fine in a plain tsx script (`ImageResponse` → `arrayBuffer()`). Uses a
+    small `h()` element factory instead of JSX to keep it a `.mts` file with no JSX build config.
+    Palette imported from `src/lib/og.tsx` — single source of truth.
+  - **Note on typography**: satori has no brand font loaded, so OG cards *and* this banner render
+    in satori's bundled sans, not Geist. Pre-existing, not introduced here; worth fixing if brand
+    typography consistency ever matters.
+  - **Deleted the create-next-app defaults** from `public/` (`file/vercel/next/globe/window.svg`) —
+    grepped repo-wide, entirely unreferenced, and they were shipping in the Docker image.
+    `public/` now contains only real brand assets.
+  - `Dockerfile:33` copies `public/` into the image, so these serve at `/brand/…` once deployed.
+    `tsc --noEmit` ✓, `eslint` ✓, `next build` ✓.
