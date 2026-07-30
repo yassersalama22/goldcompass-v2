@@ -32,7 +32,7 @@ const aiWrites = [
 ];
 
 const aiNeverTouches = [
-  "The spot price, the daily change, and every point on the 30-day chart. These come from a market data feed and are passed to the model as fixed inputs it is told not to contradict.",
+  "The spot price, the daily change, every point on the 30-day chart, and the macro figures — the dollar index and Treasury yields. These come from market data feeds and are passed to the model as fixed inputs it is told not to contradict.",
   "Every figure the calculators produce. That is deterministic arithmetic running in your browser — no model is involved at any point.",
   "The source list under each piece. Those are the URLs the model reported using, published unedited so you can check them yourself.",
   "This page, the methodology page, the disclaimer, and the rest of the site's editorial copy.",

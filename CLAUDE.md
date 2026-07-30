@@ -1082,3 +1082,49 @@ Match the current site's look and feel:
     the owner's call (articles cron stays manual by preference, per 2026-07-28). Candidate titles
     are listed in the gap analysis §6. Run `npm run articles:generate` with `ARTICLE_TOPIC` set,
     one per topic, then review.
+- 2026-07-30: **P1 macro ground truth + "Macro pressure" panel** (gap analysis P1, partly done —
+  silver deferred, see below). New `FRED_API_KEY`; **inert without it**, so nothing breaks today.
+  - **Source research is the substance of this entry — do not re-derive it.** Read FRED's actual
+    terms, not a summary of them. The binding constraint is **per-series third-party copyright**:
+    "Data series available through the FRED API may be owned by third parties… before using [them]
+    for anything other than your own personal use, you must contact the data owner." Copyrighted
+    series carry **"Copyrighted: Citation Required"** in their notes. Verified each series we use
+    is `license: copyright-public-domain`:
+    **DTWEXBGS** (broad dollar), **DFII10** (10y TIPS = real yield), **DGS10** (10y nominal).
+  - **⚠ `T10YIE` (10-Year Breakeven Inflation Rate) IS copyright-flagged** — confirmed on the
+    series page. So breakeven is **derived as `DGS10 − DFII10`** from the two clean series, which
+    is the same quantity with no restriction. Don't "simplify" this back to fetching T10YIE.
+  - **⚠ It is NOT "DXY".** The gap analysis said DXY; the ICE U.S. Dollar Index is **proprietary**
+    and not ours to publish. We use the Fed's trade-weighted *broad* index. The system prompt
+    explicitly forbids the model from calling it DXY, and the panel discloses the difference.
+  - **Snapshot, not live read.** `macro` is stored in the outlook artifact at generation time and
+    the panel renders from it. That is an integrity property: the numbers a reader sees are
+    provably the ones the analysis reasoned over. A live panel could contradict the prose it sits
+    above. Contract stays `CONTRACT_VERSION = 1` — `macro` is **optional**, so it is additive for
+    `/api/v1/recommendations` consumers.
+  - **`src/server/macro/index.ts` is deliberately NOT `server-only`** — unlike price/outlook, its
+    only consumer is `scripts/generate-outlook.mts`, which runs under tsx outside Next and would
+    crash on that import. Nothing in `src/app` imports it; the page reads the artifact.
+  - FRED conventions handled: `value` is a **string** and `"."` means *no observation that day*
+    (weekends/holidays) → filtered before use, or every weekend would become `NaN`. 60 days are
+    fetched to leave headroom for a 30-day lookback after gaps. Breakeven is emitted **only when
+    both legs share an observation date**, so we never subtract readings from different days.
+  - Prompt `PROMPT_VERSION` **2026-06-20.1 → 2026-07-30.1**: macro block is ground truth, the model
+    must state what the dollar and real yield are doing, must not describe an indicator as
+    rising/falling against the supplied 30-day change, and must not invent the block when absent.
+  - Verified: `tsc` ✓, `eslint` ✓, `next build` ✓, **axe 0 violations**. **30 assertions** against
+    stubbed FRED responses (`scratchpad/fred-test.mts`): request shape, latest values, breakeven
+    derivation, 30-day deltas, `"."`→NaN guard, mismatched-leg omission, non-200 propagation,
+    contract validation. Pipeline run with mock + no key logs `macro=none` and produces a valid
+    draft with no `macro` key. Panel + `/api/v1` verified by temporarily injecting a snapshot into
+    `current.json` (reverted).
+  - **Still open — silver + gold/silver ratio.** No free source with clean terms: FRED has no
+    usable daily spot silver series, and CoinGecko's tokenized-silver proxies are far too illiquid
+    to track spot the way PAXG tracks gold. Needs a metals vendor (metals.dev / MetalpriceAPI free
+    tier) + a second key. `MacroProvider` takes it without touching prompt/artifact/panel.
+  - **TODO to activate**: get a free key at https://fredaccount.stlouisfed.org/apikeys (same-day),
+    add `FRED_API_KEY` to `.env.local` **and** as a GitHub Actions secret (already wired into
+    `daily-outlook.yml`). The panel appears after the next generation run merges.
+  - Note: the current hand-seeded `current.json` analysis body says "The US dollar (DXY)". The new
+    prompt forbids that wording, so the next generated outlook self-corrects; not worth hand-editing
+    published content.

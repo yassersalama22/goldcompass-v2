@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import type { MacroSnapshot } from "@/types/macro";
 import {
   keyLevelSchema,
   outlookCallSchema,
@@ -30,6 +31,8 @@ export type GenerationInput = {
     changePct24h: number | null;
     asOf: string;
   };
+  /** Macro backdrop (dollar, real yields, breakeven). Null when unavailable. */
+  macro: MacroSnapshot | null;
   /** Compact 30-day series summary (so the model doesn't invent the trend). */
   series: {
     start: { date: string; price: number };

@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { macroSnapshotSchema } from "./macro";
+
 /**
  * Outlook / recommendations contract — the SINGLE source of truth for:
  *  - the content artifact written by the (future) Aureus v2 pipeline,
@@ -69,6 +71,15 @@ export const outlookReportSchema = z.object({
   /** One-paragraph TL;DR. */
   summary: z.string().min(1),
   spot: spotSchema,
+  /**
+   * Macro backdrop as of generation. Optional: it post-dates CONTRACT_VERSION 1
+   * and is absent when `FRED_API_KEY` is unset, so the version stays 1 —
+   * an added optional field is backwards-compatible for `/api/v1` consumers.
+   *
+   * Snapshotted into the artifact rather than fetched live by the page, so the
+   * numbers the panel shows are provably the ones the analysis reasoned over.
+   */
+  macro: macroSnapshotSchema.optional(),
   /** Short- and long-term calls. */
   calls: z.array(outlookCallSchema).min(1),
   keyLevels: z.array(keyLevelSchema),

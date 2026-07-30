@@ -13,6 +13,7 @@
 import { writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 
+import { fetchMacroSnapshot } from "@/server/macro";
 import { coinGeckoProvider } from "@/server/price/coingecko";
 import {
   getOutlookGenerator,
@@ -56,15 +57,20 @@ async function main() {
 
   const quote = await coinGeckoProvider.getQuote();
   const series = await buildSeries();
+  const macro = await fetchMacroSnapshot();
 
   const generator = await getOutlookGenerator();
-  console.log(`[generate] provider=${generator.name} prompt=${PROMPT_VERSION} date=${date}`);
+  console.log(
+    `[generate] provider=${generator.name} prompt=${PROMPT_VERSION} date=${date} ` +
+      `macro=${macro.data ? `${macro.data.indicators.length} indicators` : "none"}`,
+  );
 
   const generated = sanitizeGenerated(
     await generator.generate({
       date,
       spot: { price: quote.price, changePct24h: quote.changePct24h, asOf: quote.asOf },
       series,
+      macro: macro.data,
     }),
   );
 
@@ -81,6 +87,8 @@ async function main() {
       asOf: quote.asOf,
       changePct: quote.changePct24h ?? undefined,
     },
+    // Snapshot, not a live read: the panel must show what the analysis used.
+    ...(macro.data ? { macro: macro.data } : {}),
     calls: generated.calls,
     keyLevels: generated.keyLevels,
     analysisMarkdown: generated.analysisMarkdown,

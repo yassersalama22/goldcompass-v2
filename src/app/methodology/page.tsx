@@ -121,6 +121,24 @@ export default function MethodologyPage() {
                 unavailable we show the last known good reading and label it, rather than
                 displaying a blank or a stale number silently.
               </p>
+              <p>
+                The macro figures behind the &ldquo;macro pressure&rdquo; panel — the broad dollar
+                index, the 10-year real yield, and the 10-year Treasury yield — come from{" "}
+                <strong className="text-foreground">
+                  FRED, the Federal Reserve Bank of St. Louis
+                </strong>
+                , using only public-domain series. Two details worth stating: the dollar figure is
+                the Federal Reserve&rsquo;s trade-weighted <em>broad</em> dollar index, not the ICE
+                &ldquo;DXY&rdquo; that headlines usually quote — they move together but are not the
+                same index — and the inflation breakeven is derived by subtracting the real yield
+                from the nominal yield rather than taken from a published series. These are daily
+                readings, not live ones, and the panel shows the observation date for each.
+              </p>
+              <p>
+                That panel is a snapshot stored alongside each outlook rather than a live lookup,
+                which is deliberate: it means the macro numbers you see are the ones the analysis
+                was actually written against, not whatever the market has done since.
+              </p>
             </div>
           </section>
 

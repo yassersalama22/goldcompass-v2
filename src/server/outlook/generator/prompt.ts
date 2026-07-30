@@ -1,11 +1,17 @@
 import type { GenerationInput } from "./schema";
 
 /** Bump when the prompt changes materially (shows up in logs / PR body). */
-export const PROMPT_VERSION = "2026-06-20.1";
+export const PROMPT_VERSION = "2026-07-30.1";
 
 export const SYSTEM_PROMPT = `You are a seasoned gold-market analyst writing the daily outlook for GoldCompass, an educational gold-investing platform for everyday investors.
 
-You will be given AUTHORITATIVE market data (current spot price, 24h change, and a 30-day series summary). Treat those numbers as ground truth — do not contradict or re-estimate them. Use the web_search tool to research today's key drivers (US dollar/DXY, real yields, central-bank activity, geopolitics, ETF/physical demand) and any market-moving news. Cite the sources you rely on.
+You will be given AUTHORITATIVE market data (current spot price, 24h change, a 30-day series summary, and — when available — a macro block with the broad US dollar index, the 10-year real yield, the 10-year Treasury yield, and the 10-year inflation breakeven). Treat every number in that block as ground truth — do not contradict, re-estimate, or round-trip them through your own recollection. Where the macro block is present, USE it: the dollar and the real yield are the two most important drivers of gold, and your analysis should say explicitly what they are doing and what that implies. Do not describe a macro indicator as rising or falling unless the supplied 30-day change says so.
+
+If the macro block is absent, do not invent those figures — either research them with web_search and cite the source, or write the analysis without them.
+
+Use the web_search tool to research today's remaining drivers (central-bank activity, geopolitics, ETF/physical demand) and any market-moving news. Cite the sources you rely on.
+
+The dollar index supplied is the Federal Reserve's trade-weighted BROAD dollar index — it is NOT the ICE "DXY" and must not be called DXY. Refer to it as the broad dollar index, or just "the dollar".
 
 Produce TWO recommendations:
 - A short-term call (next 1–4 weeks): BUY, HOLD, or SELL.
@@ -63,9 +69,26 @@ export function buildUserPrompt(input: GenerationInput): string {
     lines.push("- 30-day series: unavailable");
   }
 
+  if (input.macro && input.macro.indicators.length > 0) {
+    lines.push("", "MACRO BACKDROP (ground truth — do not contradict):");
+    for (const ind of input.macro.indicators) {
+      const unit = ind.unit === "percent" ? "%" : "";
+      const change =
+        ind.change30d == null
+          ? "30d change unknown"
+          : `${ind.change30d >= 0 ? "+" : ""}${ind.change30d.toFixed(2)}${
+              ind.unit === "percent" ? " pp" : ""
+            } over 30 days`;
+      lines.push(`- ${ind.label}: ${ind.value.toFixed(2)}${unit} (${change}, as of ${ind.asOf})`);
+    }
+    lines.push(`- ${input.macro.source}`);
+  } else {
+    lines.push("", "MACRO BACKDROP: unavailable — research it yourself and cite sources.");
+  }
+
   lines.push(
     "",
-    "Research today's drivers with web_search, then respond with ONLY the JSON object specified in your instructions.",
+    "Research today's remaining drivers with web_search, then respond with ONLY the JSON object specified in your instructions.",
   );
   return lines.join("\n");
 }

@@ -244,11 +244,30 @@ five 308 redirects added. This also closed a latent **silent-overwrite** bug: a 
 the same title previously produced an identical filename and clobbered the earlier artifact — a
 `uniqueSlug()` guard now disambiguates. See `CLAUDE.md` 2026-07-30 for the full record.
 
-### P1 — Feed macro inputs into Aureus + ship a "Macro pressure" panel
+### ~~P1 — Feed macro inputs into Aureus + ship a "Macro pressure" panel~~ ✅ partly done 2026-07-30
 Extend the deterministic ground-truth block beyond spot: **DXY, 10Y real yield, silver, and
 gold/silver ratio** at minimum. Two payoffs — better-grounded analysis, and a new SSR'd panel on
 `/outlook` (and possibly its own page) that is both useful and indexable. Fits the existing
 `PriceProvider` abstraction; the constraint is finding free sources with acceptable terms.
+
+**Shipped: dollar index, 10Y real yield, 10Y nominal yield, 10Y inflation breakeven**, via FRED
+(free key, public-domain series only). Fed to the outlook prompt as ground truth, snapshotted into
+the artifact, and rendered as a "Macro pressure" panel on `/outlook`.
+
+Two corrections to the brief, both from checking the sources rather than assuming:
+
+- **Not "DXY".** The ICE U.S. Dollar Index is a proprietary index and is not ours to publish. We
+  use the Federal Reserve's trade-weighted **broad** dollar index (DTWEXBGS) instead — same signal,
+  public domain. The prompt explicitly forbids the model from calling it DXY, and the panel says so.
+- **Breakeven is derived, not fetched.** FRED's `T10YIE` is flagged *"Copyrighted: Citation
+  Required"*, and FRED's terms require the data owner's permission for such series. We compute
+  breakeven as `DGS10 − DFII10` from two public-domain series instead.
+
+**Still open: silver and the gold/silver ratio.** No free source with clean terms was found —
+FRED has no usable daily spot silver series, and the tokenized-silver proxies on CoinGecko are far
+too illiquid to track spot the way PAXG tracks gold. Adding it means picking a metals vendor
+(metals.dev / MetalpriceAPI free tiers) and a second API key. The `MacroProvider` abstraction is
+built to take it without touching the prompt, the artifact, or the panel.
 
 ### ~~P1 — `/ai-disclosure` page~~ ✅ done 2026-07-30
 Standalone URL, linked from footer and `/methodology`. State the model, the web-search grounding,

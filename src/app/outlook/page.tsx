@@ -6,6 +6,7 @@ import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 import { Container } from "@/components/layout/container";
 import { Analysis } from "@/components/outlook/analysis";
 import { KeyLevels } from "@/components/outlook/key-levels";
+import { MacroPanel } from "@/components/outlook/macro-panel";
 import { OutlookCallCard } from "@/components/outlook/outlook-call-card";
 import { JsonLd } from "@/components/seo/json-ld";
 import { SubscribeCta } from "@/components/newsletter/subscribe-cta";
@@ -116,6 +117,9 @@ export default function OutlookPage() {
               .
             </p>
           </section>
+
+          {/* Macro backdrop — only when the artifact carries a snapshot */}
+          {report.macro ? <MacroPanel macro={report.macro} /> : null}
 
           {/* Full analysis */}
           <section aria-labelledby="analysis-heading">
