@@ -202,7 +202,7 @@ of it works. Copy the *packaging*, not the epistemics.
 
 ## 6. Recommendations, ranked
 
-### P0 — Split `/calculator` into a tool hub
+### ~~P0 — Split `/calculator` into a tool hub~~ ✅ done 2026-07-30
 The highest-leverage item on this list. Keep the current combined calculator as the flagship at
 `/calculator`, and add sibling pages sharing the existing `src/lib/calculator.ts` math:
 
@@ -214,6 +214,14 @@ The highest-leverage item on this list. Keep the current combined calculator as 
 Each with: breadcrumb, `FAQPage` JSON-LD, "About" prose with a worked example at a real current
 price, a "Common mistakes" block, and a sibling-tool sidebar. Reuse `Prose` and the existing
 `calculatorFaqSchema()` helper. Roughly doubles our indexable surface using code we already have.
+
+**Implemented**, all four pages, as specified — plus `WebApplication` and `BreadcrumbList` JSON-LD
+alongside the `FAQPage`. Sitemap went 16 → 20 URLs. Two deviations worth noting: worked examples
+are **computed from the live spot price at render time** rather than hard-coded at "a real current
+price", so they never go stale under ISR; and a generic `faqSchema()` was added instead of reusing
+`calculatorFaqSchema()`, so each page's FAQ markup is generated from the same array the page
+renders visibly and cannot drift from it. The break-even and P/L tools also model a **sell-side
+spread**, which the flagship calculator does not. See `CLAUDE.md` 2026-07-30 for the full record.
 
 ### ~~P0 — Fix generated-article slugs~~ ✅ done 2026-07-30
 `scripts/generate-article.mts:57` builds `${date}-${kebab(title)}` with `kebab()` truncating at

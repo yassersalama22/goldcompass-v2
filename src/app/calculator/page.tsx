@@ -1,9 +1,13 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 
 import { Container } from "@/components/layout/container";
 import { JsonLd } from "@/components/seo/json-ld";
 import { GoldCalculator } from "@/components/calculator/gold-calculator";
+import { Card, CardContent } from "@/components/ui/card";
+import { TOOLS } from "@/config/tools";
 import { getGoldQuote } from "@/server/price";
 import { calculatorFaqSchema } from "@/lib/structured-data";
 
@@ -52,6 +56,42 @@ export default async function CalculatorPage() {
         <Suspense fallback={<CalculatorSkeleton />}>
           <GoldCalculator initialSpot={initialSpot} isStale={priceResult.stale} />
         </Suspense>
+
+        {/* Tool hub — single-purpose siblings of this combined calculator */}
+        <section aria-labelledby="tools-heading" className="mt-12">
+          <h2 id="tools-heading" className="text-2xl font-bold">
+            More gold tools
+          </h2>
+          <p className="text-muted-foreground mt-2 max-w-2xl">
+            The calculator above answers the whole question at once. These do one job each, with a
+            worked example and the arithmetic explained.
+          </p>
+          <ul className="mt-6 grid gap-4 sm:grid-cols-2">
+            {TOOLS.map((tool) => (
+              <li key={tool.slug}>
+                <Card className="relative h-full transition-shadow hover:shadow-md">
+                  <CardContent>
+                    <h3 className="font-semibold">
+                      <Link
+                        href={tool.href}
+                        className="hover:text-gold-strong after:absolute after:inset-0 focus-visible:underline"
+                      >
+                        {tool.name}
+                      </Link>
+                    </h3>
+                    <p className="text-muted-foreground mt-2 text-sm leading-6">
+                      {tool.description}
+                    </p>
+                    <span className="text-gold-strong mt-3 inline-flex items-center gap-1 text-sm font-medium">
+                      Open tool
+                      <ArrowRight className="size-3.5" aria-hidden="true" />
+                    </span>
+                  </CardContent>
+                </Card>
+              </li>
+            ))}
+          </ul>
+        </section>
 
         {/* Methodology note */}
         <div className="mt-10 rounded-xl border border-border bg-muted/40 px-5 py-4 text-sm text-muted-foreground">

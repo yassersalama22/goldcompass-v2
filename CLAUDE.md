@@ -931,3 +931,57 @@ Match the current site's look and feel:
     `public/` now contains only real brand assets.
   - `Dockerfile:33` copies `public/` into the image, so these serve at `/brand/…` once deployed.
     `tsc --noEmit` ✓, `eslint` ✓, `next build` ✓.
+- 2026-07-30: **Tool hub shipped** (P0 from the gap analysis). `/calculator` keeps the combined
+  flagship calculator and gains four single-purpose siblings, each its own indexable URL:
+  `/calculator/gold-karat-price`, `/gold-unit-converter`, `/gold-break-even`, `/gold-profit-loss`.
+  Sitemap **16 → 20 URLs**. No new dependencies.
+  - **Registry is the single source of truth**: `src/config/tools.ts` (`TOOLS`, `FLAGSHIP_TOOL`,
+    `siblingTools()`). Adding a tool there wires it into the sidebar, the `/calculator` hub grid,
+    and `sitemap.ts` at once — `href` doubles as the canonical path, so it must match the route.
+  - **Shared shell** `components/calculator/tool-page-shell.tsx` renders breadcrumb + h1 + tool +
+    "How this calculator works" + "Common mistakes" + FAQ + sibling sidebar, and emits
+    `WebApplication` + `FAQPage` + `BreadcrumbList` JSON-LD. **The `faqs` array is rendered
+    visibly *and* passed to `faqSchema()` from one prop** — Google requires FAQ markup to match
+    visible content, and one array makes drift impossible. New helpers in `lib/structured-data.ts`:
+    `faqSchema()` (generic) + `toolApplicationSchema()`. The old `calculatorFaqSchema()` is
+    untouched and still used by `/calculator`.
+  - **Math lives in `src/lib/calculator.ts`** (still pure, no React): `WEIGHT_UNITS` +
+    `toGrams`/`fromGrams` (**every conversion routes through grams** — no unit converts directly to
+    another, so rounding never compounds), `karatPriceTable()`, `breakEven()`, `profitLoss()`,
+    `purityFactorFor()`. Added `fineness` to `GOLD_PURITIES` for display. `breakEven()` and
+    `profitLoss()` add a **sell-side spread** the flagship lacks: break-even is
+    `spot × (1 + premium) ÷ (1 − sellFee)`, which reduces to the flagship's formula at
+    `sellFee = 0` (asserted in the math check below).
+  - **Purity cancels out of break-even** — stated in the prose on two pages, and verified
+    numerically, not just asserted: P/L at the break-even price is 0 for 24K, 18K, and 10K alike.
+    The lever that actually moves break-even is the premium (i.e. product size).
+  - **Worked examples are computed from the live spot at render time**, not hard-coded, so they
+    stay current under ISR (`revalidate = 300`, matching `/calculator`). `FALLBACK_SPOT = 4150`
+    per page covers a failed quote. FAQ answers are deliberately evergreen — keeping live numbers
+    out of them keeps the JSON-LD stable across revalidations.
+  - **Shared client field kit** `tool-fields.tsx` (`NumberField`, `SelectField`, `PercentSlider`,
+    `SpotField`, `useSpotState`, `useUrlState`) + presentational `tool-results.tsx` (`ResultStat`,
+    `InputsCard`, `ToolGrid`, `ToolSkeleton`, `EmptyResults`). All four tools sync inputs to the
+    query string via `history.replaceState` (shareable links), same approach as the flagship.
+  - **Known + accepted**: the tools read `useSearchParams`, so like the flagship they bail out of
+    prerender and the static HTML ships the skeleton in their place. Everything that ranks — h1,
+    intro, formula, worked example, mistakes, FAQ, sidebar links — **is** server-rendered. The
+    alternative (reading `searchParams` on the server) would make the pages dynamic and forfeit
+    edge caching, which matters more here given there is no purge-on-deploy.
+  - **`Card` uses `ring-1`, not `border`** — `hover:border-*` is a no-op on it, and stretched-link
+    cards need an explicit `relative` (see `ArticleCard`). Card already has `py-(--card-spacing)`,
+    so a bare `CardContent` needs no `pt-*`.
+  - Verified: `tsc --noEmit` ✓, `eslint` ✓, `next build` ✓ (all four **static + 5m ISR**, 33
+    routes). **24 math assertions** pass (`scratchpad/check-math.mts`: formula identities, unit
+    round-trips, flagship agreement, purity cancellation, input guards). **Headless Chrome over
+    CDP** (system Chrome, no install): all four tools hydrate with **zero console errors**, compute
+    correctly ($987.83 for 10 g 18K; 1 kg → 32.1507 ozt; $4,285.71 break-even at 5% + 2%; $112.00
+    P/L on 1 ozt 4000→4400), and write inputs back to the URL. **axe-core: 0 violations** across
+    all five pages (WCAG 2.0/2.1 A+AA + best-practice, mobile viewport). FAQ JSON-LD ↔ visible-text
+    parity checked programmatically: 20/20.
+  - Note: `TROY_OZ_TO_GRAMS` is the rounded `31.1035`, not the exact `31.1034768`. Left as-is
+    (pre-existing, used by the flagship); the error is **0.75 mg on a 1 kg bar** and the prose
+    figure `32.1507 ozt` rounds identically either way.
+  - Next from the gap analysis: **P1 `/ai-disclosure`** (small, pure trust win), then **P1 macro
+    inputs into Aureus** (DXY / real yields / silver — the constraint is free sources with
+    acceptable terms).

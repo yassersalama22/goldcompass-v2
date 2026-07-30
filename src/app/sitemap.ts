@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 
 import { siteConfig } from "@/config/site";
+import { TOOLS } from "@/config/tools";
 import { getAllArticles } from "@/server/articles";
 
 const routes = [
@@ -21,6 +22,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: route === "" ? 1 : 0.7,
   }));
 
+  const toolEntries: MetadataRoute.Sitemap = TOOLS.map((tool) => ({
+    url: `${siteConfig.url}${tool.href}`,
+    changeFrequency: "weekly",
+    priority: 0.7,
+  }));
+
   const articleEntries: MetadataRoute.Sitemap = getAllArticles().map((article) => ({
     url: `${siteConfig.url}/insights/${article.slug}`,
     lastModified: article.updatedAt,
@@ -28,5 +35,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.6,
   }));
 
-  return [...staticEntries, ...articleEntries];
+  return [...staticEntries, ...toolEntries, ...articleEntries];
 }

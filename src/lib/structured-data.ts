@@ -1,4 +1,5 @@
 import { siteConfig } from "@/config/site";
+import type { ToolDef } from "@/config/tools";
 import type { OutlookReport } from "@/types/outlook";
 import type { Article } from "@/types/article";
 
@@ -153,6 +154,47 @@ export function calculatorFaqSchema() {
         },
       },
     ],
+  };
+}
+
+/**
+ * schema.org FAQPage from arbitrary Q&A pairs.
+ *
+ * Google requires the marked-up questions and answers to be visible on the
+ * page, so callers must render the same array they pass here — see
+ * `ToolPageShell`, which takes one `faqs` array and does both.
+ */
+export function faqSchema(faqs: { question: string; answer: string }[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((faq) => ({
+      "@type": "Question",
+      name: faq.question,
+      acceptedAnswer: { "@type": "Answer", text: faq.answer },
+    })),
+  };
+}
+
+/** schema.org WebApplication for a calculator tool page. */
+export function toolApplicationSchema(tool: ToolDef) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: tool.name,
+    url: `${siteConfig.url}${tool.href}`,
+    description: tool.description,
+    applicationCategory: "FinanceApplication",
+    operatingSystem: "Any",
+    browserRequirements: "Requires JavaScript",
+    isAccessibleForFree: true,
+    offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+    publisher: {
+      "@type": "Organization",
+      name: siteConfig.name,
+      url: siteConfig.url,
+      logo: { "@type": "ImageObject", url: `${siteConfig.url}/icon.svg` },
+    },
   };
 }
 
