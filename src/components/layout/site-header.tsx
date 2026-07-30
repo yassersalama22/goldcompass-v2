@@ -4,6 +4,7 @@ import { Logo } from "@/components/brand/logo";
 import { Container } from "@/components/layout/container";
 import { MainNav } from "@/components/layout/main-nav";
 import { MobileNav } from "@/components/layout/mobile-nav";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button } from "@/components/ui/button";
 
 export function SiteHeader() {
@@ -20,6 +21,7 @@ export function SiteHeader() {
         <Logo />
         <div className="flex items-center gap-2">
           <MainNav />
+          <ThemeToggle />
           <Button render={<Link href="/calculator" />} size="sm" className="hidden sm:inline-flex">
             Gold Calculator
           </Button>

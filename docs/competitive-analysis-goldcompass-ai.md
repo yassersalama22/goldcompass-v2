@@ -317,9 +317,30 @@ commissioning through the existing article pipeline, angled at investors rather 
 *What moves gold prices*, *Gold and interest rates*, *Real yields and gold*, *Gold vs inflation —
 why the relationship breaks*, *What is an economic calendar and which events matter for gold*.
 
-### P3 — Header price ticker site-wide, and a theme toggle
+### P3 — Header price ticker site-wide, and a theme toggle → **toggle done, ticker rejected** 2026-07-30
 The ticker component already exists; lifting it into `SiteHeader` gives every page a live value
 signal. The theme toggle has been an open TODO since Phase 0 and is table stakes now.
+
+**Theme toggle: done.** Dependency-free (no `next-themes`) — a blocking inline script applies the
+stored choice pre-paint, and the button holds no React state (both icons render, CSS picks one), so
+the markup is theme-independent and hydration-safe. Dark mode was also audited with axe for the
+first time (8 pages, 0 violations); it had only ever been checked numerically at Phase 1.
+
+**Header ticker: built, then rejected** (owner decision, same day). It did not earn its place for
+*our* audience. A site-wide tick is trader furniture — it suits goldcompass.ai's leveraged-XAUUSD
+reader, who is watching intraday moves, and it is one of the places where copying them would have
+pulled us toward their ICP rather than serving ours. Physical-gold buyers on a multi-month horizon
+do not need a number in the chrome of every page; showing one implies a monitoring cadence we
+explicitly tell people *not* to adopt. The price stays where the reader arrives with intent —
+`/trends` and `/outlook`.
+
+**Worth keeping from the attempt:** the ticker could *not* have been a simple lift of the existing
+`/trends` component. That one is SSR-seeded, and `SiteHeader` is in the root layout — so the price
+would have been baked into every page's HTML, including fully static pages that emit
+`s-maxage=31536000` and sit in the Cloudflare edge cache for a year with no purge-on-deploy. A
+visitor to `/about` could have been served a year-old gold price. Any always-visible live value in
+the layout must be client-fetched after mount. Note the §2 comparison row still stands: they have a
+site-wide ticker and we deliberately do not.
 
 ### P3 — Brand-collision monitoring
 Track ranking for the bare query "gold compass" and consider defensive branded content. Not

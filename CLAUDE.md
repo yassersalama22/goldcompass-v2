@@ -1128,3 +1128,39 @@ Match the current site's look and feel:
   - Note: the current hand-seeded `current.json` analysis body says "The US dollar (DXY)". The new
     prompt forbids that wording, so the next generated outlook self-corrects; not worth hand-editing
     published content.
+- 2026-07-30: **P3 — theme toggle shipped; header price ticker built then REMOVED.** Closes the
+  theme-toggle TODO open since Phase 0. No new dependencies.
+  - **Header ticker was reverted the same day by product decision** (user): it did not add enough
+    for our audience — physical-gold investors on a buy-and-hold horizon — to justify live price
+    furniture on every page. Traders want an always-on tick; our reader does not. The price stays
+    where it has intent behind it: `/trends` and `/outlook`. **Don't re-propose it** without a new
+    reason; see the gap analysis P3 entry.
+  - **⚠ Keep this finding even though the feature is gone.** A site-wide ticker **cannot** just
+    lift the SSR-seeded `/trends` component into `SiteHeader`. The header is in the root layout, so
+    an SSR'd price gets baked into **every** page's HTML — including fully static pages that emit
+    `s-maxage=31536000` and sit in the Cloudflare edge cache for a **year** with no purge-on-deploy
+    (2026-07-27). `/about` would have served a year-old gold price. Any future always-visible live
+    value must be **client-fetched after mount**, so cached HTML carries no price at all. The same
+    trap applies to anything else live placed in the layout.
+  - **Theme toggle is dependency-free** (no `next-themes`). `components/theme/theme-script.tsx` is a
+    **blocking inline script** — anything deferred or React-driven runs after first paint, which is
+    the flash. Allowed because our CSP `script-src` already includes `'unsafe-inline'`. It sets the
+    `dark` class (the Tailwind v4 variant is `@custom-variant dark (&:is(.dark *))`, i.e. class-based)
+    plus `style.colorScheme` for native controls and scrollbars.
+  - **`<html suppressHydrationWarning>` is required and is scoped to that one element** — the script
+    legitimately mutates the root before hydration. Nothing below it is affected: `ThemeToggle`
+    holds **no React state**, renders both icons, and swaps them with `dark:hidden` / `hidden
+    dark:block`, so no descendant's markup depends on the theme. The accessible name is a static
+    "Toggle dark mode" on purpose — a state-dependent label or `aria-pressed` would differ between
+    server and client and reintroduce the mismatch.
+  - Precedence: an explicit choice in `localStorage['gc-theme']` wins; otherwise
+    `prefers-color-scheme`. Storage failures (private mode) are caught — the toggle still works for
+    that page.
+  - **Dark mode audited with axe for the first time** — it had only ever been checked numerically at
+    Phase 1 (`scripts/check-contrast.mjs`), and a toggle makes it a first-class UI users actually
+    reach. **0 violations across 8 pages** in emulated dark.
+  - Verified in headless Chrome after the revert: OS preference respected both ways, click toggles +
+    persists, stored choice survives navigation and overrides the OS, class present pre-paint,
+    toggle is a focusable labelled `<button>`, **no price anywhere in the header** (markup or
+    rendered), and **zero console errors** (no hydration warnings) on every path.
+    `tsc` ✓, `eslint` ✓, `next build` ✓, axe 0 violations in light **and** dark.

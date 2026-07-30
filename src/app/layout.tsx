@@ -4,6 +4,7 @@ import Script from "next/script";
 import "./globals.css";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
+import { ThemeScript } from "@/components/theme/theme-script";
 
 const geistSans = Geist({
   variable: "--font-sans",
@@ -76,9 +77,16 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      // ThemeScript adds the `dark` class + a colorScheme style to <html> before
+      // hydration, so this element alone legitimately differs from what the
+      // server emitted. Scoped to <html>; everything inside still hydrates
+      // strictly.
+      suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">
+        {/* Must run before first paint — see the component for why. */}
+        <ThemeScript />
         {/*
           Warm the TCP+TLS handshake for the two third-party hosts we always
           load (Lighthouse: ~420ms). React 19 hoists these into <head>. Each is
