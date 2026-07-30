@@ -11,6 +11,22 @@ import { sourceSchema } from "@/types/outlook";
  */
 export const ARTICLE_CONTRACT_VERSION = 1;
 
+/**
+ * How long a piece stays true — deliberately orthogonal to `category`.
+ *
+ * Category describes the subject ("Central Banks"); kind describes the reader's
+ * freshness expectation. They cross: "Why central banks keep buying gold" is an
+ * explainer and "Fed holds rates again" is a market update, and both are
+ * Central Banks. Deriving one from the other would mis-file both.
+ *
+ * Added after `ARTICLE_CONTRACT_VERSION = 1` shipped. The version is unchanged
+ * on purpose: adding a field is backwards-compatible for `/api/v1/articles`
+ * consumers, which ignore keys they don't know. Bumping would break them for no
+ * gain.
+ */
+export const articleKindSchema = z.enum(["explainer", "market-update"]);
+export type ArticleKind = z.infer<typeof articleKindSchema>;
+
 export const articleSchema = z.object({
   contractVersion: z.literal(ARTICLE_CONTRACT_VERSION),
   /** URL slug (kebab-case, unique). */
@@ -20,6 +36,8 @@ export const articleSchema = z.object({
   description: z.string().min(1).max(300),
   /** Primary category, e.g. "Central Banks", "Market Analysis", "Education". */
   category: z.string().min(1),
+  /** Durability of the piece — drives the /insights sub-views. */
+  kind: articleKindSchema,
   tags: z.array(z.string()).max(8),
   /** ISO date the article was published. */
   date: z.string(),

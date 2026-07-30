@@ -267,14 +267,30 @@ LLM, and the calculators are client-side), and an explicit "things we will not d
 `/methodology` on the grounds that no contact channel exists, and re-introducing it here would
 repeat the error. See `CLAUDE.md` 2026-07-30.
 
-### P2 — Surface confidence more prominently on `/outlook`
+### ~~P2 — Surface confidence more prominently on `/outlook`~~ ✅ done 2026-07-30
 Give conviction equal visual weight to the BUY/SELL badge. Consider a banded label
 (low / moderate / high) rendered as a component, not buried body text.
 
-### P2 — Split `/insights` into Explainers and Market Updates
+**Implemented** as `components/market/confidence-meter.tsx` — three rising segments plus a banded
+label (Low / Moderate / High), on its own bordered row in the call card rather than trailing the
+horizon as text. The rising-bar shape carries the level in greyscale, so meaning never depends on
+colour. Also added to the home recommendation cards (compact size), and `/outlook` now links to a
+new `#confidence` anchor on `/methodology` clarifying that conviction describes evidence strength,
+not outcome probability.
+
+### ~~P2 — Split `/insights` into Explainers and Market Updates~~ ✅ done 2026-07-30
 Same store, two filtered views plus a category chip on cards. Our evergreen explainers and our
 Fed-meeting reactions serve different intents and different freshness expectations, and the
 combined feed dilutes both.
+
+**Implemented**, with one design correction to the brief: the split could *not* be driven by
+`category`, because category describes subject and the axis that matters is durability. "Central
+Banks" holds both an evergreen explainer and two Fed-meeting reactions. So a required `kind`
+(`explainer` | `market-update`) was added to the article contract, orthogonal to category, and all
+8 artifacts were classified on freshness expectation — 5 explainers, 3 market updates. `/insights`
+remains the canonical full archive; `/insights/explainers` and `/insights/market-updates` are
+static routes with their own H1, intro, and canonical. Category chips were already on the cards.
+See `CLAUDE.md` 2026-07-30.
 
 ### P2 — Evergreen explainer cluster
 Their tutorial titles are a validated keyword map. We have partial coverage. Missing and worth

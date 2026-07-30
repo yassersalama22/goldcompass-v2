@@ -3,7 +3,7 @@ import { cache } from "react";
 import fs from "node:fs";
 import path from "node:path";
 
-import { articleSchema, type Article } from "@/types/article";
+import { articleSchema, type Article, type ArticleKind } from "@/types/article";
 
 /**
  * Articles data-access layer (headless core). Reads the committed article
@@ -50,6 +50,11 @@ export const getArticleBySlug = cache(
 
 export const getAllArticleSlugs = cache((): string[] =>
   getAllArticles().map((a) => a.slug),
+);
+
+/** Published articles of one kind, newest first — backs the /insights sub-views. */
+export const getArticlesByKind = cache((kind: ArticleKind): Article[] =>
+  getAllArticles().filter((a) => a.kind === kind),
 );
 
 /** Distinct categories present in published articles. */

@@ -1031,3 +1031,54 @@ Match the current site's look and feel:
     deterministic ground truth + a "macro pressure" panel — the constraint is free sources with
     acceptable terms), then the P2s (confidence prominence, `/insights` explainer/news split,
     evergreen explainer cluster).
+- 2026-07-30: **P2 code items shipped** — confidence prominence + the `/insights` kind split.
+  Sitemap **21 → 23 URLs**. No new deps. The third P2 (evergreen explainer cluster) is content
+  commissioning, deliberately **not** run — see the bottom of this entry.
+  - **`ConfidenceMeter`** (`components/market/confidence-meter.tsx`): three **rising** segments +
+    a banded label (Low / Moderate / High). Conviction was previously plain text trailing the
+    horizon (`"Next 1–4 weeks · Medium confidence"`); it now occupies its own bordered row in
+    `OutlookCallCard`, reading as a peer of the signal badge rather than metadata. Bars are
+    `aria-hidden` (the label already states the level) and **rise in height**, so the level
+    survives greyscale — colour is never the only channel (WCAG 1.4.1, and the §8 rule about
+    BUY/SELL). Compact `size="sm"` variant added to the home recommendation cards.
+    `/outlook` gained a line linking to a new `#confidence` anchor on `/methodology`:
+    conviction describes **evidence strength, not outcome probability**.
+  - **`kind` is a new required field on the article contract** (`explainer` | `market-update`),
+    deliberately **orthogonal to `category`**. The gap analysis assumed the split could be driven
+    by category; it cannot — category is subject, and "Central Banks" contains both an evergreen
+    explainer and two Fed-meeting reactions. Deriving one from the other mis-files both.
+    **`ARTICLE_CONTRACT_VERSION` stays 1**: adding a field is backwards-compatible for
+    `/api/v1/articles` consumers, which ignore unknown keys; bumping would break them for nothing.
+  - **All 8 artifacts classified** on freshness expectation (explainer = the claim stays true;
+    market-update = pegged to a datable event or a present-tense claim) → **5 explainers,
+    3 market updates**. Migrated with a **text-level insert after the `category` line**, not a
+    reserialize: the three hand-seeded editorial files use compact arrays, and `JSON.stringify`
+    reflowed them into a 20-line diff. Final diff is **one line per file**.
+  - **Routes are static folders, not a dynamic segment.** `/insights/[slug]` already occupies that
+    level and **Next.js allows only one dynamic slug name per level** — a `[kindSlug]` sibling is a
+    build error. `/insights/explainers` + `/insights/market-updates` are static routes sharing
+    `InsightKindView`; copy/URLs live in `src/config/insight-kinds.ts`, the enum in the contract.
+  - **⚠ Static segments silently win over `[slug]`**, so an article that derived the slug
+    `explainers` would be **permanently unreachable**. `RESERVED_INSIGHT_SLUGS` now seeds
+    `existingSlugs()` in `generate-article.mts`. **Verified by exercising it**, not by reading:
+    patched the mock's title to "Explainers", ran the pipeline, got `explainers-2`, then removed
+    the artifact and restored the mock.
+  - **Duplicate-content guard** (the 2026-06-23 `/insights` ↔ `/articles` lesson): `/insights`
+    stays the canonical full archive; each view has its own H1, its own intro stating that view's
+    freshness contract, a self-referencing canonical, and `BreadcrumbList` JSON-LD. This is a
+    normal category-archive relationship (subset of a parent), not the identical-set duplication
+    that caused the earlier merge.
+  - Generator updated so new drafts carry `kind`: `generatedArticleSchema` (required),
+    `ARTICLE_PROMPT_VERSION` **2026-06-21.1 → 2026-07-30.1** with explicit guidance that the
+    choice is about durability not topic ("would a reader arriving in six months still be well
+    served?"), and the mock. A draft without `kind` now fails validation loudly in CI rather than
+    landing mis-filed.
+  - Verified: `tsc --noEmit` ✓, `eslint` ✓, `next build` ✓ (both views static + 1h ISR, 36
+    routes), counts **8 = 5 + 3** across the three views, canonicals + h1s correct, sitemap
+    entries present, `/api/v1/articles` returns `kind` on every item, **axe-core 0 violations**
+    on `/`, `/outlook`, `/insights`, and both new views.
+  - **NOT done — P2 evergreen explainer cluster.** That one is content commissioning, not code:
+    it spends `ANTHROPIC_API_KEY` budget, publishes YMYL content, and topic choice is explicitly
+    the owner's call (articles cron stays manual by preference, per 2026-07-28). Candidate titles
+    are listed in the gap analysis §6. Run `npm run articles:generate` with `ARTICLE_TOPIC` set,
+    one per topic, then review.

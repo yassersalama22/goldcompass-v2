@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { ArticleCard } from "@/components/articles/article-card";
+import { InsightFilterNav } from "@/components/articles/insight-filter-nav";
 import { Container } from "@/components/layout/container";
 import { toArticleSummary } from "@/types/article";
 import { getAllArticles } from "@/server/articles";
@@ -19,14 +20,16 @@ export default function InsightsPage() {
 
   return (
     <Container className="py-12 sm:py-16">
-      <header className="mb-10 space-y-3">
+      <header className="mb-8 space-y-3">
         <h1 className="text-3xl font-bold sm:text-4xl">Market Insights</h1>
         <p className="text-muted-foreground max-w-2xl text-lg text-pretty">
-          News summaries, market analysis, and educational guides on gold — what
-          moved, why it matters, and where the data comes from. Every claim is
-          tied to a cited source.
+          Everything we publish, newest first — market updates pegged to what
+          just happened, and explainers built to stay true. Every claim is tied
+          to a cited source.
         </p>
       </header>
+
+      <InsightFilterNav current="all" />
 
       {articles.length === 0 ? (
         <p className="text-muted-foreground">No insights published yet. Check back soon.</p>

@@ -13,6 +13,7 @@
 import { writeFile, mkdir, readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 
+import { RESERVED_INSIGHT_SLUGS } from "@/config/insight-kinds";
 import { coinGeckoProvider } from "@/server/price/coingecko";
 import {
   getArticleGenerator,
@@ -53,7 +54,11 @@ function kebab(s: string): string {
  * filename is only a storage/ordering detail).
  */
 async function existingSlugs(dir: string): Promise<Set<string>> {
-  const slugs = new Set<string>();
+  // Seeded with the reserved route segments: `/insights/explainers` and
+  // `/insights/market-updates` are static routes at the same level as article
+  // slugs, and a static segment silently wins over `[slug]` — so an article
+  // that derived one of those slugs would be permanently unreachable.
+  const slugs = new Set<string>(RESERVED_INSIGHT_SLUGS);
   let files: string[];
   try {
     files = (await readdir(dir)).filter((f) => f.endsWith(".json"));
@@ -118,6 +123,7 @@ async function main() {
     title: generated.title,
     description: generated.description,
     category: generated.category,
+    kind: generated.kind,
     tags: generated.tags,
     date,
     updatedAt: now.toISOString(),

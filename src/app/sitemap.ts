@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 
+import { INSIGHT_KINDS } from "@/config/insight-kinds";
 import { siteConfig } from "@/config/site";
 import { TOOLS } from "@/config/tools";
 import { getAllArticles } from "@/server/articles";
@@ -23,6 +24,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: route === "" ? 1 : 0.7,
   }));
 
+  const insightKindEntries: MetadataRoute.Sitemap = INSIGHT_KINDS.map((kind) => ({
+    url: `${siteConfig.url}${kind.href}`,
+    changeFrequency: "weekly",
+    priority: 0.6,
+  }));
+
   const toolEntries: MetadataRoute.Sitemap = TOOLS.map((tool) => ({
     url: `${siteConfig.url}${tool.href}`,
     changeFrequency: "weekly",
@@ -36,5 +43,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.6,
   }));
 
-  return [...staticEntries, ...toolEntries, ...articleEntries];
+  return [...staticEntries, ...insightKindEntries, ...toolEntries, ...articleEntries];
 }

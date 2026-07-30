@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
 import { Container } from "@/components/layout/container";
+import { ConfidenceMeter } from "@/components/market/confidence-meter";
 import { SignalBadge } from "@/components/market/signal-badge";
 import {
   Card,
@@ -50,7 +51,8 @@ export function RecommendationsSection() {
                   {call.horizon}
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-3">
+                <ConfidenceMeter confidence={call.confidence} size="sm" />
                 <p className="text-muted-foreground">{call.reason}</p>
               </CardContent>
             </Card>

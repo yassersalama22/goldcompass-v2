@@ -104,6 +104,17 @@ export default function OutlookPage() {
                 <OutlookCallCard key={call.term} call={call} />
               ))}
             </div>
+            <p className="text-muted-foreground text-sm">
+              Conviction describes how strongly the evidence supports the call — not how likely
+              the outcome is.{" "}
+              <Link
+                href="/methodology#confidence"
+                className="text-gold-strong underline underline-offset-4"
+              >
+                How we set it
+              </Link>
+              .
+            </p>
           </section>
 
           {/* Full analysis */}

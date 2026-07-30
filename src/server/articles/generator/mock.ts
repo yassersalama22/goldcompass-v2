@@ -16,6 +16,7 @@ export function createMockArticleGenerator(): ArticleGenerator {
         description:
           "Placeholder content generated without live research. Replace with a real run before publishing.",
         category: "News",
+        kind: "market-update",
         tags: ["gold", "test"],
         bodyMarkdown: [
           "## Overview",

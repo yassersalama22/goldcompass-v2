@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { articleKindSchema } from "@/types/article";
 import { sourceSchema } from "@/types/outlook";
 
 /**
@@ -11,6 +12,8 @@ export const generatedArticleSchema = z.object({
   title: z.string().min(1).max(140),
   description: z.string().min(1).max(300),
   category: z.string().min(1).max(40),
+  /** Required: the model must commit to how durable the piece is. */
+  kind: articleKindSchema,
   tags: z.array(z.string()).max(8),
   bodyMarkdown: z.string().min(1),
   sources: z.array(sourceSchema).min(1).max(12),

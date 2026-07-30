@@ -246,7 +246,9 @@ export default function MethodologyPage() {
               ))}
             </dl>
 
-            <h3 className="pt-2 font-semibold">Confidence</h3>
+            <h3 id="confidence" className="scroll-mt-24 pt-2 font-semibold">
+              Confidence
+            </h3>
             <p className="text-muted-foreground text-pretty">
               Every call carries a confidence level, which describes how strong the supporting
               evidence is — not how likely the outcome is.
