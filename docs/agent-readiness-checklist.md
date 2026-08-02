@@ -57,63 +57,85 @@ to us only because we genuinely publish `/api/v1`.
 
 ## P1 — Do these (cheap, real benefit, fits the SEO/agent-discovery goal)
 
-### 1. Content Signals in `robots.txt` — *unlocks Level 2 on its own*
+### 1. Content Signals in `robots.txt` — *unlocks Level 2 on its own* ✅ code done
 
-- [ ] Add `Content-Signal` directives to the wildcard block in
-      [src/app/robots.ts](src/app/robots.ts)
-- [ ] Decide the three preferences (this is a **product/legal call, not a technical one**):
-      `ai-train` (train models on our content), `search` (index for search),
-      `ai-input` (use as RAG/grounding input for AI answers)
-- [ ] Verify the emitted `/robots.txt` and re-run the scanner
+- [x] Add `Content-Signal` directives to the wildcard block
+- [x] Decide the three preferences (a **product/legal call, not a technical one**)
+- [ ] Deploy, then re-run the scanner and confirm `contentSignals` is `pass` → Level 2
 
-Recommended values for GoldCompass — organic search is the entire acquisition channel
-(CLAUDE.md §2), and being cited inside AI answers is the successor to that, so both should
-stay `yes`; model training returns nothing to us:
+**Values shipped** — organic search is the entire acquisition channel (CLAUDE.md §2), and
+being cited inside AI answers is the successor to that, so both stay `yes`; training
+foundation models returns nothing to us and is the one use with no attribution path:
 
 ```
 Content-Signal: ai-train=no, search=yes, ai-input=yes
 ```
 
-⚠️ `MetadataRoute.Robots` has no field for this. Next's `robots.ts` can't emit an arbitrary
-directive, so either replace it with a hand-written `src/app/robots.txt/route.ts` that
-returns `text/plain`, or keep `robots.ts` and inject the line via a Cloudflare Transform
-Rule. Prefer the route handler — the source of truth belongs in the repo, and Cloudflare's
-AI Crawl Control dashboard is the other option but leaves no trace in git.
+Change that one line in [src/app/robots.txt/route.ts](src/app/robots.txt/route.ts) if the
+policy call goes the other way. These are **declarations of preference, not access control** —
+unenforced on their own. Enforcement would be `Disallow` rules or Cloudflare AI Crawl Control.
 
-### 2. Markdown content negotiation (`Accept: text/markdown`)
+⚠️ `MetadataRoute.Robots` has no field for `Content-Signal` and no escape hatch, so
+`src/app/robots.ts` was **replaced** by a hand-written route handler at
+[src/app/robots.txt/route.ts](src/app/robots.txt/route.ts) (`force-static`, so it is still
+prerendered exactly like the metadata route was). The alternative — injecting the line with a
+Cloudflare Transform Rule — was rejected: it leaves the policy undiscoverable in git.
 
-- [ ] Turn on Cloudflare **Markdown for Agents** for the zone (dashboard toggle, zero code)
+### 2. Markdown content negotiation (`Accept: text/markdown`) — dashboard, not code
+
+- [ ] **First**, add the cache bypass (below). Do this *before* enabling the feature.
+- [ ] Turn on Cloudflare **Markdown for Agents** for the zone
 - [ ] Verify: `curl -sI -H "Accept: text/markdown" https://goldcompass.app/` returns
-      `content-type: text/markdown`
-- [ ] Confirm it doesn't collide with the RSC cache rule (see the ⚠️ below)
+      `content-type: text/markdown` **and** `cf-cache-status: DYNAMIC|BYPASS`
+- [ ] Verify a normal `curl -sI https://goldcompass.app/` still returns `text/html` + `HIT|MISS`
 
-This is the check with the best effort-to-value ratio after Content Signals — agents that
-fetch our pages get clean markdown instead of parsing HTML, and our articles/outlook are
-markdown upstream anyway.
+Best effort-to-value ratio after Content Signals — agents get clean markdown instead of
+parsing HTML, and our articles/outlook are markdown upstream anyway.
 
 ⚠️ **Cache-key hazard, and we have history here.** Cloudflare ignores `Vary` except for
-`Accept-Encoding` (CLAUDE.md, 2026-07-27). We already got burned by exactly this with the
-RSC flight payload being cached under the HTML cache key and served to real browsers.
-A markdown variant at the same URL is the same shape of bug. Before enabling, confirm
-Cloudflare's Markdown for Agents keys the variant separately; if it doesn't, add a Cache
-Rule that bypasses cache when `Accept` contains `text/markdown`, mirroring the
-`and not any(http.request.headers["rsc"][*] eq "1")` fix.
+`Accept-Encoding` (CLAUDE.md, 2026-07-27). We already got burned by exactly this when the RSC
+flight payload was cached under the HTML cache key and served to real browsers. A markdown
+variant at the same URL is the same bug. The proper fix — putting `Accept` in the cache key —
+is **not available on this plan**, same wall as the `RSC` header, so bypass is the only option.
 
-Doing it at the origin instead is possible (a route that serves the article's raw markdown
-body) but only covers `/insights/*` and `/outlook`, not the calculator/tool pages, and it
-duplicates rendering. Prefer the edge toggle.
+🔥 **The clause goes *inside* the existing "Cache public pages" rule, not in a new rule above
+it.** Cache Rules do not stop at the first match; every matching rule is evaluated in order and
+later ones override earlier ones. A separate "Bypass markdown" rule at position 1 would be
+overridden by the caching rule below it — precisely how the RSC payload leaked.
 
-### 3. `llms.txt` (not scored by this scanner, but the reason it exists)
+Dashboard → zone `goldcompass.app` → **Rules → Caching → Cache Rules** → edit
+**"Cache public pages"** → *Edit expression*, and append:
 
-- [ ] Add `src/app/llms.txt/route.ts` returning UTF-8 plain text: `# GoldCompass`, a summary
-      paragraph, then links to `/outlook`, `/trends`, `/calculator` (+ tool siblings),
-      `/insights`, `/methodology`, `/ai-disclosure`, and the `/api/v1` endpoints
-- [ ] Generate the content section from the same data-access layer the sitemap uses, so it
-      never drifts from published articles
+```
+and not any(http.request.headers["accept"][*] contains "text/markdown")
+```
 
-The scanner ships a `llms-txt` skill but doesn't run the check. Do it anyway — it's the
-single most widely-consumed agent-discovery file right now, it's static, and it costs
-nothing to serve.
+leaving both negations side by side:
+
+```
+... and not any(http.request.headers["rsc"][*] eq "1")
+    and not any(http.request.headers["accept"][*] contains "text/markdown")
+```
+
+Header names are lowercase; `http.request.headers[...]` is an array so the `any(...)` wrapper is
+required; `contains` rather than `eq` because `Accept` arrives as a long comma-separated list.
+**Save, then purge everything** — fixing the rule without purging leaves any poisoned entry in place.
+
+Doing it at the origin instead is possible (a route serving the article's raw markdown body) but
+only covers `/insights/*` and `/outlook`, not the calculator/tool pages, and it duplicates
+rendering. Prefer the edge toggle.
+
+### 3. `llms.txt` ✅ done — not scored by this scanner, but the reason it exists
+
+- [x] [src/app/llms.txt/route.ts](src/app/llms.txt/route.ts) — UTF-8 plain text, H1 + summary
+      blockquote + linked sections for outlook/trends, all five calculators, insights (incl. both
+      kind views + RSS), every published article, the trust pages, and the four `/api/v1` endpoints
+- [x] Built from the same sources as `sitemap.ts` (site/tool/insight-kind config + the articles
+      data-access layer), so it cannot drift from what is published
+
+`revalidate = 3600` rather than fully static: the article list changes when a generated article
+merges, and there is **no purge-on-deploy** (CLAUDE.md 2026-07-27), so a static year-long edge TTL
+would go stale. `robots.txt` stays `force-static` — its body never changes.
 
 ---
 
@@ -194,8 +216,15 @@ Recording the reasons so this doesn't get re-litigated at the next scan.
 
 ## Ordering
 
-1. Content Signals (#1) — reaches Level 2 alone, ~1 file.
-2. Markdown negotiation (#2) — dashboard toggle, but read the cache-key warning first.
-3. `llms.txt` (#3) — unscored, highest real-world agent value.
+1. ~~Content Signals (#1)~~ — code shipped; reaches Level 2 on deploy.
+2. ~~`llms.txt` (#3)~~ — code shipped.
+3. Markdown negotiation (#2) — **cache bypass first**, then the toggle. Dashboard only.
 4. OpenAPI (#4) → API Catalog (#5) → Link headers (#6) — one chain, in that order.
 5. Re-run the scanner and update the table at the top.
+
+### Remaining P1 actions (not code)
+
+- [ ] Deploy (merge to main → deploy pipeline) so `/robots.txt` and `/llms.txt` go live
+- [ ] Cache Rule bypass for `Accept: text/markdown`, then enable Markdown for Agents
+- [ ] Re-run the scanner; expect `contentSignals` → pass (**Level 2 "Bot-Aware"**) and
+      `markdownNegotiation` → pass once the toggle is on
