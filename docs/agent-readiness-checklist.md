@@ -1,7 +1,7 @@
 # AI Agent Readiness — audit + checklist
 
 Source: Cloudflare's [Is It Agent Ready?](https://isitagentready.com/) scanner.
-Scanned `https://goldcompass.app` on **2026-08-02**.
+Scanned `https://goldcompass.app` on **2026-08-02**; re-scanned same day after the P1 deploy.
 
 Re-run any time (the site's `/goldcompass.app` URL 404s — the report is driven by an API):
 
@@ -19,9 +19,9 @@ Remediation docs for every check are published as skills at
 
 ## Result
 
-**Level 1 — "Basic Web Presence"** (of 5 levels). Next rung is **Level 2 — "Bot-Aware"**,
-and its *only* requirement is `contentSignals`. So the single highest-leverage task in this
-whole document is ~6 lines in `robots.ts`.
+**Level 2 — "Bot-Aware"** (of 5 levels), up from Level 1 "Basic Web Presence" after the P1
+deploy. Next rung is **Level 3 — "Agent-Readable"**, and its *only* requirement is
+`markdownNegotiation` — a Cloudflare dashboard toggle, no code. See §2 below.
 
 | Category | Check | Status |
 |---|---|---|
@@ -29,9 +29,9 @@ whole document is ~6 lines in `robots.ts`.
 | Discoverability | sitemap.xml | ✅ pass |
 | Discoverability | Link headers | ❌ fail |
 | Discoverability | DNS for AI Discovery (DNS-AID) | ❌ fail |
-| Content accessibility | Markdown content negotiation | ❌ fail |
+| Content accessibility | Markdown content negotiation | ❌ fail → **unlocks Level 3** |
 | Bot access control | robots.txt AI rules | ✅ pass (wildcard applies to AI bots) |
-| Bot access control | Content Signals | ❌ fail |
+| Bot access control | Content Signals | ✅ pass *(2026-08-02)* |
 | Bot access control | Web Bot Auth | ⚪ neutral (informational) |
 | Protocol discovery | API Catalog | ❌ fail |
 | Protocol discovery | OAuth/OIDC discovery | ❌ fail |
@@ -49,7 +49,8 @@ not failures.
 
 Note the scanner's own preset for a "Content Site" only runs seven checks:
 `robotsTxt`, `sitemap`, `linkHeaders`, `dnsAid`, `markdownNegotiation`, `robotsTxtAiRules`,
-`contentSignals`. Under that lens we're 3/7 — and P1+P2 below takes us to 6/7.
+`contentSignals`. Under that lens we're now **4/7** (was 3/7); the markdown toggle makes it
+5/7 and P2 takes it to 6/7.
 The remaining protocol-discovery failures are the "API / Application" preset, which matters
 to us only because we genuinely publish `/api/v1`.
 
@@ -57,11 +58,11 @@ to us only because we genuinely publish `/api/v1`.
 
 ## P1 — Do these (cheap, real benefit, fits the SEO/agent-discovery goal)
 
-### 1. Content Signals in `robots.txt` — *unlocks Level 2 on its own* ✅ code done
+### 1. Content Signals in `robots.txt` — ✅ **done, live, Level 2 reached**
 
 - [x] Add `Content-Signal` directives to the wildcard block
 - [x] Decide the three preferences (a **product/legal call, not a technical one**)
-- [ ] Deploy, then re-run the scanner and confirm `contentSignals` is `pass` → Level 2
+- [x] Deployed 2026-08-02; scanner confirms `contentSignals: pass` → **Level 2 "Bot-Aware"**
 
 **Values shipped** — organic search is the entire acquisition channel (CLAUDE.md §2), and
 being cited inside AI answers is the successor to that, so both stay `yes`; training
@@ -81,12 +82,16 @@ unenforced on their own. Enforcement would be `Disallow` rules or Cloudflare AI 
 prerendered exactly like the metadata route was). The alternative — injecting the line with a
 Cloudflare Transform Rule — was rejected: it leaves the policy undiscoverable in git.
 
-### 2. Markdown content negotiation (`Accept: text/markdown`) — dashboard, not code
+### 2. Markdown content negotiation (`Accept: text/markdown`) — **the only thing between us and Level 3**
 
-- [ ] **First**, add the cache bypass (below). Do this *before* enabling the feature.
-- [ ] Turn on Cloudflare **Markdown for Agents** for the zone
+- [x] Cache bypass added and **verified live** (2026-08-02) — a markdown request returns
+      `cf-cache-status: DYNAMIC` on `/` and `/outlook` across repeats, while a normal request
+      still returns `HIT`. The rule is correct *before* the feature exists, which is the right
+      order and means enabling the toggle cannot poison the cache.
+- [ ] Turn on Cloudflare **Markdown for Agents** for the zone ← **only remaining step**
 - [ ] Verify: `curl -sI -H "Accept: text/markdown" https://goldcompass.app/` returns
       `content-type: text/markdown` **and** `cf-cache-status: DYNAMIC|BYPASS`
+      *(currently still `text/html` — the feature is not on yet)*
 - [ ] Verify a normal `curl -sI https://goldcompass.app/` still returns `text/html` + `HIT|MISS`
 
 Best effort-to-value ratio after Content Signals — agents get clean markdown instead of
@@ -216,15 +221,15 @@ Recording the reasons so this doesn't get re-litigated at the next scan.
 
 ## Ordering
 
-1. ~~Content Signals (#1)~~ — code shipped; reaches Level 2 on deploy.
-2. ~~`llms.txt` (#3)~~ — code shipped.
-3. Markdown negotiation (#2) — **cache bypass first**, then the toggle. Dashboard only.
-4. OpenAPI (#4) → API Catalog (#5) → Link headers (#6) — one chain, in that order.
-5. Re-run the scanner and update the table at the top.
+1. ~~Content Signals (#1)~~ — ✅ live, Level 2 reached.
+2. ~~`llms.txt` (#3)~~ — ✅ live.
+3. ~~Cache bypass for `Accept: text/markdown`~~ — ✅ live and verified.
+4. **Enable Markdown for Agents (#2)** — one dashboard toggle → **Level 3 "Agent-Readable"**.
+5. OpenAPI (#4) → API Catalog (#5) → Link headers (#6) — one chain, in that order.
+6. Re-run the scanner and update the table at the top.
 
-### Remaining P1 actions (not code)
+### Minor, noticed on the re-scan
 
-- [ ] Deploy (merge to main → deploy pipeline) so `/robots.txt` and `/llms.txt` go live
-- [ ] Cache Rule bypass for `Accept: text/markdown`, then enable Markdown for Agents
-- [ ] Re-run the scanner; expect `contentSignals` → pass (**Level 2 "Bot-Aware"**) and
-      `markdownNegotiation` → pass once the toggle is on
+- `/llms.txt` returns `cf-cache-status: DYNAMIC` — the "Cache public pages" rule matches HTML
+  only, so it hits origin every request. Harmless at 54 lines, and it *is* the safe default
+  given no purge-on-deploy. Only worth a cache rule if agent traffic to it becomes real.
