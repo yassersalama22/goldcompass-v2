@@ -1296,6 +1296,19 @@ Match the current site's look and feel:
     matching the canonical Next emits byte-for-byte. `localizePath("/", locale)` returns `"/"`, so
     `absolute()` strips it — a sitemap URL differing from its own canonical by a slash is a needless
     "which one do you mean?" signal.
+  - **⚠ Deploy trap: the lock file must be generated with the *container's* npm.**
+    The first deploy of this work failed at `npm ci` with
+    `Missing: @swc/helpers@0.5.23 from lock file`. Nothing was wrong with the code — it is a
+    resolver-version split. `next` pins `@swc/helpers@0.5.15`; `@swc/core` (pulled in by
+    next-intl) declares an **optional peer** `@swc/helpers >=0.5.17`. Local **npm 11** (Node 26)
+    dedupes that peer away and omits the top-level entry; the Dockerfile's **node:22-alpine ships
+    npm 10**, which materialises it and rejects the lock without it. Local `npm ci` *passed*, so
+    the usual check does not catch this.
+    Fix, and the recipe for next time a dependency is added from a machine on newer Node:
+    `npx -y npm@10.9.4 install --package-lock-only` then `npx -y npm@10.9.4 ci` to verify.
+    Regenerating this way changed no version pins and kept the production tree at 0
+    vulnerabilities. **Do not** "fix" it by loosening the Dockerfile to `npm install` — `npm ci`
+    is what makes the deployed tree reproducible.
   - **Next: Phase B — RTL readiness.** Enable `ar` with pseudo-translated catalogs (layout bugs
     before content exists): `dir` plumbing + Base UI `DirectionProvider`, ~60 directional utilities
     across 16 files → logical properties (`ms/me/ps/pe/border-s/text-start`; only 4 shadcn
