@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "check:markdown": "tsx scripts/check-markdown-negotiation.mts",
     "outlook:generate": "tsx scripts/generate-outlook.mts",
     "outlook:publish": "tsx scripts/publish-outlook.mts",
     "articles:generate": "tsx scripts/generate-article.mts",

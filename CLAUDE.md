@@ -1164,3 +1164,56 @@ Match the current site's look and feel:
     toggle is a focusable labelled `<button>`, **no price anywhere in the header** (markup or
     rendered), and **zero console errors** (no hydration warnings) on every path.
     `tsc` ✓, `eslint` ✓, `next build` ✓, axe 0 violations in light **and** dark.
+- 2026-08-07: **Markdown content negotiation for agents** — `Accept: text/markdown` now returns
+  Markdown at the origin. Closes the last open P1 in `docs/agent-readiness-checklist.md` §2
+  (scanner check `markdownNegotiation`, the only requirement for Level 3 "Agent-Readable").
+  No new dependencies.
+  - **⚠ The Cloudflare toggle the checklist was waiting on is Pro-plan and up.** "Markdown for
+    Agents" is documented as "available to Pro, Business and Enterprise plans" — we are on
+    **Free**, the same wall as JS Detections (2026-07-27). It was never a one-click toggle for
+    us. Don't re-file it as a pending dashboard task.
+  - **Built at the origin instead, and that is the better artifact, not just the cheaper one.**
+    Cloudflare's version converts our *rendered HTML* back to Markdown. Ours is generated from
+    the data-access layer, and `analysisMarkdown` + `bodyMarkdown` are **already Markdown** in
+    their artifacts — so we emit the source rather than a lossy round-trip, with no nav/footer
+    chrome. The trade is coverage: the edge toggle would have covered every URL.
+  - **`src/proxy.ts`, not a Server Component.** Reading the header via `headers()` inside a page
+    would opt that route out of static rendering **for everyone** and forfeit edge caching — on
+    a site with no purge-on-deploy that is a real cost. The proxy inspects `Accept` before
+    routing, so every page kept its `○ Static` / `● SSG` status and ISR window (verified in the
+    build output) and **no client JS was added**. Note Next 16 renamed `middleware.ts` →
+    `proxy.ts` and `middleware()` → `proxy()`; the old name builds but warns.
+  - **🔒 The matching rule is the whole risk surface.** `text/markdown` must appear
+    **explicitly** and rank ≥ any explicit `text/html`; a wildcard never counts. Googlebot sends
+    `text/html,…,*/*;q=0.8`, so matching `*/*` or `text/*` would serve Markdown to crawlers and
+    to real people. `scripts/check-markdown-negotiation.mts` (`npm run check:markdown`) pins the
+    real Accept headers of Googlebot, Bingbot, Chrome and Safari as test cases — **37
+    assertions**. Keep that script green; it is the SEO guard.
+  - **Cache-poisoning was already mitigated before this shipped** — the "Cache public pages"
+    Cloudflare rule has excluded `Accept: text/markdown` since 2026-08-02 (re-verified: markdown
+    request → `DYNAMIC`, normal → `HIT`), which is the right order. Responses also send
+    `Cache-Control: no-store` as defense in depth. `Vary: Accept` is sent on Markdown responses
+    only, **deliberately not on the HTML** — Cloudflare ignores `Vary` anyway and some
+    intermediaries stop caching entirely when they see it.
+  - **Covered**: `/`, `/outlook`, `/trends`, `/insights`, both kind views, `/insights/<slug>`.
+    **Not covered on purpose**: `/about`, `/methodology`, `/ai-disclosure`, `/disclaimer` and the
+    five tool pages — their prose lives in JSX with no Markdown source, so a twin would be a
+    hand-maintained copy that drifts. They fall through to HTML, a valid negotiation outcome.
+  - `/agent-markdown/*` (the rewrite target) is directly fetchable for curl testing and is
+    **disallowed in robots.txt**. `X-Robots-Tag: noindex` was rejected: nothing links to the
+    path, and a `noindex` on a body that could conceivably be miscached is a deindexing risk not
+    worth taking.
+  - **Two output bugs caught by reading the rendered Markdown, not by the type checker**: the
+    macro table printed `Source: Source: FRED…` (the artifact's `macro.source` already begins
+    with "Source:", which `macro-panel.tsx` relies on) and labelled yield changes `+0.17%` when
+    they are percentage **points**. Both now mirror `components/outlook/macro-panel.tsx`,
+    including its supportive/restrictive `pressure()` thresholds — the two renderings of one
+    snapshot must not tell different stories.
+  - Verified against a **standalone production build** (`node .next/standalone/server.js`, what
+    the box runs): HTML `content-type` unchanged on 18 paths for both a default and a Googlebot
+    `Accept`, and byte-identical between them on `/`, `/outlook`, `/insights`; Markdown served on
+    all 7 covered routes with `no-store` + `Vary: Accept` + `X-Markdown-Tokens`; Markdown 404 for
+    an unknown slug; `rss.xml` / `llms.txt` / `sitemap.xml` / `/api/v1/*` keep their own content
+    types. `tsc --noEmit` ✓, `eslint` ✓, `next build` ✓ (38 routes), `npm run check:markdown` ✓.
+  - **TODO after deploy**: re-run the scanner (`curl -X POST https://isitagentready.com/api/scan`)
+    and update the table at the top of the checklist — expect Level 3.

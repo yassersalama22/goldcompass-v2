@@ -35,6 +35,10 @@ const BODY = `# GoldCompass — https://goldcompass.app
 User-Agent: *
 Content-Signal: ${CONTENT_SIGNAL}
 Allow: /
+# Internal target for Accept: text/markdown negotiation. Agents get Markdown by
+# sending the Accept header to the normal URL — these paths are the same content
+# without the HTML, so crawling them would only duplicate what is already indexed.
+Disallow: /agent-markdown/
 
 Host: ${siteConfig.url}
 Sitemap: ${siteConfig.url}/sitemap.xml

@@ -19,9 +19,10 @@ Remediation docs for every check are published as skills at
 
 ## Result
 
-**Level 2 — "Bot-Aware"** (of 5 levels), up from Level 1 "Basic Web Presence" after the P1
-deploy. Next rung is **Level 3 — "Agent-Readable"**, and its *only* requirement is
-`markdownNegotiation` — a Cloudflare dashboard toggle, no code. See §2 below.
+**Level 2 — "Bot-Aware"** (of 5 levels) as last scanned. Level 3 "Agent-Readable" needs only
+`markdownNegotiation`, which is now **built and verified locally** (§2) — it was *not* the
+Cloudflare dashboard toggle the earlier scan assumed, because that feature is Pro-plan and up.
+Re-scan after the next deploy to confirm Level 3.
 
 | Category | Check | Status |
 |---|---|---|
@@ -29,7 +30,7 @@ deploy. Next rung is **Level 3 — "Agent-Readable"**, and its *only* requiremen
 | Discoverability | sitemap.xml | ✅ pass |
 | Discoverability | Link headers | ❌ fail |
 | Discoverability | DNS for AI Discovery (DNS-AID) | ❌ fail |
-| Content accessibility | Markdown content negotiation | ❌ fail → **unlocks Level 3** |
+| Content accessibility | Markdown content negotiation | ✅ pass *(2026-08-07, origin-side)* |
 | Bot access control | robots.txt AI rules | ✅ pass (wildcard applies to AI bots) |
 | Bot access control | Content Signals | ✅ pass *(2026-08-02)* |
 | Bot access control | Web Bot Auth | ⚪ neutral (informational) |
@@ -49,8 +50,8 @@ not failures.
 
 Note the scanner's own preset for a "Content Site" only runs seven checks:
 `robotsTxt`, `sitemap`, `linkHeaders`, `dnsAid`, `markdownNegotiation`, `robotsTxtAiRules`,
-`contentSignals`. Under that lens we're now **4/7** (was 3/7); the markdown toggle makes it
-5/7 and P2 takes it to 6/7.
+`contentSignals`. Under that lens we should now be **5/7** (was 4/7) once the markdown work is
+deployed and re-scanned; P2 takes it to 6/7.
 The remaining protocol-discovery failures are the "API / Application" preset, which matters
 to us only because we genuinely publish `/api/v1`.
 
@@ -82,20 +83,59 @@ unenforced on their own. Enforcement would be `Disallow` rules or Cloudflare AI 
 prerendered exactly like the metadata route was). The alternative — injecting the line with a
 Cloudflare Transform Rule — was rejected: it leaves the policy undiscoverable in git.
 
-### 2. Markdown content negotiation (`Accept: text/markdown`) — **the only thing between us and Level 3**
+### 2. Markdown content negotiation (`Accept: text/markdown`) — ✅ **built at the origin, 2026-08-07**
 
 - [x] Cache bypass added and **verified live** (2026-08-02) — a markdown request returns
       `cf-cache-status: DYNAMIC` on `/` and `/outlook` across repeats, while a normal request
-      still returns `HIT`. The rule is correct *before* the feature exists, which is the right
-      order and means enabling the toggle cannot poison the cache.
-- [ ] Turn on Cloudflare **Markdown for Agents** for the zone ← **only remaining step**
-- [ ] Verify: `curl -sI -H "Accept: text/markdown" https://goldcompass.app/` returns
+      still returns `HIT`. The rule was correct *before* the feature existed, which is the right
+      order and means shipping it cannot poison the cache.
+- [x] ~~Turn on Cloudflare **Markdown for Agents** for the zone~~ — **not available to us.**
+      The docs say it is "available to Pro, Business and Enterprise plans"; we are on **Free**
+      (same wall as JS Detections, CLAUDE.md 2026-07-27). Implemented at the origin instead.
+- [x] Origin implementation shipped — see "How it works" below.
+- [ ] Verify after deploy: `curl -sI -H "Accept: text/markdown" https://goldcompass.app/` returns
       `content-type: text/markdown` **and** `cf-cache-status: DYNAMIC|BYPASS`
-      *(currently still `text/html` — the feature is not on yet)*
 - [ ] Verify a normal `curl -sI https://goldcompass.app/` still returns `text/html` + `HIT|MISS`
+- [ ] Re-run the scanner and update the table at the top (expect Level 3 "Agent-Readable")
 
-Best effort-to-value ratio after Content Signals — agents get clean markdown instead of
-parsing HTML, and our articles/outlook are markdown upstream anyway.
+**Why origin beat paying for the edge toggle.** Cloudflare's version converts our *rendered
+HTML* back into Markdown. Ours is generated from the data-access layer, and the outlook analysis
+and article bodies are **already Markdown** in their artifacts — so we emit the source instead of
+a lossy round-trip, with no nav/footer chrome. It is also free, lives in git, and is testable in
+CI. The trade is coverage: the edge toggle would cover every URL.
+
+#### How it works
+
+| File | Role |
+|---|---|
+| [src/lib/agent-markdown.ts](src/lib/agent-markdown.ts) | Pure decision layer: `prefersMarkdown()` + `hasMarkdownRepresentation()`. No Node APIs — the proxy runs in the Edge runtime. |
+| [src/proxy.ts](src/proxy.ts) | Rewrites a negotiated request to the markdown route. Next 16 renamed `middleware.ts` → `proxy.ts`, `middleware()` → `proxy()`. |
+| [src/server/markdown/index.ts](src/server/markdown/index.ts) | Builds each document from the data-access layer. |
+| [src/app/agent-markdown/[[...slug]]/route.ts](src/app/agent-markdown/%5B%5B...slug%5D%5D/route.ts) | Serves it: `text/markdown`, `no-store`, `Vary: Accept`, `X-Markdown-Tokens`. |
+| [scripts/check-markdown-negotiation.mts](scripts/check-markdown-negotiation.mts) | `npm run check:markdown` — 37 assertions. |
+
+🔒 **The matching rules are strict on purpose, and the guard script is why.** `text/markdown`
+must appear **explicitly** and rank at least as high as any explicit `text/html`. A wildcard
+never counts — Googlebot sends `text/html,…,*/*;q=0.8`, so matching `*/*` or `text/*` would
+serve Markdown to crawlers and to people. That is the single way this feature could damage SEO,
+so the real Accept headers of Googlebot, Bingbot, Chrome and Safari are pinned as test cases.
+
+**Covered:** `/`, `/outlook`, `/trends`, `/insights`, both kind views, `/insights/<slug>`.
+**Deliberately not covered:** `/about`, `/methodology`, `/ai-disclosure`, `/disclaimer` and the
+five tool pages — their prose lives in JSX with no Markdown source, so a twin would be a
+hand-maintained copy that silently drifts. They fall through to HTML, which is a valid
+negotiation outcome. `/insights/rss.xml`, `/llms.txt` and `/api/v1/*` keep their own types.
+
+**Performance and SEO are untouched, verified against a standalone production build:** every
+page kept its `○ Static` / `● SSG` prerender status and its ISR window, no client JS was added,
+and HTML responses are byte-identical with and without a crawler `Accept` header. Reading the
+header in a Server Component (via `headers()`) would have made these routes dynamic for
+*everyone* and forfeited edge caching — that is why it is a proxy rewrite.
+
+⚠️ `/agent-markdown/*` is directly fetchable (handy for curl), so `robots.txt` **disallows** it.
+`X-Robots-Tag: noindex` was rejected: nothing links to the path, and a `noindex` header on a body
+that could conceivably be miscached is a deindexing risk not worth taking for a path no crawler
+will find.
 
 ⚠️ **Cache-key hazard, and we have history here.** Cloudflare ignores `Vary` except for
 `Accept-Encoding` (CLAUDE.md, 2026-07-27). We already got burned by exactly this when the RSC
@@ -126,9 +166,12 @@ Header names are lowercase; `http.request.headers[...]` is an array so the `any(
 required; `contains` rather than `eq` because `Accept` arrives as a long comma-separated list.
 **Save, then purge everything** — fixing the rule without purging leaves any poisoned entry in place.
 
-Doing it at the origin instead is possible (a route serving the article's raw markdown body) but
-only covers `/insights/*` and `/outlook`, not the calculator/tool pages, and it duplicates
-rendering. Prefer the edge toggle.
+That rule is **still the primary guard** now that the origin serves Markdown. The route also
+sends `Cache-Control: no-store` as defense in depth, so even if the clause were edited away a
+Markdown body could not be stored under the HTML cache key. `Vary: Accept` is sent on the
+Markdown responses for intermediaries that honour it, and deliberately **not** added to the HTML
+responses — Cloudflare would ignore it anyway, and some intermediaries stop caching entirely
+when they see it.
 
 ### 3. `llms.txt` ✅ done — not scored by this scanner, but the reason it exists
 
@@ -224,7 +267,7 @@ Recording the reasons so this doesn't get re-litigated at the next scan.
 1. ~~Content Signals (#1)~~ — ✅ live, Level 2 reached.
 2. ~~`llms.txt` (#3)~~ — ✅ live.
 3. ~~Cache bypass for `Accept: text/markdown`~~ — ✅ live and verified.
-4. **Enable Markdown for Agents (#2)** — one dashboard toggle → **Level 3 "Agent-Readable"**.
+4. ~~Markdown negotiation (#2)~~ — ✅ built at the origin; re-scan after deploy → **Level 3**.
 5. OpenAPI (#4) → API Catalog (#5) → Link headers (#6) — one chain, in that order.
 6. Re-run the scanner and update the table at the top.
 
