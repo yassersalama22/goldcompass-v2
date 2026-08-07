@@ -68,3 +68,66 @@ export function OgHeader() {
     </div>
   );
 }
+
+/**
+ * Brand-only card: the mark, the wordmark, and the domain. No page-specific text.
+ *
+ * ⚠ This is also the **fallback for right-to-left locales**, and that is a real
+ * constraint rather than a stylistic choice: satori — the renderer behind
+ * `next/og` — states plainly in its README that "RTL languages are not supported
+ * either". It performs no bidi reordering and no Arabic contextual shaping, so
+ * Arabic text comes out as disconnected, reversed letterforms. That is worse
+ * than showing no text at all, because it renders as a broken image in every
+ * social preview and messaging app.
+ *
+ * So RTL pages get this card, which contains only Latin brand text. Per-locale
+ * titled cards need a renderer with real text shaping (`takumi` is the drop-in
+ * candidate, but it ships native binaries and this deploys to arm64 Alpine on a
+ * 1GB instance) or an offline pre-render through headless Chrome. Until one of
+ * those is done, do not add localized text to an OG card.
+ */
+export function BrandCard({ tagline }: { tagline: string }) {
+  return (
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 36,
+        background: OG.bgGradient,
+      }}
+    >
+      <CompassMark size={140} />
+      <Wordmark fontSize={96} />
+      <div
+        style={{
+          display: "flex",
+          color: OG.muted,
+          fontSize: 34,
+          textAlign: "center",
+        }}
+      >
+        {tagline}
+      </div>
+      <div
+        style={{
+          display: "flex",
+          marginTop: 12,
+          padding: "10px 28px",
+          borderRadius: 999,
+          border: `2px solid ${OG.border}`,
+          color: OG.gold,
+          fontSize: 28,
+        }}
+      >
+        goldcompass.app
+      </div>
+    </div>
+  );
+}
+
+/** Tagline used on the brand card — Latin script only, see `BrandCard`. */
+export const OG_TAGLINE = "Gold market outlooks · Live prices · Smart calculator";

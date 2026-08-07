@@ -1,0 +1,59 @@
+{
+  "site": {
+    "defaultTitle": "GoldCompass — Smart Gold Investing Guidance",
+    "titleTemplate": "%s · GoldCompass",
+    "description": "GoldCompass helps everyday investors navigate the gold market with clear outlooks, live price trends, a smart gold calculator, and market insights.",
+    "shortDescription": "Smart gold-investing guidance: clear outlooks, live price trends, a smart gold calculator, and market insights.",
+    "ogDescription": "Clear gold-market outlooks, live price trends, and a smart gold calculator for everyday investors.",
+    "keywords": "gold investing|gold price|XAU/USD|gold calculator|gold market outlook|buy gold"
+  },
+  "nav": {
+    "outlook": "Outlook",
+    "trends": "Trends",
+    "insights": "Insights",
+    "about": "About",
+    "calculator": "Gold Calculator",
+    "methodology": "Methodology",
+    "aiDisclosure": "AI Disclosure",
+    "disclaimer": "Disclaimer"
+  },
+  "header": {
+    "skipToContent": "Skip to content",
+    "primaryNavLabel": "Primary",
+    "mobileNavLabel": "Mobile",
+    "openMenu": "Open menu"
+  },
+  "footer": {
+    "tagline": "Smart gold-investing guidance for everyday investors.",
+    "quickLinks": "Quick Links",
+    "resources": "Resources",
+    "newsletterHeading": "Weekly Gold Updates",
+    "newsletterBody": "Get the latest outlook and market insights in your inbox. Free, no spam.",
+    "copyright": "© {name}. Educational information only — not financial advice.",
+    "disclaimer": "Disclaimer"
+  },
+  "theme": {
+    "toggle": "Toggle dark mode"
+  },
+  "language": {
+    "switcherLabel": "Change language"
+  },
+  "schema": {
+    "outlookHeadline": "Gold Market Outlook — {date}",
+    "aboutName": "About {name}",
+    "methodologyName": "Methodology — how {name} works",
+    "methodologyDescription": "How GoldCompass produces its gold-market outlook: data sources, AI drafting with human review, what the signals mean, and known limitations.",
+    "aiDisclosureName": "AI Disclosure — {name}",
+    "aiDisclosureDescription": "Where AI is used on GoldCompass and where it is not: the drafting system, the data it is given, what it is never allowed to produce, the review gate, and the known failure modes."
+  },
+  "calculatorFaq": {
+    "q1": "How much gold can I buy with $10,000?",
+    "a1": "At current gold prices near $4,150/oz with a 5% dealer premium, $10,000 buys roughly 2.3 troy oz (about 71.5 grams) of pure 24K gold. Use the GoldCompass calculator for a precise figure based on live spot prices.",
+    "q2": "What is a dealer premium on gold?",
+    "a2": "A dealer premium is a markup charged above the spot (market) price to cover minting, refining, and dealer margins. Typical premiums: gold bars/coins 3–8%, jewelry 10–15%. Your investment only turns profitable once the spot price rises above your break-even (spot at purchase × (1 + premium)).",
+    "q3": "What is the difference between 24K, 18K, and 14K gold?",
+    "a3": "Karat indicates purity: 24K is 99.9% pure gold; 18K is 75% gold (750 fine); 14K is 58.3% gold (583 fine). Lower karat gold contains other metals (silver, copper) for durability. For investment purposes, 24K bars or coins are most common. The calculator adjusts quantity calculations for any purity level.",
+    "q4": "How is break-even price calculated for gold?",
+    "a4": "Break-even price = purchase spot price × (1 + dealer premium %). For example, buying at $4,000/oz with a 5% premium means gold must rise to $4,200 before you recover your investment when selling at spot. This calculator is for educational purposes and does not account for storage costs, taxes, or sell-side commissions."
+  }
+}

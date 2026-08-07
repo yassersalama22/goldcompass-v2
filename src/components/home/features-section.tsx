@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { ArrowRight, Calculator, LineChart } from "lucide-react";
 
 import { Container } from "@/components/layout/container";

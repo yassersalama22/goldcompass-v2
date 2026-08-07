@@ -1,8 +1,10 @@
 import "server-only";
 
+import { DEFAULT_LOCALE, localizePath } from "@/config/locales";
 import { INSIGHT_KINDS, getInsightKind } from "@/config/insight-kinds";
 import { FLAGSHIP_TOOL, TOOLS } from "@/config/tools";
 import { siteConfig } from "@/config/site";
+import { messages } from "@/i18n/messages";
 import { formatSignedPct, formatUsd } from "@/lib/format";
 import {
   getAllArticles,
@@ -31,16 +33,33 @@ import type { OutlookReport } from "@/types/outlook";
 
 const { url: SITE } = siteConfig;
 
-const DISCLAIMER =
-  "Educational content only. Nothing here is financial advice, no investment " +
-  "products are sold, and GoldCompass takes no commissions. Gold can lose " +
-  "value. See " +
-  `${SITE}/disclaimer.`;
+/**
+ * Absolute URL for a locale-independent *page* path.
+ *
+ * Only the HTML routes are localized. `/api/v1/*` and `/llms.txt` live outside
+ * the `[locale]` tree and are deliberately left unprefixed below — an agent
+ * following `${SITE}/ar/api/v1/price` would get a 404.
+ */
+function page(path: string, locale: string): string {
+  return `${SITE}${localizePath(path, locale)}`;
+}
 
-const AI_NOTE =
-  "Analysis is drafted by a large language model against deterministic market " +
-  `data and reviewed by a human before publication (${SITE}/ai-disclosure). ` +
-  `Spot is proxied by PAX Gold (PAXG), not the London fix (${SITE}/methodology).`;
+function disclaimer(locale: string): string {
+  return (
+    "Educational content only. Nothing here is financial advice, no investment " +
+    "products are sold, and GoldCompass takes no commissions. Gold can lose " +
+    "value. See " +
+    `${page("/disclaimer", locale)}.`
+  );
+}
+
+function aiNote(locale: string): string {
+  return (
+    "Analysis is drafted by a large language model against deterministic market " +
+    `data and reviewed by a human before publication (${page("/ai-disclosure", locale)}). ` +
+    `Spot is proxied by PAX Gold (PAXG), not the London fix (${page("/methodology", locale)}).`
+  );
+}
 
 /** Escape the one character that would break a Markdown table cell. */
 function cell(value: string): string {
@@ -56,13 +75,13 @@ function table(headers: string[], rows: string[][]): string {
 }
 
 /** Trailing block every document ends with, so a cited excerpt carries context. */
-function footer(canonicalPath: string): string {
+function footer(canonicalPath: string, locale: string): string {
   return [
     "---",
     "",
-    `**Canonical HTML page:** ${SITE}${canonicalPath}`,
+    `**Canonical HTML page:** ${page(canonicalPath, locale)}`,
     "",
-    DISCLAIMER,
+    disclaimer(locale),
   ].join("\n");
 }
 
@@ -174,7 +193,7 @@ function callsSection(report: OutlookReport): string[] {
   return lines;
 }
 
-function buildOutlook(): string | null {
+function buildOutlook(locale: string): string | null {
   const report = getPublishedOutlook();
   if (!report) return null;
 
@@ -209,13 +228,13 @@ function buildOutlook(): string | null {
     ...sourcesSection(report.sources),
     "## How this was produced",
     "",
-    AI_NOTE,
+    aiNote(locale),
     "",
-    footer("/outlook"),
+    footer("/outlook", locale),
   ].join("\n");
 }
 
-async function buildTrends(): Promise<string> {
+async function buildTrends(locale: string): Promise<string> {
   const [quote, series] = await Promise.all([
     getGoldQuote(),
     getGoldSeries30d(),
@@ -286,16 +305,16 @@ async function buildTrends(): Promise<string> {
     "",
     "Spot is proxied by PAX Gold (PAXG), a token redeemable for allocated gold,",
     "not the LBMA London fix. It tracks spot closely but is not the benchmark",
-    `price — see ${SITE}/methodology.`,
+    `price — see ${page("/methodology", locale)}.`,
     "",
-    footer("/trends"),
+    footer("/trends", locale),
   );
 
   return lines.join("\n");
 }
 
-function articleLine(article: Article): string {
-  return `- **[${article.title}](${SITE}/insights/${article.slug})** — ${article.description}  \n  *${article.category} · ${article.kind === "explainer" ? "Explainer" : "Market update"} · ${article.date}*`;
+function articleLine(article: Article, locale: string): string {
+  return `- **[${article.title}](${page(`/insights/${article.slug}`, locale)})** — ${article.description}  \n  *${article.category} · ${article.kind === "explainer" ? "Explainer" : "Market update"} · ${article.date}*`;
 }
 
 function buildArticleList(
@@ -303,6 +322,7 @@ function buildArticleList(
   intro: string,
   articles: Article[],
   canonicalPath: string,
+  locale: string,
 ): string {
   return [
     `# ${heading}`,
@@ -313,21 +333,21 @@ function buildArticleList(
       ? `${articles.length} published article${articles.length === 1 ? "" : "s"}, newest first.`
       : "No articles are published yet.",
     "",
-    ...articles.map(articleLine),
+    ...articles.map((article) => articleLine(article, locale)),
     "",
     "## Related",
     "",
     ...INSIGHT_KINDS.filter((k) => k.href !== canonicalPath).map(
-      (k) => `- [${k.heading}](${SITE}${k.href}) — ${k.description}`,
+      (k) => `- [${k.heading}](${page(k.href, locale)}) — ${k.description}`,
     ),
-    `- [RSS feed](${SITE}/insights/rss.xml)`,
+    `- [RSS feed](${page("/insights/rss.xml", locale)})`,
     `- [All articles as JSON](${SITE}/api/v1/articles)`,
     "",
-    footer(canonicalPath),
+    footer(canonicalPath, locale),
   ].join("\n");
 }
 
-function buildArticle(slug: string): string | null {
+function buildArticle(slug: string, locale: string): string | null {
   const article = getArticleBySlug(slug);
   if (!article) return null;
 
@@ -353,20 +373,20 @@ function buildArticle(slug: string): string | null {
     "",
     ...sourcesSection(article.sources),
     ...(article.origin === "generated"
-      ? ["## How this was produced", "", AI_NOTE, ""]
+      ? ["## How this was produced", "", aiNote(locale), ""]
       : []),
-    footer(`/insights/${article.slug}`),
+    footer(`/insights/${article.slug}`, locale),
   ].join("\n");
 }
 
-function buildHome(): string {
+function buildHome(locale: string): string {
   const report = getPublishedOutlook();
   const articles = getRecentArticles(5);
 
   const lines: string[] = [
     `# ${siteConfig.name}`,
     "",
-    `> ${siteConfig.description}`,
+    `> ${messages(locale).site.shortDescription}`,
     "",
     "GoldCompass publishes a short-term (weeks) and long-term (months) view on",
     "gold, each with a signal, a confidence level, and an invalidation level that",
@@ -394,26 +414,31 @@ function buildHome(): string {
       "",
       report.summary,
       "",
-      `Full analysis, key levels, and sources: ${SITE}/outlook`,
+      `Full analysis, key levels, and sources: ${page("/outlook", locale)}`,
       "",
     );
   }
 
   if (articles.length > 0) {
-    lines.push("## Latest insights", "", ...articles.map(articleLine), "");
+    lines.push(
+      "## Latest insights",
+      "",
+      ...articles.map((article) => articleLine(article, locale)),
+      "",
+    );
   }
 
   lines.push(
     "## Calculators",
     "",
-    `- [${FLAGSHIP_TOOL.name}](${SITE}${FLAGSHIP_TOOL.href}) — ${FLAGSHIP_TOOL.description}`,
-    ...TOOLS.map((t) => `- [${t.name}](${SITE}${t.href}) — ${t.description}`),
+    `- [${FLAGSHIP_TOOL.name}](${page(FLAGSHIP_TOOL.href, locale)}) — ${FLAGSHIP_TOOL.description}`,
+    ...TOOLS.map((t) => `- [${t.name}](${page(t.href, locale)}) — ${t.description}`),
     "",
     "## How this site works",
     "",
-    `- [Methodology](${SITE}/methodology) — data sources, what the signals mean, cadence, calculator arithmetic.`,
-    `- [AI disclosure](${SITE}/ai-disclosure) — what the model drafts, what it never touches, and the failure modes that remain.`,
-    `- [About](${SITE}/about) · [Disclaimer](${SITE}/disclaimer)`,
+    `- [Methodology](${page("/methodology", locale)}) — data sources, what the signals mean, cadence, calculator arithmetic.`,
+    `- [AI disclosure](${page("/ai-disclosure", locale)}) — what the model drafts, what it never touches, and the failure modes that remain.`,
+    `- [About](${page("/about", locale)}) · [Disclaimer](${page("/disclaimer", locale)})`,
     "",
     "## Machine-readable endpoints",
     "",
@@ -426,7 +451,7 @@ function buildHome(): string {
     `- \`GET ${SITE}/api/v1/articles/{slug}\` — one article with its Markdown body.`,
     `- \`GET ${SITE}/llms.txt\` — this site map, as plain text.`,
     "",
-    footer("/"),
+    footer("/", locale),
   );
 
   return lines.join("\n");
@@ -436,7 +461,10 @@ function buildHome(): string {
  * Render `pathname` as Markdown, or `null` when there is nothing to serve
  * (an article slug that does not exist). The caller turns `null` into a 404.
  */
-export async function buildMarkdown(pathname: string): Promise<string | null> {
+export async function buildMarkdown(
+  pathname: string,
+  locale: string = DEFAULT_LOCALE,
+): Promise<string | null> {
   const path =
     pathname.length > 1 && pathname.endsWith("/")
       ? pathname.slice(0, -1)
@@ -444,17 +472,18 @@ export async function buildMarkdown(pathname: string): Promise<string | null> {
 
   switch (path) {
     case "/":
-      return buildHome();
+      return buildHome(locale);
     case "/outlook":
-      return buildOutlook();
+      return buildOutlook(locale);
     case "/trends":
-      return buildTrends();
+      return buildTrends(locale);
     case "/insights":
       return buildArticleList(
         "Gold market insights",
         "Explainers and market updates on gold, written for everyday investors and cited throughout.",
         getAllArticles(),
         "/insights",
+        locale,
       );
   }
 
@@ -468,8 +497,9 @@ export async function buildMarkdown(pathname: string): Promise<string | null> {
       kind.intro,
       getArticlesByKind(kind.kind),
       kind.href,
+      locale,
     );
   }
 
-  return buildArticle(kindSlug);
+  return buildArticle(kindSlug, locale);
 }

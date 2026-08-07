@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 
 import { ArticleCard } from "@/components/articles/article-card";
 import { InsightFilterNav } from "@/components/articles/insight-filter-nav";
@@ -17,7 +17,13 @@ import { toArticleSummary } from "@/types/article";
  * dynamic slug name per level. Static segments also win over `[slug]` in
  * routing, which is what keeps these URLs from being read as article slugs.
  */
-export function InsightKindView({ def }: { def: InsightKindDef }) {
+export function InsightKindView({
+  def,
+  locale,
+}: {
+  def: InsightKindDef;
+  locale: string;
+}) {
   const articles = getArticlesByKind(def.kind);
   const other = INSIGHT_KINDS.find((k) => k.kind !== def.kind);
 
@@ -28,7 +34,7 @@ export function InsightKindView({ def }: { def: InsightKindDef }) {
           { name: "Home", path: "/" },
           { name: "Insights", path: "/insights" },
           { name: def.label, path: def.href },
-        ])}
+        ], locale)}
       />
 
       <Container className="py-12 sm:py-16">

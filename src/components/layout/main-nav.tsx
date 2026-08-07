@@ -1,17 +1,20 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 
+import { Link, usePathname } from "@/i18n/navigation";
 import { siteConfig, type NavItem } from "@/config/site";
 import { cn } from "@/lib/utils";
 
 /** Desktop primary navigation with active-route highlighting. */
 export function MainNav() {
+  // Locale-independent: `/ar/outlook` reads back as `/outlook`, so the
+  // active-route test below is written once and works in every language.
   const pathname = usePathname();
+  const t = useTranslations();
 
   return (
-    <nav aria-label="Primary" className="hidden md:block">
+    <nav aria-label={t("header.primaryNavLabel")} className="hidden md:block">
       <ul className="flex items-center gap-1">
         {siteConfig.mainNav.map((item: NavItem) => {
           const active =
@@ -29,7 +32,7 @@ export function MainNav() {
                     : "text-foreground/70 hover:text-foreground",
                 )}
               >
-                {item.title}
+                {t(`nav.${item.key}`)}
               </Link>
             </li>
           );
