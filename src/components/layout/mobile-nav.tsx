@@ -1,9 +1,10 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { Menu } from "lucide-react";
+import { useTranslations } from "next-intl";
+
+import { Link, usePathname } from "@/i18n/navigation";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -20,12 +21,13 @@ import { cn } from "@/lib/utils";
 export function MobileNav() {
   const [open, setOpen] = React.useState(false);
   const pathname = usePathname();
+  const t = useTranslations();
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger
         render={
-          <Button variant="ghost" size="icon" aria-label="Open menu" />
+          <Button variant="ghost" size="icon" aria-label={t("header.openMenu")} />
         }
       >
         <Menu className="size-5" />
@@ -36,7 +38,7 @@ export function MobileNav() {
             Gold<span className="text-gold-strong">Compass</span>
           </SheetTitle>
         </SheetHeader>
-        <nav aria-label="Mobile" className="flex flex-col gap-1 px-4 pb-6">
+        <nav aria-label={t("header.mobileNavLabel")} className="flex flex-col gap-1 px-4 pb-6">
           {siteConfig.mainNav.map((item: NavItem) => {
             const active = pathname === item.href;
             return (
@@ -55,7 +57,7 @@ export function MobileNav() {
                   />
                 }
               >
-                {item.title}
+                {t(`nav.${item.key}`)}
               </SheetClose>
             );
           })}

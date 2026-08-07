@@ -1,32 +1,35 @@
 export type NavItem = {
-  title: string;
+  /**
+   * Message key under the `nav` namespace, not display text. The label is
+   * resolved per locale at render time — this file describes site *structure*,
+   * and structure is the same in every language.
+   */
+  key: string;
   href: string;
 };
 
 export const siteConfig = {
   name: "GoldCompass",
-  description:
-    "Smart gold-investing guidance: clear outlooks, live price trends, a smart gold calculator, and market insights.",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://goldcompass.app",
   /** Primary navigation, shown in the header and mobile menu. */
   mainNav: [
-    { title: "Outlook", href: "/outlook" },
-    { title: "Trends", href: "/trends" },
-    { title: "Insights", href: "/insights" },
-    { title: "About", href: "/about" },
+    { key: "outlook", href: "/outlook" },
+    { key: "trends", href: "/trends" },
+    { key: "insights", href: "/insights" },
+    { key: "about", href: "/about" },
   ] satisfies NavItem[],
   footerNav: {
     quickLinks: [
-      { title: "Outlook", href: "/outlook" },
-      { title: "Trends", href: "/trends" },
-      { title: "Gold Calculator", href: "/calculator" },
-      { title: "Insights", href: "/insights" },
+      { key: "outlook", href: "/outlook" },
+      { key: "trends", href: "/trends" },
+      { key: "calculator", href: "/calculator" },
+      { key: "insights", href: "/insights" },
     ] satisfies NavItem[],
     resources: [
-      { title: "About", href: "/about" },
-      { title: "Methodology", href: "/methodology" },
-      { title: "AI Disclosure", href: "/ai-disclosure" },
-      { title: "Disclaimer", href: "/disclaimer" },
+      { key: "about", href: "/about" },
+      { key: "methodology", href: "/methodology" },
+      { key: "aiDisclosure", href: "/ai-disclosure" },
+      { key: "disclaimer", href: "/disclaimer" },
     ] satisfies NavItem[],
   },
 };

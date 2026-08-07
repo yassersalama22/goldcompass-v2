@@ -1,13 +1,20 @@
+import { DEFAULT_LOCALE, isActiveLocale } from "@/config/locales";
 import { buildMarkdown } from "@/server/markdown";
 
 /**
  * Markdown representations for `Accept: text/markdown`.
  *
  * `src/proxy.ts` rewrites a negotiated request here — `/outlook` becomes
- * `/agent-markdown/outlook` — so the visitor-facing URL never changes and the
+ * `/agent-markdown/en/outlook` and `/ar/outlook` becomes
+ * `/agent-markdown/ar/outlook` — so the visitor-facing URL never changes and the
  * HTML routes stay statically prerendered. The path is also directly
  * fetchable, which makes it testable with curl, but nothing links to it and
  * robots.txt disallows it so it cannot become a duplicate-content surface.
+ *
+ * The locale is always the first segment. It is written by the proxy from the
+ * locale registry, but this route re-validates it rather than trusting it: the
+ * path is publicly fetchable, so an unknown first segment must fall back to the
+ * canonical locale instead of reaching the content layer as a bogus lookup key.
  *
  * Dynamic on purpose: the response depends on the rewritten path and reads the
  * article artifacts from disk. The underlying upstream calls (CoinGecko, via
@@ -30,9 +37,15 @@ export async function GET(
   { params }: { params: Promise<{ slug?: string[] }> },
 ): Promise<Response> {
   const { slug } = await params;
-  const pathname = slug?.length ? `/${slug.join("/")}` : "/";
 
-  const markdown = await buildMarkdown(pathname);
+  const [first, ...rest] = slug ?? [];
+  const locale = first && isActiveLocale(first) ? first : DEFAULT_LOCALE;
+  // When the first segment was a locale it is consumed; otherwise the whole
+  // slug is the path (a hand-typed `/agent-markdown/outlook` still works).
+  const segments = first && isActiveLocale(first) ? rest : (slug ?? []);
+  const pathname = segments.length ? `/${segments.join("/")}` : "/";
+
+  const markdown = await buildMarkdown(pathname, locale);
 
   /*
    * `no-store` is defense in depth against the cache-key hazard described in

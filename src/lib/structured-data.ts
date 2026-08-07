@@ -1,41 +1,86 @@
+import { DEFAULT_LOCALE, localizePath, requireLocale } from "@/config/locales";
 import { siteConfig } from "@/config/site";
 import type { ToolDef } from "@/config/tools";
+import { interpolate, messages } from "@/i18n/messages";
 import type { OutlookReport } from "@/types/outlook";
 import type { Article } from "@/types/article";
 
+/**
+ * JSON-LD builders.
+ *
+ * Every builder takes a `locale`, defaulting to the canonical one so a call site
+ * that has not been localized yet emits exactly what it did before. Two things
+ * depend on it:
+ *
+ *  - **URLs are locale-prefixed** via `localizePath`. A `url` or `@id` pointing
+ *    at the English page from an Arabic page would tell search engines the two
+ *    are the same document and undo the hreflang pairing.
+ *  - **`inLanguage`** is declared on every page-level entity, which is how a
+ *    crawler knows which audience the markup describes.
+ *
+ * Strings come from the UI catalog rather than being inlined, so the structured
+ * data and the visible page cannot drift apart per locale.
+ */
+
+/** Absolute URL for a locale-independent path. */
+function abs(path: string, locale: string): string {
+  return `${siteConfig.url}${localizePath(path, locale)}`;
+}
+
+/** The publisher block, repeated by most page-level entities. */
+function publisher() {
+  return {
+    "@type": "Organization",
+    name: siteConfig.name,
+    url: siteConfig.url,
+    logo: { "@type": "ImageObject", url: `${siteConfig.url}/icon.svg` },
+  };
+}
+
+function lang(locale: string): string {
+  return requireLocale(locale).hreflang;
+}
+
 /** schema.org Organization — identifies the brand to search engines. */
-export function organizationSchema() {
+export function organizationSchema(locale: string = DEFAULT_LOCALE) {
   return {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: siteConfig.name,
     url: siteConfig.url,
-    description: siteConfig.description,
+    description: messages(locale).site.shortDescription,
     logo: `${siteConfig.url}/icon.svg`,
   };
 }
 
 /** schema.org WebSite — enables sitelinks/site identity. */
-export function websiteSchema() {
+export function websiteSchema(locale: string = DEFAULT_LOCALE) {
   return {
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: siteConfig.name,
-    url: siteConfig.url,
-    description: siteConfig.description,
+    url: abs("/", locale),
+    description: messages(locale).site.shortDescription,
+    inLanguage: lang(locale),
   };
 }
 
 /** schema.org Article for the gold-market outlook analysis. */
-export function outlookArticleSchema(report: OutlookReport) {
+export function outlookArticleSchema(
+  report: OutlookReport,
+  locale: string = DEFAULT_LOCALE,
+) {
   return {
     "@context": "https://schema.org",
     "@type": "AnalysisNewsArticle",
-    headline: `Gold Market Outlook — ${report.date}`,
+    headline: interpolate(messages(locale).schema.outlookHeadline, {
+      date: report.date,
+    }),
     description: report.summary,
     datePublished: report.updatedAt,
     dateModified: report.updatedAt,
-    url: `${siteConfig.url}/outlook`,
+    url: abs("/outlook", locale),
+    inLanguage: lang(locale),
     author: { "@type": "Organization", name: siteConfig.name },
     publisher: {
       "@type": "Organization",
@@ -47,8 +92,11 @@ export function outlookArticleSchema(report: OutlookReport) {
 }
 
 /** schema.org Article for a published article. */
-export function newsArticleSchema(article: Article) {
-  const url = `${siteConfig.url}/insights/${article.slug}`;
+export function newsArticleSchema(
+  article: Article,
+  locale: string = DEFAULT_LOCALE,
+) {
+  const url = abs(`/insights/${article.slug}`, locale);
   return {
     "@context": "https://schema.org",
     "@type": "Article",
@@ -60,6 +108,7 @@ export function newsArticleSchema(article: Article) {
     mainEntityOfPage: { "@type": "WebPage", "@id": url },
     articleSection: article.category,
     keywords: article.tags.join(", "),
+    inLanguage: lang(locale),
     author: { "@type": "Organization", name: siteConfig.name },
     publisher: {
       "@type": "Organization",
@@ -71,17 +120,19 @@ export function newsArticleSchema(article: Article) {
 }
 
 /** schema.org AboutPage for the /about route, with the Organization as its subject. */
-export function aboutPageSchema() {
+export function aboutPageSchema(locale: string = DEFAULT_LOCALE) {
+  const m = messages(locale);
   return {
     "@context": "https://schema.org",
     "@type": "AboutPage",
-    name: `About ${siteConfig.name}`,
-    url: `${siteConfig.url}/about`,
+    name: interpolate(m.schema.aboutName, { name: siteConfig.name }),
+    url: abs("/about", locale),
+    inLanguage: lang(locale),
     mainEntity: {
       "@type": "Organization",
       name: siteConfig.name,
       url: siteConfig.url,
-      description: siteConfig.description,
+      description: m.site.shortDescription,
       logo: `${siteConfig.url}/icon.svg`,
     },
   };
@@ -92,70 +143,38 @@ export function aboutPageSchema() {
  * it describes is an E-E-A-T signal for YMYL content: it tells search engines
  * this is the documented process behind our market calls.
  */
-export function methodologyPageSchema() {
+export function methodologyPageSchema(locale: string = DEFAULT_LOCALE) {
+  const m = messages(locale);
   return {
     "@context": "https://schema.org",
     "@type": "WebPage",
-    name: `Methodology — how ${siteConfig.name} works`,
-    url: `${siteConfig.url}/methodology`,
-    description:
-      "How GoldCompass produces its gold-market outlook: data sources, AI drafting with human review, what the signals mean, and known limitations.",
+    name: interpolate(m.schema.methodologyName, { name: siteConfig.name }),
+    url: abs("/methodology", locale),
+    description: m.schema.methodologyDescription,
+    inLanguage: lang(locale),
     isPartOf: { "@type": "WebSite", name: siteConfig.name, url: siteConfig.url },
-    publisher: {
-      "@type": "Organization",
-      name: siteConfig.name,
-      url: siteConfig.url,
-      logo: { "@type": "ImageObject", url: `${siteConfig.url}/icon.svg` },
-    },
+    publisher: publisher(),
     about: [
-      { "@type": "WebPage", url: `${siteConfig.url}/outlook` },
-      { "@type": "WebPage", url: `${siteConfig.url}/insights` },
-      { "@type": "WebPage", url: `${siteConfig.url}/calculator` },
+      { "@type": "WebPage", url: abs("/outlook", locale) },
+      { "@type": "WebPage", url: abs("/insights", locale) },
+      { "@type": "WebPage", url: abs("/calculator", locale) },
     ],
-    significantLink: `${siteConfig.url}/ai-disclosure`,
+    significantLink: abs("/ai-disclosure", locale),
   };
 }
 
 /** schema.org FAQPage for the gold calculator page. */
-export function calculatorFaqSchema() {
-  return {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: [
-      {
-        "@type": "Question",
-        name: "How much gold can I buy with $10,000?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "At current gold prices near $4,150/oz with a 5% dealer premium, $10,000 buys roughly 2.3 troy oz (about 71.5 grams) of pure 24K gold. Use the GoldCompass calculator for a precise figure based on live spot prices.",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "What is a dealer premium on gold?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "A dealer premium is a markup charged above the spot (market) price to cover minting, refining, and dealer margins. Typical premiums: gold bars/coins 3–8%, jewelry 10–15%. Your investment only turns profitable once the spot price rises above your break-even (spot at purchase × (1 + premium)).",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "What is the difference between 24K, 18K, and 14K gold?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "Karat indicates purity: 24K is 99.9% pure gold; 18K is 75% gold (750 fine); 14K is 58.3% gold (583 fine). Lower karat gold contains other metals (silver, copper) for durability. For investment purposes, 24K bars or coins are most common. The calculator adjusts quantity calculations for any purity level.",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "How is break-even price calculated for gold?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "Break-even price = purchase spot price × (1 + dealer premium %). For example, buying at $4,000/oz with a 5% premium means gold must rise to $4,200 before you recover your investment when selling at spot. This calculator is for educational purposes and does not account for storage costs, taxes, or sell-side commissions.",
-        },
-      },
+export function calculatorFaqSchema(locale: string = DEFAULT_LOCALE) {
+  const faq = messages(locale).calculatorFaq;
+  return faqSchema(
+    [
+      { question: faq.q1, answer: faq.a1 },
+      { question: faq.q2, answer: faq.a2 },
+      { question: faq.q3, answer: faq.a3 },
+      { question: faq.q4, answer: faq.a4 },
     ],
-  };
+    locale,
+  );
 }
 
 /**
@@ -163,23 +182,22 @@ export function calculatorFaqSchema() {
  * schema so the two pages declare different subjects rather than competing for
  * the same one.
  */
-export function aiDisclosurePageSchema(lastUpdated: string) {
+export function aiDisclosurePageSchema(
+  lastUpdated: string,
+  locale: string = DEFAULT_LOCALE,
+) {
+  const m = messages(locale);
   return {
     "@context": "https://schema.org",
     "@type": "WebPage",
-    name: `AI Disclosure — ${siteConfig.name}`,
-    url: `${siteConfig.url}/ai-disclosure`,
-    description:
-      "Where AI is used on GoldCompass and where it is not: the drafting system, the data it is given, what it is never allowed to produce, the review gate, and the known failure modes.",
+    name: interpolate(m.schema.aiDisclosureName, { name: siteConfig.name }),
+    url: abs("/ai-disclosure", locale),
+    description: m.schema.aiDisclosureDescription,
     dateModified: lastUpdated,
+    inLanguage: lang(locale),
     isPartOf: { "@type": "WebSite", name: siteConfig.name, url: siteConfig.url },
-    publisher: {
-      "@type": "Organization",
-      name: siteConfig.name,
-      url: siteConfig.url,
-      logo: { "@type": "ImageObject", url: `${siteConfig.url}/icon.svg` },
-    },
-    significantLink: `${siteConfig.url}/methodology`,
+    publisher: publisher(),
+    significantLink: abs("/methodology", locale),
   };
 }
 
@@ -190,10 +208,14 @@ export function aiDisclosurePageSchema(lastUpdated: string) {
  * page, so callers must render the same array they pass here — see
  * `ToolPageShell`, which takes one `faqs` array and does both.
  */
-export function faqSchema(faqs: { question: string; answer: string }[]) {
+export function faqSchema(
+  faqs: { question: string; answer: string }[],
+  locale: string = DEFAULT_LOCALE,
+) {
   return {
     "@context": "https://schema.org",
     "@type": "FAQPage",
+    inLanguage: lang(locale),
     mainEntity: faqs.map((faq) => ({
       "@type": "Question",
       name: faq.question,
@@ -203,29 +225,31 @@ export function faqSchema(faqs: { question: string; answer: string }[]) {
 }
 
 /** schema.org WebApplication for a calculator tool page. */
-export function toolApplicationSchema(tool: ToolDef) {
+export function toolApplicationSchema(
+  tool: ToolDef,
+  locale: string = DEFAULT_LOCALE,
+) {
   return {
     "@context": "https://schema.org",
     "@type": "WebApplication",
     name: tool.name,
-    url: `${siteConfig.url}${tool.href}`,
+    url: abs(tool.href, locale),
+    inLanguage: lang(locale),
     description: tool.description,
     applicationCategory: "FinanceApplication",
     operatingSystem: "Any",
     browserRequirements: "Requires JavaScript",
     isAccessibleForFree: true,
     offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
-    publisher: {
-      "@type": "Organization",
-      name: siteConfig.name,
-      url: siteConfig.url,
-      logo: { "@type": "ImageObject", url: `${siteConfig.url}/icon.svg` },
-    },
+    publisher: publisher(),
   };
 }
 
 /** schema.org BreadcrumbList. Pass ordered { name, path } items. */
-export function breadcrumbSchema(items: { name: string; path: string }[]) {
+export function breadcrumbSchema(
+  items: { name: string; path: string }[],
+  locale: string = DEFAULT_LOCALE,
+) {
   return {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -233,7 +257,7 @@ export function breadcrumbSchema(items: { name: string; path: string }[]) {
       "@type": "ListItem",
       position: i + 1,
       name: item.name,
-      item: `${siteConfig.url}${item.path}`,
+      item: abs(item.path, locale),
     })),
   };
 }

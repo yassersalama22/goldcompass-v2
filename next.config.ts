@@ -1,3 +1,4 @@
+import createNextIntlPlugin from "next-intl/plugin";
 import type { NextConfig } from "next";
 
 // Content-Security-Policy. Everything the browser loads is same-origin
@@ -99,4 +100,9 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+// Picks up `src/i18n/request.ts` by convention and aliases `next-intl/config`
+// to it. Wrapping is all that is needed — no `i18n` key belongs in the App
+// Router config.
+const withNextIntl = createNextIntlPlugin();
+
+export default withNextIntl(nextConfig);

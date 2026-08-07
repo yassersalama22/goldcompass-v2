@@ -1217,3 +1217,95 @@ Match the current site's look and feel:
     types. `tsc --noEmit` ✓, `eslint` ✓, `next build` ✓ (38 routes), `npm run check:markdown` ✓.
   - **TODO after deploy**: re-run the scanner (`curl -X POST https://isitagentready.com/api/scan`)
     and update the table at the top of the checklist — expect Level 3.
+- 2026-08-07: **Phase A — i18n foundation (English only).** First step of the multilingual build
+  (Arabic first, Spanish-ready). Deliberately shipped with **only `en` enabled**, so the deployed
+  site is unchanged while the whole machinery lands. New dep: `next-intl@4.13.5` (0 vulnerabilities,
+  so the `security-audit` gate stays green).
+  - **Decisions locked (with user):** English stays at the **root** and Arabic goes to `/ar/*`
+    (`localePrefix: "as-needed"`) — every indexed URL keeps its exact address, no redirects, no
+    ranking churn; translated articles **reuse the English slug** (1:1 hreflang mapping, and the
+    kebab-case regex guards in the contract + the Edge proxy keep working); the long-form prose
+    pages move to **Markdown artifacts** in Phase D; **next-intl** over a hand-rolled dictionary
+    (Arabic has six plural forms — ICU is the reason, not convenience).
+  - **`src/config/locales.ts` is the registry everything iterates** — routing, `generateStaticParams`,
+    hreflang, `sitemap.ts`, and (Phase C) the translation pipeline. Two lists on purpose: `LOCALES`
+    is what the *contracts* know about (so an artifact can be translated and reviewed before anyone
+    can reach it), `ACTIVE_LOCALES` is what is routed. `ar` is present but `enabled: false`.
+    `reviewPolicy: "native" | "assisted"` is the field that will make Spanish a config change.
+  - **⚠ `localeDetection: false` is mandatory here, not a preference.** next-intl's default 307s on
+    `Accept-Language`. Cloudflare caches our HTML and **ignores `Vary`** (2026-07-27), so that
+    redirect would be stored under the URL's cache key and served to *everyone* — the same failure
+    class as the RSC flight payload breaking the home page. `localeCookie: false` follows (a
+    `Set-Cookie` on cacheable HTML is the other way to get a response pinned per-visitor).
+    `alternateLinks: false` too: the middleware would advertise every locale for every path, and
+    hreflang must only name translations that **exist** — a dangling hreflang is worse than none.
+    Language switching is therefore always an explicit user action (`LanguageSwitcher`, plain
+    crawlable `<a href>`s, renders nothing while one locale is active).
+  - **`src/app/**` moved under `src/app/[locale]/**`**; `sitemap.ts`, `robots.txt`, `llms.txt`,
+    `icon.svg`, `/api/**` and `/agent-markdown/**` stay at the root (one sitemap for all locales;
+    the API is not a localized route). `setRequestLocale(locale)` is called in the layout **and
+    every page** — Next 16.2 predates `next/root-params` being available without an experimental
+    flag, and without it reading the locale forces dynamic rendering site-wide and forfeits the
+    edge caching the whole SEO story rests on.
+  - **⚠ The proxy matcher must NOT exclude dotted paths.** The usual next-intl matcher drops
+    anything containing a `.`; `/insights/rss.xml` lives *inside* `[locale]`, so the unprefixed
+    English form has to reach the middleware to be rewritten — excluding dotted paths 404s the feed.
+    Root-level metadata routes are listed explicitly instead. Markdown negotiation is checked
+    **first** and bypasses the intl middleware entirely (the Markdown route is outside `[locale]`
+    and carries the locale as its first segment: `/agent-markdown/<locale>/<path>`).
+  - **⚠ Metadata images are rewritten, never redirected** (`METADATA_IMAGE_ROUTE` in `proxy.ts`).
+    These routes live under `[locale]`, so Next emits `og:image` as `/en/opengraph-image`, which
+    `as-needed` prefixing would 307 to the unprefixed form — meaning every `og:image` on the site
+    would point at a redirect, and several social scrapers do not follow redirects on images.
+    Rewriting makes **both** spellings serve the PNG directly, which also protects the unprefixed
+    URLs already in social caches. Both verified 200 `image/png`.
+  - **Static rendering had two silent regressions, both caught in the build output and fixed**:
+    `/insights/rss.xml` and the OG image routes went `ƒ` (dynamic) because a route handler or
+    metadata image under a dynamic segment is generated on demand unless its params are enumerated.
+    Both now export `generateStaticParams`. Rendering a satori PNG per request on a 1GB box is
+    exactly what we do not want.
+  - **`src/lib/format.ts` is now locale-aware** (memoized `Intl` instances per locale+kind, was
+    module-level `en-US` singletons) and gained `formatLongDate` / `formatLongDateTime`, replacing
+    three ad-hoc `en-US` formatters that had been inlined in `outlook/page.tsx`,
+    `insights/[slug]/page.tsx` and the OG cards. It resolves a locale **code** to the registry's
+    `intlLocale`, which carries the Unicode extension the route segment cannot: `ar` →
+    **`ar-u-nu-latn`**, forcing Latin digits. Bare `ar` yields Arabic-Indic digits (٤٬١٦٠), which
+    would clash with the Latin numerals on the SVG chart axis *in the same page*.
+  - `structured-data.ts` builders all take a `locale`: URLs go through `localizePath` (an `@id`
+    pointing at the English page from an Arabic page would undo the hreflang pairing) and every
+    page-level entity declares `inLanguage`. `calculatorFaqSchema` now reads the catalog and
+    delegates to `faqSchema`, so its four Q&As stop being duplicated in code.
+  - `src/i18n/messages.ts` is a **sync** catalog accessor for code that formats strings outside a
+    React render (`structured-data.ts`, `server/markdown/index.ts`, `.mts` scripts). Inside a
+    Server Component use `getTranslations()` — this is the escape hatch, not the main road.
+  - **`siteConfig.description` split into two catalog keys and this bit twice.** The old field was
+    the *short* blurb used by JSON-LD, RSS and the Markdown builder, while the root layout's
+    `metadata.description` was a different, longer sentence. Collapsing them onto `site.description`
+    silently changed the home page's Markdown and the Organization/WebSite JSON-LD; caught by the
+    baseline diff. They are now `site.description` (long, metadata) and `site.shortDescription`
+    (JSON-LD/RSS/Markdown).
+  - **Verified against a `main` baseline build**, not by inspection: both revisions built standalone
+    and diffed page-by-page. **Byte-identical**: all Markdown representations, `sitemap.xml`,
+    `insights/rss.xml`, `llms.txt`. HTML differs *only* by the intended additions (`dir="ltr"`,
+    `og:locale`, `inLanguage`, a new `og:url` on `/outlook`, the `/en/…` OG image path) plus noise
+    (React `useId` values, RSC flight strings, Next's `next-size-adjust` position, and the live spot
+    price moving between runs). Route table matches, every ISR window preserved. `/en/*` → 307 to
+    the unprefixed URL; `/ar/*` → 404 while disabled. `tsc --noEmit` ✓, `eslint` ✓, `next build` ✓,
+    **`npm run check:markdown` 37/37** ✓.
+  - **Sitemap detail worth keeping**: the home entry emits `siteConfig.url` with no trailing slash,
+    matching the canonical Next emits byte-for-byte. `localizePath("/", locale)` returns `"/"`, so
+    `absolute()` strips it — a sitemap URL differing from its own canonical by a slash is a needless
+    "which one do you mean?" signal.
+  - **Next: Phase B — RTL readiness.** Enable `ar` with pseudo-translated catalogs (layout bugs
+    before content exists): `dir` plumbing + Base UI `DirectionProvider`, ~60 directional utilities
+    across 16 files → logical properties (`ms/me/ps/pe/border-s/text-start`; only 4 shadcn
+    components are affected: sheet, badge, button, card), `rtl:rotate-180` on the 23 directional
+    icons, a `<Num>` bidi-isolation component (without it `-0.85%` renders with the sign detached in
+    Arabic prose), IBM Plex Sans Arabic via `next/font`, `dir="ltr"` on the price chart (time axis
+    stays left→right, per financial convention), and axe in RTL × light **and** dark.
+  - **⚠ Known regression, already encoded in `lib/og.tsx`: satori has no RTL support** — its README
+    says so outright, and `next/og` is satori. Arabic text comes out as disconnected, reversed
+    glyphs, which is worse than no text. `/ar/*` pages therefore fall back to `BrandCard` (Latin
+    brand text only); the guard is already live in both dynamic OG routes. Per-article Arabic cards
+    need a renderer with real shaping (`takumi`, but native binaries on arm64 Alpine) or an offline
+    headless-Chrome pre-render. **Do not add localized text to an OG card until then.**

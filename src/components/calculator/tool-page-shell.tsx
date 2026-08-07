@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { ChevronRight, AlertTriangle } from "lucide-react";
 
 import { Container } from "@/components/layout/container";
@@ -31,22 +31,33 @@ interface Props {
    * the markup can never drift from what the page shows.
    */
   faqs: ToolFaq[];
+  /** Locale of the page rendering this shell — forwarded into the JSON-LD so
+   *  its URLs and `inLanguage` match the page they describe. */
+  locale: string;
 }
 
-export function ToolPageShell({ tool, intro, children, about, mistakes, faqs }: Props) {
+export function ToolPageShell({
+  tool,
+  intro,
+  children,
+  about,
+  mistakes,
+  faqs,
+  locale,
+}: Props) {
   const siblings = siblingTools(tool.slug);
 
   return (
     <>
       <JsonLd
         data={[
-          toolApplicationSchema(tool),
-          faqSchema(faqs),
+          toolApplicationSchema(tool, locale),
+          faqSchema(faqs, locale),
           breadcrumbSchema([
             { name: "Home", path: "/" },
             { name: "Gold Calculator", path: FLAGSHIP_TOOL.href },
             { name: tool.name, path: tool.href },
-          ]),
+          ], locale),
         ]}
       />
 
