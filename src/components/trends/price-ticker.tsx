@@ -4,7 +4,7 @@ import * as React from "react";
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 
 import { Num } from "@/components/market/num";
-import { formatSignedPct, formatUsd } from "@/lib/format";
+import { useFormat } from "@/lib/use-format";
 import { cn } from "@/lib/utils";
 import type { PriceQuote } from "@/types/price";
 
@@ -40,6 +40,7 @@ export function PriceTicker({
   initialQuote: PriceQuote | null;
   initialStale: boolean;
 }) {
+  const fmt = useFormat();
   const [quote, setQuote] = React.useState<PriceQuote | null>(initialQuote);
   const [status, setStatus] = React.useState<Status>(
     initialQuote ? (initialStale ? "delayed" : "live") : "error",
@@ -106,7 +107,7 @@ export function PriceTicker({
           className="text-4xl font-bold tabular-nums sm:text-5xl"
           aria-live="polite"
         >
-          <Num>{formatUsd(quote.price)}</Num>
+          <Num>{fmt.usd(quote.price)}</Num>
         </span>
         <span className="text-muted-foreground text-sm font-medium">
           XAU/USD · per oz
@@ -125,7 +126,7 @@ export function PriceTicker({
             <span className="sr-only">
               {up ? "Up" : "Down"} {""}
             </span>
-            <Num>{formatSignedPct(change)}</Num>
+            <Num>{fmt.signedPct(change)}</Num>
             <span className="text-muted-foreground ms-1 font-normal">24h</span>
           </span>
         ) : null}

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 
-import { formatShortDate, formatUsd, formatUsdCompact } from "@/lib/format";
+import { useFormat } from "@/lib/use-format";
 import type { PricePoint } from "@/types/price";
 
 // Fixed viewBox coordinate space; the SVG stretches to the element box
@@ -13,6 +13,7 @@ const PAD_TOP = 24;
 const PAD_BOTTOM = 24;
 
 export function PriceChart({ points }: { points: PricePoint[] }) {
+  const fmt = useFormat();
   const [hover, setHover] = React.useState<number | null>(null);
 
   const geom = React.useMemo(() => {
@@ -89,13 +90,13 @@ export function PriceChart({ points }: { points: PricePoint[] }) {
           preserveAspectRatio="none"
           className="h-64 w-full touch-none sm:h-72"
           role="img"
-          aria-label={`Gold price over the last 30 days: from ${formatUsd(
+          aria-label={`Gold price over the last 30 days: from ${fmt.usd(
             first.price,
-          )} on ${formatShortDate(first.t)} to ${formatUsd(
+          )} on ${fmt.shortDate(first.t)} to ${fmt.usd(
             last.price,
-          )} on ${formatShortDate(last.t)}. Range ${formatUsd(
+          )} on ${fmt.shortDate(last.t)}. Range ${fmt.usd(
             geom.min,
-          )} to ${formatUsd(geom.max)}.`}
+          )} to ${fmt.usd(geom.max)}.`}
           onPointerMove={handleMove}
           onPointerLeave={() => setHover(null)}
         >
@@ -144,10 +145,10 @@ export function PriceChart({ points }: { points: PricePoint[] }) {
 
         {/* High / low labels overlaid in the plot */}
         <span className="text-muted-foreground pointer-events-none absolute top-0 left-0 text-xs tabular-nums">
-          {formatUsdCompact(geom.max)}
+          {fmt.usdCompact(geom.max)}
         </span>
         <span className="text-muted-foreground pointer-events-none absolute bottom-0 left-0 text-xs tabular-nums">
-          {formatUsdCompact(geom.min)}
+          {fmt.usdCompact(geom.min)}
         </span>
 
         {/* Tooltip — positioned by percentage so it tracks the viewBox. */}
@@ -160,18 +161,18 @@ export function PriceChart({ points }: { points: PricePoint[] }) {
             }}
           >
             <div className="font-semibold tabular-nums">
-              {formatUsd(active.price)}
+              {fmt.usd(active.price)}
             </div>
             <div className="text-muted-foreground">
-              {formatShortDate(active.t)}
+              {fmt.shortDate(active.t)}
             </div>
           </div>
         ) : null}
       </div>
 
       <figcaption className="text-muted-foreground flex justify-between text-xs">
-        <span>{formatShortDate(first.t)}</span>
-        <span>{formatShortDate(last.t)}</span>
+        <span>{fmt.shortDate(first.t)}</span>
+        <span>{fmt.shortDate(last.t)}</span>
       </figcaption>
 
       {/* Screen-reader / no-JS data table */}
@@ -186,8 +187,8 @@ export function PriceChart({ points }: { points: PricePoint[] }) {
         <tbody>
           {points.map((p) => (
             <tr key={p.t}>
-              <td>{formatShortDate(p.t)}</td>
-              <td>{formatUsd(p.price)}</td>
+              <td>{fmt.shortDate(p.t)}</td>
+              <td>{fmt.usd(p.price)}</td>
             </tr>
           ))}
         </tbody>

@@ -73,6 +73,20 @@ export interface LocaleDef {
    * glyphs for it. Applied on the `<html>` element by the locale layout.
    */
   fontVariable?: string;
+  /**
+   * How a USD price is written in this locale.
+   *
+   * Not taken from `Intl`'s `style: "currency"`, deliberately. CLDR renders USD
+   * in Arabic as `‏4,283.61 US$` — a trailing "US$" with an invisible RLM —
+   * which is technically correct and not what Arabic financial media actually
+   * writes. The locale still governs everything mechanical (digit grouping, the
+   * decimal separator, Latin vs Arabic-Indic digits); this governs only the
+   * word or symbol and which side it sits on.
+   *
+   * The site is USD-only by contract (`Spot.currency` is `z.literal("USD")`),
+   * so naming the unit per locale is honest rather than a shortcut.
+   */
+  currency: { unit: string; position: "prefix" | "suffix" };
 }
 
 export const LOCALES: readonly LocaleDef[] = [
@@ -88,6 +102,7 @@ export const LOCALES: readonly LocaleDef[] = [
     enabled: true,
     reviewPolicy: "native",
     lengthRatio: [1, 1],
+    currency: { unit: "$", position: "prefix" },
   },
   {
     code: "ar",
@@ -104,6 +119,9 @@ export const LOCALES: readonly LocaleDef[] = [
     reviewPolicy: "native",
     lengthRatio: [0.75, 1.15],
     fontVariable: "--font-arabic",
+    // "4,283.61 دولار" — the form Arabic financial media uses, chosen by the
+    // owner (a native speaker) over CLDR's trailing "US$".
+    currency: { unit: "دولار", position: "suffix" },
   },
 ] as const;
 

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 import { cn } from "@/lib/utils";
-import { formatUsd } from "@/lib/format";
+import { useFormat } from "@/lib/use-format";
 import {
   GOLD_PURITIES,
   WEIGHT_UNITS,
@@ -37,6 +37,7 @@ const unitOptions = WEIGHT_UNITS.map((u) => ({ key: u.key, label: u.label }));
 const purityOptions = GOLD_PURITIES.map((p) => ({ key: p.key, label: p.label }));
 
 export function KaratPriceCalculator({ initialSpot, isStale }: Props) {
+  const fmt = useFormat();
   const searchParams = useSearchParams();
   const spotState = useSpotState(initialSpot);
 
@@ -101,7 +102,7 @@ export function KaratPriceCalculator({ initialSpot, isStale }: Props) {
               label={`Melt value of ${weightNum.toLocaleString("en-US")} ${
                 WEIGHT_UNITS.find((u) => u.key === unit)?.short
               } of ${karat} gold`}
-              value={hasWeight ? formatUsd(selected.value) : "—"}
+              value={hasWeight ? fmt.usd(selected.value) : "—"}
               sub={
                 hasWeight ? (
                   <>
@@ -117,11 +118,11 @@ export function KaratPriceCalculator({ initialSpot, isStale }: Props) {
             <div className="grid gap-4 sm:grid-cols-2">
               <ResultStat
                 label={`${karat} price per gram`}
-                value={formatUsd(selected.pricePerGram)}
+                value={fmt.usd(selected.pricePerGram)}
               />
               <ResultStat
                 label={`${karat} price per troy ounce`}
-                value={formatUsd(selected.pricePerTroyOz)}
+                value={fmt.usd(selected.pricePerTroyOz)}
               />
             </div>
 
@@ -171,14 +172,14 @@ export function KaratPriceCalculator({ initialSpot, isStale }: Props) {
                             {row.fineness}
                           </td>
                           <td className="py-2 pe-3 text-end tabular-nums">
-                            {formatUsd(row.pricePerGram)}
+                            {fmt.usd(row.pricePerGram)}
                           </td>
                           <td className="py-2 pe-3 text-end tabular-nums">
-                            {formatUsd(row.pricePerTroyOz)}
+                            {fmt.usd(row.pricePerTroyOz)}
                           </td>
                           {hasWeight ? (
                             <td className="py-2 text-end font-semibold tabular-nums">
-                              {formatUsd(row.value)}
+                              {fmt.usd(row.value)}
                             </td>
                           ) : null}
                         </tr>

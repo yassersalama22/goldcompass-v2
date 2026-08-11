@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 import { cn } from "@/lib/utils";
-import { formatUsd } from "@/lib/format";
+import { useFormat } from "@/lib/use-format";
 import {
   GOLD_PURITIES,
   TROY_OZ_TO_GRAMS,
@@ -47,6 +47,7 @@ function formatQty(value: number): string {
 }
 
 export function UnitConverter({ initialSpot, isStale }: Props) {
+  const fmt = useFormat();
   const searchParams = useSearchParams();
   const spotState = useSpotState(initialSpot);
 
@@ -122,7 +123,7 @@ export function UnitConverter({ initialSpot, isStale }: Props) {
               <ResultStat
                 label="In troy ounces"
                 value={`${formatQty(fromGrams(grams, "ozt"))} ozt`}
-                sub={hasSpot ? `Worth ${formatUsd(grams * valuePerGram)} at ${karat}` : undefined}
+                sub={hasSpot ? `Worth ${fmt.usd(grams * valuePerGram)} at ${karat}` : undefined}
               />
             </div>
 
@@ -174,7 +175,7 @@ export function UnitConverter({ initialSpot, isStale }: Props) {
                           </td>
                           {hasSpot ? (
                             <td className="py-2 text-end tabular-nums">
-                              {formatUsd(u.grams * valuePerGram)}
+                              {fmt.usd(u.grams * valuePerGram)}
                             </td>
                           ) : null}
                         </tr>
@@ -183,7 +184,7 @@ export function UnitConverter({ initialSpot, isStale }: Props) {
                   </table>
                 </div>
                 <p className="text-muted-foreground mt-3 text-xs">
-                  Values assume {karat} gold at {hasSpot ? formatUsd(spotNum) : "the spot price"}{" "}
+                  Values assume {karat} gold at {hasSpot ? fmt.usd(spotNum) : "the spot price"}{" "}
                   per troy ounce of pure gold, with no dealer premium.
                 </p>
               </CardContent>

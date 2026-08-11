@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { TrendingUp, TrendingDown, Link2, Check, RotateCcw } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { formatUsd } from "@/lib/format";
+import { useFormat } from "@/lib/use-format";
 import {
   calculate,
   GOLD_PURITIES,
@@ -336,6 +336,7 @@ function QuantityCard({
 }
 
 function BreakEvenCard({ results }: { results: CalcResults }) {
+  const fmt = useFormat();
   return (
     <Card>
       <CardHeader>
@@ -346,7 +347,7 @@ function BreakEvenCard({ results }: { results: CalcResults }) {
       <CardContent className="space-y-2">
         <div className="flex flex-wrap items-end gap-3">
           <p className="text-4xl font-bold tabular-nums">
-            {formatUsd(results.breakEvenSpot)}
+            {fmt.usd(results.breakEvenSpot)}
           </p>
           <p className="mb-1 flex items-center gap-1 text-sm text-muted-foreground">
             <TrendingUp className="size-4 text-bull" aria-hidden="true" />
@@ -364,6 +365,7 @@ function BreakEvenCard({ results }: { results: CalcResults }) {
 }
 
 function ScenariosCard({ results }: { results: CalcResults }) {
+  const fmt = useFormat();
   return (
     <Card>
       <CardHeader>
@@ -422,10 +424,10 @@ function ScenariosCard({ results }: { results: CalcResults }) {
                       </span>
                     </td>
                     <td className="py-2 pe-3 text-end tabular-nums text-muted-foreground">
-                      {formatUsd(s.spotPrice)}
+                      {fmt.usd(s.spotPrice)}
                     </td>
                     <td className="py-2 pe-3 text-end tabular-nums">
-                      {formatUsd(s.sellValue)}
+                      {fmt.usd(s.sellValue)}
                     </td>
                     <td
                       className={cn(
@@ -436,7 +438,7 @@ function ScenariosCard({ results }: { results: CalcResults }) {
                       )}
                     >
                       {s.pnlUsd >= 0 ? "+" : ""}
-                      {formatUsd(s.pnlUsd)}
+                      {fmt.usd(s.pnlUsd)}
                       <span className="ms-1 text-xs font-normal opacity-75">
                         ({s.pnlPct >= 0 ? "+" : ""}
                         {s.pnlPct.toFixed(1)}%)

@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { TrendingDown, TrendingUp } from "lucide-react";
 
 import { Num } from "@/components/market/num";
-import { formatSignedPct, formatUsd } from "@/lib/format";
+import { useFormat } from "@/lib/use-format";
 import {
   GOLD_PURITIES,
   WEIGHT_UNITS,
@@ -42,6 +42,7 @@ function clampPct(raw: string | null, fallback: number, max: number): number {
 }
 
 export function ProfitLossCalculator({ initialSpot }: Props) {
+  const fmt = useFormat();
   const searchParams = useSearchParams();
 
   const [entry, setEntry] = useState(() => searchParams.get("entry") ?? "");
@@ -109,7 +110,7 @@ export function ProfitLossCalculator({ initialSpot }: Props) {
           placeholder="4,200"
           hint={
             initialSpot != null
-              ? `Pre-filled with today's spot price, ${formatUsd(initialSpot)}. Change it to test a target.`
+              ? `Pre-filled with today's spot price, ${fmt.usd(initialSpot)}. Change it to test a target.`
               : undefined
           }
         />
@@ -145,7 +146,7 @@ export function ProfitLossCalculator({ initialSpot }: Props) {
             <ResultStat
               label={isLoss ? "Net loss" : "Net profit"}
               tone={isProfit ? "bull" : isLoss ? "bear" : "default"}
-              value={`${result.pnlUsd >= 0 ? "+" : ""}${formatUsd(result.pnlUsd)}`}
+              value={`${result.pnlUsd >= 0 ? "+" : ""}${fmt.usd(result.pnlUsd)}`}
               sub={
                 <span className="flex items-center gap-1.5">
                   {isProfit ? (
@@ -154,9 +155,9 @@ export function ProfitLossCalculator({ initialSpot }: Props) {
                     <TrendingDown className="text-bear size-4" aria-hidden="true" />
                   ) : null}
                   <strong className="text-foreground">
-                    <Num>{formatSignedPct(result.pnlPct, 1)}</Num>
+                    <Num>{fmt.signedPct(result.pnlPct, 1)}</Num>
                   </strong>{" "}
-                  return on a {formatUsd(result.costBasis)} outlay.
+                  return on a {fmt.usd(result.costBasis)} outlay.
                 </span>
               }
             />
@@ -164,12 +165,12 @@ export function ProfitLossCalculator({ initialSpot }: Props) {
             <div className="grid gap-4 sm:grid-cols-2">
               <ResultStat
                 label="Total cost"
-                value={formatUsd(result.costBasis)}
+                value={fmt.usd(result.costBasis)}
                 sub={`${result.pureTroyOz.toFixed(4)} troy oz of pure gold, including the ${premiumPct.toFixed(1)}% premium.`}
               />
               <ResultStat
                 label="Sale proceeds"
-                value={formatUsd(result.proceeds)}
+                value={fmt.usd(result.proceeds)}
                 sub={`After a ${sellFeePct.toFixed(1)}% sell-side spread.`}
               />
             </div>
@@ -185,25 +186,25 @@ export function ProfitLossCalculator({ initialSpot }: Props) {
                   <div className="flex items-baseline justify-between gap-4 pb-2">
                     <dt className="text-muted-foreground">Gold price move</dt>
                     <dd className="font-semibold tabular-nums">
-                      <Num>{formatSignedPct(result.spotMovePct, 1)}</Num>
+                      <Num>{fmt.signedPct(result.spotMovePct, 1)}</Num>
                     </dd>
                   </div>
                   <div className="flex items-baseline justify-between gap-4 py-2">
                     <dt className="text-muted-foreground">Break-even price</dt>
                     <dd className="font-semibold tabular-nums">
-                      {formatUsd(result.breakEvenSpot)}
+                      {fmt.usd(result.breakEvenSpot)}
                     </dd>
                   </div>
                   <div className="flex items-baseline justify-between gap-4 pt-2">
                     <dt className="text-muted-foreground">Your actual return</dt>
                     <dd className="font-semibold tabular-nums">
-                      <Num>{formatSignedPct(result.pnlPct, 1)}</Num>
+                      <Num>{fmt.signedPct(result.pnlPct, 1)}</Num>
                     </dd>
                   </div>
                 </dl>
                 <p className="text-muted-foreground mt-3 text-xs">
                   The gap between the two percentages is the cost of buying and selling. Gold had
-                  to reach {formatUsd(result.breakEvenSpot)} just to return your money — everything
+                  to reach {fmt.usd(result.breakEvenSpot)} just to return your money — everything
                   above that is profit.
                 </p>
               </CardContent>

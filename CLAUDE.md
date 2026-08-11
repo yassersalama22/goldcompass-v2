@@ -1360,14 +1360,28 @@ Match the current site's look and feel:
     went. `<bdi dir="ltr">` opens an isolate. Applied to the outlook header, key levels, the macro
     panel, the ticker and the signed P/L values. Numeric table columns are covered generically by a
     `.tabular-nums { unicode-bidi: isolate }` rule rather than ~40 call-site edits.
-  - **Currency is no longer `style: "currency"`.** `Intl` renders USD in Arabic as
-    `\u200f4,283.61 US$` — symbol trailing, invisible RLM prefix — while the chart axis, OG cards,
-    Markdown and JSON API all show `$4,283.61`. Following CLDR only where a component happens to
-    know the locale produced **two currency formats on one site**. Now the locale governs what is
-    genuinely locale-dependent (grouping, separator, Latin vs Arabic-Indic digits) and the `$` is
-    placed by us in every language. Also keeps invisible bidi control characters out of the API and
-    Markdown. Presentation decision, reversible in one place — see the comment in `lib/format.ts`.
-    **Worth the owner's eye: `$4,283.61` vs `4,283.61 دولار` is a native-speaker call.**
+  - **Currency is no longer `style: "currency"`; the unit is per-locale.** `Intl` renders USD in
+    Arabic as `\u200f4,283.61 US$` — trailing "US$", invisible RLM prefix — which is CLDR-correct
+    and not what Arabic financial media writes. **Decided with the owner (native speaker):
+    `$4,283.61` in English, `4,283.61 دولار` in Arabic**, driven by a `currency: { unit, position }`
+    field on the locale registry. The locale still governs everything mechanical (grouping,
+    separator, Latin vs Arabic-Indic digits); only the unit and its side come from the registry.
+    Also keeps invisible bidi control characters out of the JSON API and Markdown.
+  - **⚠ Because the unit is a *word* in Arabic, a missing `locale` argument is now a visible bug,
+    not a subtle one** — it prints `$` on an Arabic page. `lib/format.ts` still defaults to English
+    (right for server code that has a locale in hand), so client components must never import it
+    directly: **`useFormat()` (`lib/use-format.ts`) binds the formatters to `useLocale()`** and the
+    seven interactive components (both charts/tickers, all five calculators) now go through it.
+    Note the two card sub-components inside `gold-calculator.tsx` each need their own hook call —
+    they format independently of their parent.
+  - **Markdown representations deliberately stay on the canonical `$` form.** They are the
+    machine-facing surface and already spell the ISO code out separately ("… USD per troy ounce",
+    "Price (USD)"), so a localized unit would hand an agent `4,283.61 دولار USD`.
+  - **⚠ Open for Phase C: `keyLevels[].value` is a literal string in the artifact** (`"$4,283.61"`),
+    so Arabic pages render the header spot as `4,283.61 دولار` and the key-levels grid directly
+    below it as `$4,283.61`. The Phase C field map must let that value be **reformatted** per locale
+    rather than listing it as never-translated — the numeral-parity check in `i18n:check` is exactly
+    what makes that safe, since it fails if any digit changes.
   - **The language switcher uses plain `next/link` + `localizePath`, deliberately.** next-intl's
     `Link` with a `locale` prop prefixes the *default* locale too, emitting `/en/outlook` — a URL
     that exists only to 307 to `/outlook`. That routes every language switch through a redirect and

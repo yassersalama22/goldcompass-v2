@@ -110,7 +110,7 @@ export default async function KaratPricePage({ params }: LocaleParams) {
         <>
           <p>
             The gold price you see quoted — currently{" "}
-            <strong>{formatUsd(exampleSpot)}</strong> per troy ounce — is the price of{" "}
+            <strong>{formatUsd(exampleSpot, locale)}</strong> per troy ounce — is the price of{" "}
             <em>pure</em> gold. Every karat below 24 is an alloy, so its value is the spot price
             scaled down by its purity:
           </p>
@@ -118,11 +118,11 @@ export default async function KaratPricePage({ params }: LocaleParams) {
             price per gram = (spot ÷ 31.1035) × (karat ÷ 24)
           </p>
           <p>
-            <strong>Worked example.</strong> At {formatUsd(exampleSpot)} per troy ounce, pure gold
-            is worth <strong>{formatUsd(purePerGram)}</strong> per gram. 18K gold is 18 parts in 24
-            — 75% — so it is worth <strong>{formatUsd(price18kPerGram)}</strong> per gram. A 10 g
+            <strong>Worked example.</strong> At {formatUsd(exampleSpot, locale)} per troy ounce, pure gold
+            is worth <strong>{formatUsd(purePerGram, locale)}</strong> per gram. 18K gold is 18 parts in 24
+            — 75% — so it is worth <strong>{formatUsd(price18kPerGram, locale)}</strong> per gram. A 10 g
             18K chain therefore contains 7.5 g of pure gold and has a melt value of about{" "}
-            <strong>{formatUsd(price18kPerGram * 10)}</strong>.
+            <strong>{formatUsd(price18kPerGram * 10, locale)}</strong>.
           </p>
           <p>
             That figure is the <em>melt value</em>: what the metal is worth, ignoring craftsmanship,

@@ -119,10 +119,10 @@ export default async function UnitConverterPage({ params }: LocaleParams) {
           </ul>
           <p>
             <strong>Worked example.</strong> At a spot price of{" "}
-            <strong>{formatUsd(exampleSpot)}</strong> per troy ounce, pure gold is worth{" "}
-            <strong>{formatUsd(perGram)}</strong> per gram. A 1 kg bar therefore holds 32.15 troy
-            ounces and is worth about <strong>{formatUsd(perGram * 1000)}</strong>, while a single
-            pennyweight of pure gold is worth <strong>{formatUsd(perGram * 1.55517384)}</strong>.
+            <strong>{formatUsd(exampleSpot, locale)}</strong> per troy ounce, pure gold is worth{" "}
+            <strong>{formatUsd(perGram, locale)}</strong> per gram. A 1 kg bar therefore holds 32.15 troy
+            ounces and is worth about <strong>{formatUsd(perGram * 1000, locale)}</strong>, while a single
+            pennyweight of pure gold is worth <strong>{formatUsd(perGram * 1.55517384, locale)}</strong>.
           </p>
           <p>
             Selecting a purity changes only the value columns, never the weights. Values shown are

@@ -1,4 +1,4 @@
-import { DEFAULT_LOCALE, getLocale } from "@/config/locales";
+import { DEFAULT_LOCALE, getLocale, requireLocale } from "@/config/locales";
 
 /**
  * Locale-aware number, currency and date formatting.
@@ -41,7 +41,7 @@ function memo<T>(create: (tag: string) => T): (locale: string) => T {
 }
 
 /*
- * Currency is formatted as a locale-aware *number* with the `$` placed by us,
+ * Currency is formatted as a locale-aware *number* with the unit placed by us,
  * rather than with `style: "currency"`.
  *
  * `Intl` is right but not what we want here. For Arabic it renders
@@ -53,15 +53,15 @@ function memo<T>(create: (tag: string) => T): (locale: string) => T {
  *
  * So: the locale still governs everything that is genuinely locale-dependent —
  * digit grouping, the decimal separator, and Latin vs Arabic-Indic digits (see
- * `intlLocale`) — and the `$` sits in front in every language. That matches how
- * Arabic financial media writes USD prices, and it keeps invisible bidi control
+ * `intlLocale`) — while the unit and its side come from the registry's
+ * `currency` field: `$4,283.61` in English, `4,283.61 دولار` in Arabic. That is
+ * what Arabic financial media writes, and it keeps invisible bidi control
  * characters out of strings that end up in JSON and Markdown.
  *
- * This is a presentation decision, not a technical constraint: to follow CLDR
- * instead, switch these two back to `style: "currency"` and the whole site
- * changes together. The site is USD-only by contract (`Spot.currency` is
- * `z.literal("USD")`), so placing the symbol ourselves is honest rather than a
- * shortcut.
+ * ⚠ Because the unit is now a *word* in some locales, every caller must pass the
+ * page's locale. A missing argument silently falls back to English and prints
+ * `$` on an Arabic page — which is why the client components take it from
+ * `useFormat()` rather than importing these directly.
  */
 const usd = memo(
   (tag) =>
@@ -104,8 +104,13 @@ const longDateTime = memo(
     }),
 );
 
+function withUnit(formatted: string, locale: string): string {
+  const { unit, position } = requireLocale(locale).currency;
+  return position === "prefix" ? `${unit}${formatted}` : `${formatted} ${unit}`;
+}
+
 export function formatUsd(value: number, locale: string = DEFAULT_LOCALE): string {
-  return `$${usd(locale).format(value)}`;
+  return withUnit(usd(locale).format(value), locale);
 }
 
 /** Whole-dollar USD (for compact axis labels). */
@@ -113,7 +118,7 @@ export function formatUsdCompact(
   value: number,
   locale: string = DEFAULT_LOCALE,
 ): string {
-  return `$${usd0(locale).format(value)}`;
+  return withUnit(usd0(locale).format(value), locale);
 }
 
 /**
