@@ -3,6 +3,7 @@
 import * as React from "react";
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 
+import { Num } from "@/components/market/num";
 import { formatSignedPct, formatUsd } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { PriceQuote } from "@/types/price";
@@ -105,7 +106,7 @@ export function PriceTicker({
           className="text-4xl font-bold tabular-nums sm:text-5xl"
           aria-live="polite"
         >
-          {formatUsd(quote.price)}
+          <Num>{formatUsd(quote.price)}</Num>
         </span>
         <span className="text-muted-foreground text-sm font-medium">
           XAU/USD · per oz
@@ -124,8 +125,8 @@ export function PriceTicker({
             <span className="sr-only">
               {up ? "Up" : "Down"} {""}
             </span>
-            {formatSignedPct(change)}
-            <span className="text-muted-foreground ml-1 font-normal">24h</span>
+            <Num>{formatSignedPct(change)}</Num>
+            <span className="text-muted-foreground ms-1 font-normal">24h</span>
           </span>
         ) : null}
 

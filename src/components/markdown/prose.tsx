@@ -14,10 +14,10 @@ const components: Components = {
   h3: (props) => <h3 className="mt-6 mb-2 text-lg font-semibold" {...props} />,
   p: (props) => <p className="text-foreground/90 my-4 leading-7" {...props} />,
   ul: (props) => (
-    <ul className="text-foreground/90 marker:text-gold-strong my-4 list-disc space-y-2 pl-6" {...props} />
+    <ul className="text-foreground/90 marker:text-gold-strong my-4 list-disc space-y-2 ps-6" {...props} />
   ),
   ol: (props) => (
-    <ol className="text-foreground/90 my-4 list-decimal space-y-2 pl-6" {...props} />
+    <ol className="text-foreground/90 my-4 list-decimal space-y-2 ps-6" {...props} />
   ),
   li: (props) => <li className="leading-7" {...props} />,
   strong: (props) => <strong className="text-foreground font-semibold" {...props} />,
@@ -35,12 +35,12 @@ const components: Components = {
     </div>
   ),
   th: (props) => (
-    <th className="border-border border-b px-3 py-2 text-left font-semibold" {...props} />
+    <th className="border-border border-b px-3 py-2 text-start font-semibold" {...props} />
   ),
   td: (props) => <td className="border-border border-b px-3 py-2" {...props} />,
   blockquote: (props) => (
     <blockquote
-      className="border-gold/40 text-muted-foreground my-4 border-l-4 pl-4 italic"
+      className="border-gold/40 text-muted-foreground my-4 border-s-4 ps-4 italic"
       {...props}
     />
   ),

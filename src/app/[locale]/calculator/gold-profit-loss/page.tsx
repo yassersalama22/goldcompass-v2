@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
 
+import { Num } from "@/components/market/num";
 import { withLocaleMetadata, type LocaleParams } from "@/lib/seo";
 import { Link } from "@/i18n/navigation";
 
@@ -132,12 +133,12 @@ export default async function ProfitLossPage({ params }: LocaleParams) {
             <strong>{formatUsd(entrySpot)}</strong> with a 5% premium — an outlay of{" "}
             <strong>{formatUsd(example.costBasis)}</strong> — and gold is now{" "}
             <strong>{formatUsd(exitSpot)}</strong>, a{" "}
-            <strong>{formatSignedPct(example.spotMovePct, 1)}</strong> move. Selling into a 2%
+            <strong><Num>{formatSignedPct(example.spotMovePct, 1)}</Num></strong> move. Selling into a 2%
             buy-back spread returns <strong>{formatUsd(example.proceeds)}</strong>, a profit of{" "}
             <strong>{formatUsd(example.pnlUsd)}</strong> — or{" "}
-            <strong>{formatSignedPct(example.pnlPct, 1)}</strong>. The metal moved{" "}
-            {formatSignedPct(example.spotMovePct, 1)}; you kept{" "}
-            {formatSignedPct(example.pnlPct, 1)}. The difference went to the round trip.
+            <strong><Num>{formatSignedPct(example.pnlPct, 1)}</Num></strong>. The metal moved{" "}
+            <Num>{formatSignedPct(example.spotMovePct, 1)}</Num>; you kept{" "}
+            <Num>{formatSignedPct(example.pnlPct, 1)}</Num>. The difference went to the round trip.
           </p>
           <p>
             That is why gold rewards patience: the transaction cost is paid once, so its drag on

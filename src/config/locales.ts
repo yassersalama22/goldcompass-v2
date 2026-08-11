@@ -109,11 +109,46 @@ export const LOCALES: readonly LocaleDef[] = [
 
 export type LocaleCode = (typeof LOCALES)[number]["code"];
 
+/**
+ * Development/preview override for the active set, e.g.
+ * `NEXT_PUBLIC_LOCALES_ENABLED="en,ar"`.
+ *
+ * The registry's `enabled` flag stays the source of truth for production — this
+ * exists so a language can be built and exercised *before* it is fit to publish.
+ * Enabling a locale makes it routed, prerendered, listed in `sitemap.xml`, and
+ * advertised in hreflang; doing that to a half-translated language is worse than
+ * shipping English only, so the switch that opens it to search engines should be
+ * a reviewed code change, not an env var someone sets once and forgets.
+ *
+ * ⚠ Must be `NEXT_PUBLIC_` and therefore build-time. `ACTIVE_LOCALES` is read by
+ * the language switcher, which is a client component: a server-only variable
+ * would be `undefined` in the browser bundle, the switcher would render on the
+ * server and vanish on hydration, and React would throw a mismatch.
+ * It is also threaded through the Dockerfile as a build arg for the same reason
+ * as the Turnstile site key — it is inlined into the client bundle at build
+ * time, so setting it only in the container's runtime env does nothing.
+ */
+const localesOverride = process.env.NEXT_PUBLIC_LOCALES_ENABLED?.split(",")
+  .map((code) => code.trim())
+  .filter(Boolean);
+
 /** Locales that are routed, prerendered, and advertised in hreflang. */
-export const ACTIVE_LOCALES: readonly LocaleDef[] = LOCALES.filter((l) => l.enabled);
+export const ACTIVE_LOCALES: readonly LocaleDef[] = LOCALES.filter((l) =>
+  localesOverride ? localesOverride.includes(l.code) : l.enabled,
+);
 
 /** Just the codes — what `next-intl` routing and `generateStaticParams` want. */
 export const ACTIVE_LOCALE_CODES: readonly string[] = ACTIVE_LOCALES.map((l) => l.code);
+
+// The canonical locale is the routing fallback and the translation source, so
+// it can never be switched off. Fail at import rather than letting next-intl
+// receive a `defaultLocale` that is not in its `locales` list, which surfaces
+// much further away as a confusing routing error.
+if (!ACTIVE_LOCALE_CODES.includes(LOCALES.find((l) => l.canonical)!.code)) {
+  throw new Error(
+    "NEXT_PUBLIC_LOCALES_ENABLED must include the canonical locale.",
+  );
+}
 
 /**
  * The authoring language. Content is written in this locale and translated out

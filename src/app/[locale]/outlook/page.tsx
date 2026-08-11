@@ -5,6 +5,7 @@ import { setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 
+import { Num } from "@/components/market/num";
 import { Container } from "@/components/layout/container";
 import { Analysis } from "@/components/outlook/analysis";
 import { KeyLevels } from "@/components/outlook/key-levels";
@@ -68,7 +69,7 @@ export default async function OutlookPage({ params }: LocaleParams) {
             <h1 className="text-3xl font-bold sm:text-4xl">Gold Market Outlook</h1>
             <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
               <span className="text-2xl font-bold tabular-nums">
-                {formatUsd(report.spot.price, locale)}
+                <Num>{formatUsd(report.spot.price, locale)}</Num>
               </span>
               <span className="text-muted-foreground text-sm">XAU/USD</span>
               {change != null ? (
@@ -79,7 +80,7 @@ export default async function OutlookPage({ params }: LocaleParams) {
                   )}
                 >
                   <ChangeIcon className="size-4" aria-hidden="true" />
-                  {formatSignedPct(change)}
+                  <Num>{formatSignedPct(change)}</Num>
                 </span>
               ) : null}
             </div>

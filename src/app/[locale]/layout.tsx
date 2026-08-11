@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, IBM_Plex_Sans_Arabic } from "next/font/google";
 import Script from "next/script";
 import { notFound } from "next/navigation";
+import { DirectionProvider } from "@base-ui/react/direction-provider";
 import { NextIntlClientProvider } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import "../globals.css";
@@ -17,7 +18,12 @@ import {
 import { localeOpenGraph } from "@/lib/seo";
 
 const geistSans = Geist({
-  variable: "--font-sans",
+  // Its own variable rather than `--font-sans` directly: `--font-sans` is the
+  // design-system token, and the Arabic override in globals.css needs to
+  // *redefine* that token while still pointing at Geist as the Latin fallback.
+  // If next/font owned `--font-sans`, overriding it would drop Geist entirely
+  // and Latin runs inside Arabic prose would fall back to a system face.
+  variable: "--font-geist-sans",
   subsets: ["latin"],
   display: "swap",
 });
@@ -25,6 +31,27 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-mono",
   subsets: ["latin"],
+  display: "swap",
+});
+
+/**
+ * Geist has no Arabic glyphs, so without this every Arabic page would render in
+ * whatever the browser falls back to — usually a system serif that clashes with
+ * the brand and, on some platforms, has poor hinting at small sizes.
+ *
+ * IBM Plex Sans Arabic is chosen for tone (a neutral humanist sans that sits
+ * beside Geist without looking like a different site) and for having the weights
+ * the design system actually uses. Self-hosted by `next/font`, so the CSP's
+ * `font-src 'self'` needs no change and there is no third-party request.
+ *
+ * The variable is attached to `<html>` only for RTL locales, so a visitor
+ * reading English never downloads an Arabic font: `@font-face` files are fetched
+ * lazily, only when something on the page actually resolves to them.
+ */
+const plexArabic = IBM_Plex_Sans_Arabic({
+  variable: "--font-arabic",
+  subsets: ["arabic"],
+  weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
@@ -110,6 +137,7 @@ export default async function RootLayout({
   setRequestLocale(locale);
 
   const { dir, hreflang } = requireLocale(locale);
+  const rtl = dir === "rtl";
 
   return (
     <html
@@ -120,7 +148,11 @@ export default async function RootLayout({
       // server emitted. Scoped to <html>; everything inside still hydrates
       // strictly.
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${
+        // Only RTL locales carry the Arabic face, and `font-arabic` is what
+        // `globals.css` keys the `--font-sans` override off — see the note there.
+        rtl ? `${plexArabic.variable} font-arabic` : ""
+      } h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">
         {/* Must run before first paint — see the component for why. */}
@@ -146,11 +178,19 @@ export default async function RootLayout({
           catalog would ship every page's strings to every visitor.
         */}
         <NextIntlClientProvider>
-          <SiteHeader />
-          <main id="main" className="flex-1 scroll-mt-16">
-            {children}
-          </main>
-          <SiteFooter />
+          {/*
+            Base UI reads direction from context, not from the `dir` attribute,
+            so its primitives (the mobile-nav Sheet, and anything added later
+            with a side or an inline offset) need to be told explicitly. Without
+            this the DOM flips but Base UI's own positioning does not.
+          */}
+          <DirectionProvider direction={dir}>
+            <SiteHeader />
+            <main id="main" className="flex-1 scroll-mt-16">
+              {children}
+            </main>
+            <SiteFooter />
+          </DirectionProvider>
         </NextIntlClientProvider>
         {cfBeaconToken ? (
           <Script

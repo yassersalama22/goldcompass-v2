@@ -125,16 +125,16 @@ export function BreakEvenCalculator({ initialSpot, isStale }: Props) {
                   <table className="w-full min-w-[420px] text-sm">
                     <thead>
                       <tr className="border-border text-muted-foreground border-b text-xs">
-                        <th scope="col" className="pr-3 pb-2 text-left font-medium">
+                        <th scope="col" className="pe-3 pb-2 text-start font-medium">
                           Typical product
                         </th>
-                        <th scope="col" className="pr-3 pb-2 text-right font-medium">
+                        <th scope="col" className="pe-3 pb-2 text-end font-medium">
                           Premium
                         </th>
-                        <th scope="col" className="pr-3 pb-2 text-right font-medium">
+                        <th scope="col" className="pe-3 pb-2 text-end font-medium">
                           Break-even price
                         </th>
-                        <th scope="col" className="pb-2 text-right font-medium">
+                        <th scope="col" className="pb-2 text-end font-medium">
                           Required rise
                         </th>
                       </tr>
@@ -155,16 +155,16 @@ export function BreakEvenCalculator({ initialSpot, isStale }: Props) {
                               benchmark.pct === premiumPct && "bg-muted/50 font-medium"
                             )}
                           >
-                            <th scope="row" className="py-2 pr-3 text-left font-medium">
+                            <th scope="row" className="py-2 pe-3 text-start font-medium">
                               {benchmark.label}
                             </th>
-                            <td className="text-muted-foreground py-2 pr-3 text-right tabular-nums">
+                            <td className="text-muted-foreground py-2 pe-3 text-end tabular-nums">
                               {benchmark.pct}%
                             </td>
-                            <td className="py-2 pr-3 text-right tabular-nums">
+                            <td className="py-2 pe-3 text-end tabular-nums">
                               {formatUsd(row.breakEvenSpot)}
                             </td>
-                            <td className="py-2 text-right font-semibold tabular-nums">
+                            <td className="py-2 text-end font-semibold tabular-nums">
                               +{row.requiredRisePct.toFixed(1)}%
                             </td>
                           </tr>

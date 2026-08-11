@@ -153,13 +153,13 @@ function Breadcrumbs({ current }: { current: string }) {
             Home
           </Link>
         </li>
-        <ChevronRight className="size-3.5 shrink-0" aria-hidden="true" />
+        <ChevronRight className="rtl:rotate-180 size-3.5 shrink-0" aria-hidden="true" />
         <li>
           <Link href={FLAGSHIP_TOOL.href} className="hover:text-foreground">
             Gold Calculator
           </Link>
         </li>
-        <ChevronRight className="size-3.5 shrink-0" aria-hidden="true" />
+        <ChevronRight className="rtl:rotate-180 size-3.5 shrink-0" aria-hidden="true" />
         <li className="text-foreground font-medium" aria-current="page">
           {current}
         </li>

@@ -58,7 +58,31 @@ export function PriceChart({ points }: { points: PricePoint[] }) {
   }
 
   return (
-    <figure className="space-y-2">
+    <figure
+      className="space-y-2"
+      /*
+        Pinned left-to-right even on Arabic pages, deliberately.
+
+        Time-series charts run oldest-left to newest-right in financial media
+        worldwide, Arabic press included — a mirrored price chart reads as a
+        crash to anyone who has seen one before. Pinning direction here also
+        keeps the geometry honest: `geom.x()` and the pointer handler both
+        measure from `rect.left`, and the tooltip is positioned with a `left`
+        percentage, so an RTL flip would put the crosshair on the wrong date
+        without changing a single number.
+
+        Because this subtree is `dir="ltr"`, the physical `left-0` positioning on
+        the min/max labels below is correct rather than an oversight, and the
+        `[dir="ltr"]` font rule in globals.css keeps its figures in Geist.
+
+        ⚠ This belongs on the <figure>, not on the plot wrapper. The date axis
+        (<figcaption>) and the screen-reader table are siblings of the plot, so
+        pinning only the plot mirrored the axis while the line kept running
+        chronologically — the chart then read as starting today and ending a
+        month ago. Caught in a screenshot, not by any automated check.
+      */
+      dir="ltr"
+    >
       <div className="relative">
         <svg
           viewBox={`0 0 ${W} ${H}`}

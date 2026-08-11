@@ -40,24 +40,38 @@ function memo<T>(create: (tag: string) => T): (locale: string) => T {
   };
 }
 
+/*
+ * Currency is formatted as a locale-aware *number* with the `$` placed by us,
+ * rather than with `style: "currency"`.
+ *
+ * `Intl` is right but not what we want here. For Arabic it renders
+ * `\u200f4,283.61 US$` — symbol trailing, prefixed with an invisible RLM — while
+ * every other surface on this site (the SVG chart axis, the OG cards, the
+ * Markdown representations, the JSON API) shows `$4,283.61`. Following CLDR only
+ * where a React component happens to know the locale produced two currency
+ * formats on one site, which reads as a bug rather than as localization.
+ *
+ * So: the locale still governs everything that is genuinely locale-dependent —
+ * digit grouping, the decimal separator, and Latin vs Arabic-Indic digits (see
+ * `intlLocale`) — and the `$` sits in front in every language. That matches how
+ * Arabic financial media writes USD prices, and it keeps invisible bidi control
+ * characters out of strings that end up in JSON and Markdown.
+ *
+ * This is a presentation decision, not a technical constraint: to follow CLDR
+ * instead, switch these two back to `style: "currency"` and the whole site
+ * changes together. The site is USD-only by contract (`Spot.currency` is
+ * `z.literal("USD")`), so placing the symbol ourselves is honest rather than a
+ * shortcut.
+ */
 const usd = memo(
   (tag) =>
     new Intl.NumberFormat(tag, {
-      style: "currency",
-      currency: "USD",
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }),
 );
 
-const usd0 = memo(
-  (tag) =>
-    new Intl.NumberFormat(tag, {
-      style: "currency",
-      currency: "USD",
-      maximumFractionDigits: 0,
-    }),
-);
+const usd0 = memo((tag) => new Intl.NumberFormat(tag, { maximumFractionDigits: 0 }));
 
 // Pinned to UTC on purpose: these label daily price points (which upstream keys
 // by UTC day), and the chart is server-rendered, so an unpinned zone would make
@@ -91,7 +105,7 @@ const longDateTime = memo(
 );
 
 export function formatUsd(value: number, locale: string = DEFAULT_LOCALE): string {
-  return usd(locale).format(value);
+  return `$${usd(locale).format(value)}`;
 }
 
 /** Whole-dollar USD (for compact axis labels). */
@@ -99,7 +113,7 @@ export function formatUsdCompact(
   value: number,
   locale: string = DEFAULT_LOCALE,
 ): string {
-  return usd0(locale).format(value);
+  return `$${usd0(locale).format(value)}`;
 }
 
 /**

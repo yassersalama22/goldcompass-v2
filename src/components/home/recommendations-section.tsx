@@ -35,13 +35,13 @@ export function RecommendationsSection() {
             className="text-gold-strong inline-flex items-center gap-1 text-sm font-medium underline-offset-4 hover:underline"
           >
             View full analysis
-            <ArrowRight className="size-4" aria-hidden="true" />
+            <ArrowRight className="rtl:rotate-180 size-4" aria-hidden="true" />
           </Link>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
           {report.calls.map((call) => (
-            <Card key={call.term} className="border-l-gold border-l-4">
+            <Card key={call.term} className="border-s-gold border-s-4">
               <CardHeader>
                 <div className="flex items-center justify-between gap-3">
                   <CardTitle className="text-xl">{call.label}</CardTitle>

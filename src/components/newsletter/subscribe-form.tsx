@@ -153,7 +153,7 @@ export function SubscribeForm({
         />
 
         {/* Honeypot — visually hidden, ignored by humans, off the a11y tree. */}
-        <div aria-hidden="true" className="absolute left-[-9999px] h-0 w-0 overflow-hidden">
+        <div aria-hidden="true" className="absolute start-[-9999px] h-0 w-0 overflow-hidden">
           <label htmlFor={`${emailId}-company`}>Company (leave blank)</label>
           <input
             id={`${emailId}-company`}

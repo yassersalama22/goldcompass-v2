@@ -17,7 +17,7 @@ export async function SiteHeader() {
       {/* Skip link for keyboard / screen-reader users */}
       <a
         href="#main"
-        className="bg-primary text-primary-foreground focus:ring-ring sr-only z-50 rounded-md px-4 py-2 text-sm font-medium focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:ring-2"
+        className="bg-primary text-primary-foreground focus:ring-ring sr-only z-50 rounded-md px-4 py-2 text-sm font-medium focus:not-sr-only focus:absolute focus:top-2 focus:start-2 focus:ring-2"
       >
         {t("header.skipToContent")}
       </a>

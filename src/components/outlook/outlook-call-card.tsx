@@ -13,7 +13,7 @@ import type { OutlookCall } from "@/types/outlook";
 
 export function OutlookCallCard({ call }: { call: OutlookCall }) {
   return (
-    <Card className="border-l-gold border-l-4">
+    <Card className="border-s-gold border-s-4">
       <CardHeader>
         <div className="flex items-center justify-between gap-3">
           <CardTitle className="text-xl">{call.label}</CardTitle>

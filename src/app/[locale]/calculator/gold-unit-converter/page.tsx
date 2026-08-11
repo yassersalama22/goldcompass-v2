@@ -110,7 +110,7 @@ export default async function UnitConverterPage({ params }: LocaleParams) {
             Every conversion here routes through grams as the base unit, so nothing is converted
             twice and no rounding compounds:
           </p>
-          <ul className="marker:text-gold-strong list-disc space-y-1 pl-6">
+          <ul className="marker:text-gold-strong list-disc space-y-1 ps-6">
             <li>1 troy ounce (ozt) = 31.1035 g</li>
             <li>1 ounce, avoirdupois (oz) = 28.349523125 g</li>
             <li>1 pennyweight (dwt) = 1.55517384 g = 1/20 troy oz</li>

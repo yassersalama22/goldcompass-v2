@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { TrendingDown, TrendingUp } from "lucide-react";
 
+import { Num } from "@/components/market/num";
 import { formatSignedPct, formatUsd } from "@/lib/format";
 import {
   GOLD_PURITIES,
@@ -153,7 +154,7 @@ export function ProfitLossCalculator({ initialSpot }: Props) {
                     <TrendingDown className="text-bear size-4" aria-hidden="true" />
                   ) : null}
                   <strong className="text-foreground">
-                    {formatSignedPct(result.pnlPct, 1)}
+                    <Num>{formatSignedPct(result.pnlPct, 1)}</Num>
                   </strong>{" "}
                   return on a {formatUsd(result.costBasis)} outlay.
                 </span>
@@ -184,7 +185,7 @@ export function ProfitLossCalculator({ initialSpot }: Props) {
                   <div className="flex items-baseline justify-between gap-4 pb-2">
                     <dt className="text-muted-foreground">Gold price move</dt>
                     <dd className="font-semibold tabular-nums">
-                      {formatSignedPct(result.spotMovePct, 1)}
+                      <Num>{formatSignedPct(result.spotMovePct, 1)}</Num>
                     </dd>
                   </div>
                   <div className="flex items-baseline justify-between gap-4 py-2">
@@ -196,7 +197,7 @@ export function ProfitLossCalculator({ initialSpot }: Props) {
                   <div className="flex items-baseline justify-between gap-4 pt-2">
                     <dt className="text-muted-foreground">Your actual return</dt>
                     <dd className="font-semibold tabular-nums">
-                      {formatSignedPct(result.pnlPct, 1)}
+                      <Num>{formatSignedPct(result.pnlPct, 1)}</Num>
                     </dd>
                   </div>
                 </dl>

@@ -2,7 +2,9 @@
 
 import * as React from "react";
 import { Menu } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+
+import { isRtl } from "@/config/locales";
 
 import { Link, usePathname } from "@/i18n/navigation";
 
@@ -23,6 +25,12 @@ export function MobileNav() {
   const pathname = usePathname();
   const t = useTranslations();
 
+  // Base UI's `side` is physical, not logical, so it has to be chosen per
+  // direction: the drawer should open from the edge the menu button sits on,
+  // which is the inline end in both directions — screen-right in English,
+  // screen-left in Arabic.
+  const side = isRtl(useLocale()) ? "left" : "right";
+
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger
@@ -32,7 +40,7 @@ export function MobileNav() {
       >
         <Menu className="size-5" />
       </SheetTrigger>
-      <SheetContent side="right" className="w-72">
+      <SheetContent side={side} className="w-72">
         <SheetHeader>
           <SheetTitle>
             Gold<span className="text-gold-strong">Compass</span>

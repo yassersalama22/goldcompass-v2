@@ -61,7 +61,7 @@ export function FeaturesSection() {
                   className="text-gold-strong inline-flex items-center gap-1 text-sm font-medium underline-offset-4 hover:underline"
                 >
                   {cta}
-                  <ArrowRight className="size-4" aria-hidden="true" />
+                  <ArrowRight className="rtl:rotate-180 size-4" aria-hidden="true" />
                 </Link>
               </CardContent>
             </Card>
