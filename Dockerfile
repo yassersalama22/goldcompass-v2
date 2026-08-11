@@ -17,10 +17,18 @@ ARG NEXT_PUBLIC_TURNSTILE_SITE_KEY=""
 # both public values inlined into the HTML at build time. Unset = feature off.
 ARG NEXT_PUBLIC_CF_BEACON_TOKEN=""
 ARG NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION=""
+# Locale set to build, comma-separated (e.g. "en,ar"). Empty = fall back to the
+# `enabled` flags in src/config/locales.ts, which is the reviewed default.
+# Must be a build ARG, not a runtime env var: it decides which `[locale]` routes
+# get prerendered AND it is inlined into the client bundle for the language
+# switcher — setting it only at runtime would prerender one locale set and ship
+# a browser bundle that believes in another.
+ARG NEXT_PUBLIC_LOCALES_ENABLED=""
 ENV NEXT_TELEMETRY_DISABLED=1 \
     NEXT_PUBLIC_TURNSTILE_SITE_KEY=$NEXT_PUBLIC_TURNSTILE_SITE_KEY \
     NEXT_PUBLIC_CF_BEACON_TOKEN=$NEXT_PUBLIC_CF_BEACON_TOKEN \
-    NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION=$NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
+    NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION=$NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION \
+    NEXT_PUBLIC_LOCALES_ENABLED=$NEXT_PUBLIC_LOCALES_ENABLED
 RUN npm run build
 
 FROM node:22-alpine AS runner

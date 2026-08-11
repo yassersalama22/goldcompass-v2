@@ -96,7 +96,7 @@ export default async function CalculatorPage({ params }: LocaleParams) {
                     </p>
                     <span className="text-gold-strong mt-3 inline-flex items-center gap-1 text-sm font-medium">
                       Open tool
-                      <ArrowRight className="size-3.5" aria-hidden="true" />
+                      <ArrowRight className="rtl:rotate-180 size-3.5" aria-hidden="true" />
                     </span>
                   </CardContent>
                 </Card>
@@ -108,7 +108,7 @@ export default async function CalculatorPage({ params }: LocaleParams) {
         {/* Methodology note */}
         <div className="mt-10 rounded-xl border border-border bg-muted/40 px-5 py-4 text-sm text-muted-foreground">
           <p className="font-medium text-foreground">How this calculator works</p>
-          <ul className="mt-2 list-disc space-y-1 pl-4">
+          <ul className="mt-2 list-disc space-y-1 ps-4">
             <li>
               <strong>Quantity</strong>: budget ÷ (spot × purity × (1 + premium%)).
               Dealer price per item troy oz = spot × purity factor × (1 + premium).

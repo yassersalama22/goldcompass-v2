@@ -113,11 +113,11 @@ export default async function BreakEvenPage({ params }: LocaleParams) {
           </p>
           <p>
             <strong>Worked example.</strong> Buying at today&apos;s spot of{" "}
-            <strong>{formatUsd(exampleSpot)}</strong> with a 5% dealer premium means you effectively
-            pay <strong>{formatUsd(example.costPerPureTroyOz)}</strong> per troy ounce of pure gold.
+            <strong>{formatUsd(exampleSpot, locale)}</strong> with a 5% dealer premium means you effectively
+            pay <strong>{formatUsd(example.costPerPureTroyOz, locale)}</strong> per troy ounce of pure gold.
             If you could sell at spot with no cost, gold would need to reach{" "}
-            <strong>{formatUsd(spotOnly.breakEvenSpot)}</strong>. Allow a 2% buy-back spread and the
-            target rises to <strong>{formatUsd(example.breakEvenSpot)}</strong> — a{" "}
+            <strong>{formatUsd(spotOnly.breakEvenSpot, locale)}</strong>. Allow a 2% buy-back spread and the
+            target rises to <strong>{formatUsd(example.breakEvenSpot, locale)}</strong> — a{" "}
             <strong>+{example.requiredRisePct.toFixed(1)}%</strong> move before you make a cent.
           </p>
           <p>

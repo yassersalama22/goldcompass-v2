@@ -173,7 +173,7 @@ export default async function MethodologyPage({ params }: LocaleParams) {
                 We state this plainly because you should be able to weigh it. Concretely, each
                 outlook goes through these steps:
               </p>
-              <ol className="ml-1 space-y-3">
+              <ol className="ms-1 space-y-3">
                 {[
                   "Market data is fetched first, from the source described above, and passed into the drafting step as fixed ground truth the model is not permitted to alter.",
                   "A large language model drafts the analysis on top of that data. It has web search available so it can take account of recent, relevant market news, and it is required to cite the sources it relies on.",

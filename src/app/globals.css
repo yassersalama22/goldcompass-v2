@@ -56,6 +56,11 @@
 }
 
 :root {
+  /* Latin type stack. Rebound to the Arabic face for RTL locales — see the
+     `html.font-arabic` rule below, which is why this is a token rather than
+     next/font's own variable. */
+  --font-sans: var(--font-geist-sans);
+
   /* Warm off-white background, near-black warm foreground */
   --background: oklch(0.995 0.003 85);
   --foreground: oklch(0.205 0.012 75);
@@ -143,6 +148,25 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+/*
+ * Arabic type stack, rebinding the `--font-sans` token for RTL locales. The
+ * `font-arabic` class is set on <html> by the locale layout, so every
+ * `font-sans` / `font-heading` in the app resolves to the Arabic face without a
+ * single component knowing the language. Geist stays next in the stack and is
+ * what renders the Latin runs inside Arabic prose ("PAXG", "XAU/USD", figures).
+ *
+ * ⚠ This MUST stay unlayered, next to `:root` and `.dark`, not inside
+ * `@layer base`. `:root` above is unlayered, and in the CSS cascade an
+ * unlayered declaration beats a layered one *regardless of specificity* — so
+ * `html.font-arabic` inside `@layer base` loses to `:root` despite being more
+ * specific, and Arabic silently renders in Geist with the browser substituting
+ * a system face for every Arabic glyph. That failure is invisible in a diff and
+ * only shows up in a computed style, which is how it was caught.
+ */
+html.font-arabic {
+  --font-sans: var(--font-arabic), var(--font-geist-sans), sans-serif;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -153,6 +177,46 @@
   html {
     @apply font-sans;
     scroll-behavior: smooth;
+  }
+  /*
+   * Arabic typography. The `font-arabic` class is set on <html> by the locale
+   * layout for RTL locales only, so this rebinds the *tokens* rather than adding
+   * a competing utility — every `font-sans` and `font-heading` in the app then
+   * resolves to the Arabic face with no component needing to know the language.
+   * Geist is kept as a fallback after it, which is what renders the Latin runs
+   * that survive inside Arabic prose (tickers, "PAXG", "XAU/USD", figures).
+   *
+   * Arabic has no capital letters and a taller mean line, so the same nominal
+   * size reads smaller and tighter than Latin: nudge the size up slightly and
+   * give it more leading, or body copy looks cramped.
+   */
+  html.font-arabic {
+    font-size: 1.0625rem;
+    line-height: 1.8;
+  }
+  /* Latin runs inside Arabic text — prices, "PAXG", "XAU/USD", the tabular
+     columns in the calculators — keep Geist, which draws figures at a
+     consistent width. `[dir="ltr"]` covers the <Num> bidi wrapper and the
+     price chart, both of which are pinned LTR inside an RTL page. */
+  html.font-arabic .tabular-nums,
+  html.font-arabic [dir="ltr"] {
+    font-family: var(--font-geist-sans), var(--font-arabic), sans-serif;
+  }
+  /*
+   * Every numeric column is its own bidi isolate. Without this, a value in an
+   * RTL table cell is reordered against the surrounding paragraph direction and
+   * neighbouring cells can visually bleed into one another.
+   *
+   * Isolation only — the base direction is deliberately left inherited, so
+   * `Intl` decides where the currency mark sits (Arabic conventionally places it
+   * after the number, and `Intl.NumberFormat` already knows that). This covers
+   * the calculator tables generically; runs that sit inside flowing prose, or
+   * that carry a leading +/- sign, use the `<Num>` component instead, which adds
+   * an explicit `dir="ltr"` because a detached sign changes what the number
+   * means.
+   */
+  .tabular-nums {
+    unicode-bidi: isolate;
   }
   h1,
   h2,

@@ -61,6 +61,15 @@ function aiNote(locale: string): string {
   );
 }
 
+/*
+ * Money in these documents is formatted at the canonical locale on purpose, so
+ * it reads `$4,283.61` regardless of the requested language. This is the
+ * machine-facing representation: it already spells the ISO code out separately
+ * ("… USD per troy ounce", "Price (USD)"), so appending a localized unit word
+ * would give an agent `4,283.61 دولار USD`. Prose bodies get translated in
+ * Phase C; the figures stay in the unambiguous form.
+ */
+
 /** Escape the one character that would break a Markdown table cell. */
 function cell(value: string): string {
   return value.replace(/\|/g, "\\|");

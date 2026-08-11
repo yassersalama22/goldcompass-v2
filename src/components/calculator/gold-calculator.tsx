@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { TrendingUp, TrendingDown, Link2, Check, RotateCcw } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { formatUsd } from "@/lib/format";
+import { useFormat } from "@/lib/use-format";
 import {
   calculate,
   GOLD_PURITIES,
@@ -110,7 +110,7 @@ export function GoldCalculator({ initialSpot, isStale }: Props) {
                 Your budget (USD)
               </label>
               <div className="relative">
-                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+                <span className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
                   $
                 </span>
                 <input
@@ -122,7 +122,7 @@ export function GoldCalculator({ initialSpot, isStale }: Props) {
                   placeholder="10,000"
                   value={budget}
                   onChange={(e) => setBudget(e.target.value)}
-                  className={cn(inputClass, "pl-7 pr-3")}
+                  className={cn(inputClass, "ps-7 pe-3")}
                 />
               </div>
             </div>
@@ -178,7 +178,7 @@ export function GoldCalculator({ initialSpot, isStale }: Props) {
                 <label htmlFor={spotId} className="text-sm font-medium">
                   Spot price (XAU/USD)
                   {isStale && !spotOverridden && (
-                    <Badge variant="outline" className="ml-1.5 h-4 text-[10px]">
+                    <Badge variant="outline" className="ms-1.5 h-4 text-[10px]">
                       stale
                     </Badge>
                   )}
@@ -195,7 +195,7 @@ export function GoldCalculator({ initialSpot, isStale }: Props) {
                 )}
               </div>
               <div className="relative">
-                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+                <span className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
                   $
                 </span>
                 <input
@@ -209,7 +209,7 @@ export function GoldCalculator({ initialSpot, isStale }: Props) {
                     setSpotStr(e.target.value);
                     setSpotOverridden(true);
                   }}
-                  className={cn(inputClass, "pl-7 pr-3")}
+                  className={cn(inputClass, "ps-7 pe-3")}
                 />
               </div>
               {initialSpot == null && (
@@ -315,7 +315,7 @@ function QuantityCard({
       <CardContent className="space-y-3">
         <p className="text-4xl font-bold tabular-nums">
           {itemQty.toFixed(isOz ? 4 : 2)}
-          <span className="ml-1.5 text-lg font-medium text-muted-foreground">
+          <span className="ms-1.5 text-lg font-medium text-muted-foreground">
             {unitLabel} {is24k ? "pure" : `of ${purityKey} gold`}
           </span>
         </p>
@@ -336,6 +336,7 @@ function QuantityCard({
 }
 
 function BreakEvenCard({ results }: { results: CalcResults }) {
+  const fmt = useFormat();
   return (
     <Card>
       <CardHeader>
@@ -346,7 +347,7 @@ function BreakEvenCard({ results }: { results: CalcResults }) {
       <CardContent className="space-y-2">
         <div className="flex flex-wrap items-end gap-3">
           <p className="text-4xl font-bold tabular-nums">
-            {formatUsd(results.breakEvenSpot)}
+            {fmt.usd(results.breakEvenSpot)}
           </p>
           <p className="mb-1 flex items-center gap-1 text-sm text-muted-foreground">
             <TrendingUp className="size-4 text-bull" aria-hidden="true" />
@@ -364,6 +365,7 @@ function BreakEvenCard({ results }: { results: CalcResults }) {
 }
 
 function ScenariosCard({ results }: { results: CalcResults }) {
+  const fmt = useFormat();
   return (
     <Card>
       <CardHeader>
@@ -376,16 +378,16 @@ function ScenariosCard({ results }: { results: CalcResults }) {
           <table className="w-full min-w-[400px] text-sm">
             <thead>
               <tr className="border-b border-border text-xs text-muted-foreground">
-                <th scope="col" className="pb-2 pr-3 text-left font-medium">
+                <th scope="col" className="pb-2 pe-3 text-start font-medium">
                   Spot change
                 </th>
-                <th scope="col" className="pb-2 pr-3 text-right font-medium">
+                <th scope="col" className="pb-2 pe-3 text-end font-medium">
                   XAU/USD
                 </th>
-                <th scope="col" className="pb-2 pr-3 text-right font-medium">
+                <th scope="col" className="pb-2 pe-3 text-end font-medium">
                   Gold value
                 </th>
-                <th scope="col" className="pb-2 text-right font-medium">
+                <th scope="col" className="pb-2 text-end font-medium">
                   P/L
                 </th>
               </tr>
@@ -403,7 +405,7 @@ function ScenariosCard({ results }: { results: CalcResults }) {
                       isNow && "bg-muted/50 font-medium"
                     )}
                   >
-                    <td className="py-2 pr-3 text-left">
+                    <td className="py-2 pe-3 text-start">
                       <span
                         className={cn(
                           "inline-flex items-center gap-1",
@@ -421,23 +423,23 @@ function ScenariosCard({ results }: { results: CalcResults }) {
                           : `${s.spotPct > 0 ? "+" : ""}${s.spotPct}%`}
                       </span>
                     </td>
-                    <td className="py-2 pr-3 text-right tabular-nums text-muted-foreground">
-                      {formatUsd(s.spotPrice)}
+                    <td className="py-2 pe-3 text-end tabular-nums text-muted-foreground">
+                      {fmt.usd(s.spotPrice)}
                     </td>
-                    <td className="py-2 pr-3 text-right tabular-nums">
-                      {formatUsd(s.sellValue)}
+                    <td className="py-2 pe-3 text-end tabular-nums">
+                      {fmt.usd(s.sellValue)}
                     </td>
                     <td
                       className={cn(
-                        "py-2 text-right tabular-nums font-semibold",
+                        "py-2 text-end tabular-nums font-semibold",
                         isProfit && "text-bull",
                         isLoss && "text-bear",
                         !isProfit && !isLoss && "text-muted-foreground"
                       )}
                     >
                       {s.pnlUsd >= 0 ? "+" : ""}
-                      {formatUsd(s.pnlUsd)}
-                      <span className="ml-1 text-xs font-normal opacity-75">
+                      {fmt.usd(s.pnlUsd)}
+                      <span className="ms-1 text-xs font-normal opacity-75">
                         ({s.pnlPct >= 0 ? "+" : ""}
                         {s.pnlPct.toFixed(1)}%)
                       </span>

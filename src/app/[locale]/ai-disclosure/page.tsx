@@ -216,7 +216,7 @@ export default async function AiDisclosurePage({ params }: LocaleParams) {
               Model output is not published as it arrives. Five things happen to it first, and any
               of them can stop it.
             </p>
-            <ol className="ml-1 space-y-3">
+            <ol className="ms-1 space-y-3">
               {[
                 "Market data is fetched first and injected into the prompt as authoritative ground truth, with an instruction not to contradict or re-estimate it.",
                 "The model researches and drafts, then must return a single structured object — not free-form prose — containing the analysis, the calls, the key levels, and its sources.",

@@ -22,7 +22,7 @@ export function Hero() {
         <div className="flex flex-wrap items-center justify-center gap-3">
           <Button render={<Link href="/outlook" />} size="lg">
             View the outlook
-            <ArrowRight aria-hidden="true" />
+            <ArrowRight className="rtl:rotate-180" aria-hidden="true" />
           </Button>
           <Button
             render={<Link href="/calculator" />}

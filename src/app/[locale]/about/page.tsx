@@ -167,7 +167,7 @@ export default async function AboutPage({ params }: LocaleParams) {
             The latest outlook and market insights in your inbox. Free, and no spam — unsubscribe
             anytime.
           </p>
-          <div className="mx-auto mt-6 max-w-md text-left">
+          <div className="mx-auto mt-6 max-w-md text-start">
             <SubscribeForm source="about" />
           </div>
           <p className="mt-6">

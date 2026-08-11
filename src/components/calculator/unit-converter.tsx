@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 import { cn } from "@/lib/utils";
-import { formatUsd } from "@/lib/format";
+import { useFormat } from "@/lib/use-format";
 import {
   GOLD_PURITIES,
   TROY_OZ_TO_GRAMS,
@@ -47,6 +47,7 @@ function formatQty(value: number): string {
 }
 
 export function UnitConverter({ initialSpot, isStale }: Props) {
+  const fmt = useFormat();
   const searchParams = useSearchParams();
   const spotState = useSpotState(initialSpot);
 
@@ -122,7 +123,7 @@ export function UnitConverter({ initialSpot, isStale }: Props) {
               <ResultStat
                 label="In troy ounces"
                 value={`${formatQty(fromGrams(grams, "ozt"))} ozt`}
-                sub={hasSpot ? `Worth ${formatUsd(grams * valuePerGram)} at ${karat}` : undefined}
+                sub={hasSpot ? `Worth ${fmt.usd(grams * valuePerGram)} at ${karat}` : undefined}
               />
             </div>
 
@@ -137,17 +138,17 @@ export function UnitConverter({ initialSpot, isStale }: Props) {
                   <table className="w-full min-w-[420px] text-sm">
                     <thead>
                       <tr className="border-border text-muted-foreground border-b text-xs">
-                        <th scope="col" className="pr-3 pb-2 text-left font-medium">
+                        <th scope="col" className="pe-3 pb-2 text-start font-medium">
                           Unit
                         </th>
-                        <th scope="col" className="pr-3 pb-2 text-right font-medium">
+                        <th scope="col" className="pe-3 pb-2 text-end font-medium">
                           Grams each
                         </th>
-                        <th scope="col" className="pr-3 pb-2 text-right font-medium">
+                        <th scope="col" className="pe-3 pb-2 text-end font-medium">
                           Amount
                         </th>
                         {hasSpot ? (
-                          <th scope="col" className="pb-2 text-right font-medium">
+                          <th scope="col" className="pb-2 text-end font-medium">
                             Value per unit
                           </th>
                         ) : null}
@@ -162,19 +163,19 @@ export function UnitConverter({ initialSpot, isStale }: Props) {
                             u.key === unit && "bg-muted/50 font-medium"
                           )}
                         >
-                          <th scope="row" className="py-2 pr-3 text-left font-medium">
+                          <th scope="row" className="py-2 pe-3 text-start font-medium">
                             {u.label}{" "}
                             <span className="text-muted-foreground font-normal">({u.short})</span>
                           </th>
-                          <td className="text-muted-foreground py-2 pr-3 text-right tabular-nums">
+                          <td className="text-muted-foreground py-2 pe-3 text-end tabular-nums">
                             {u.grams.toLocaleString("en-US", { maximumFractionDigits: 6 })}
                           </td>
-                          <td className="py-2 pr-3 text-right font-semibold tabular-nums">
+                          <td className="py-2 pe-3 text-end font-semibold tabular-nums">
                             {formatQty(fromGrams(grams, u.key))}
                           </td>
                           {hasSpot ? (
-                            <td className="py-2 text-right tabular-nums">
-                              {formatUsd(u.grams * valuePerGram)}
+                            <td className="py-2 text-end tabular-nums">
+                              {fmt.usd(u.grams * valuePerGram)}
                             </td>
                           ) : null}
                         </tr>
@@ -183,7 +184,7 @@ export function UnitConverter({ initialSpot, isStale }: Props) {
                   </table>
                 </div>
                 <p className="text-muted-foreground mt-3 text-xs">
-                  Values assume {karat} gold at {hasSpot ? formatUsd(spotNum) : "the spot price"}{" "}
+                  Values assume {karat} gold at {hasSpot ? fmt.usd(spotNum) : "the spot price"}{" "}
                   per troy ounce of pure gold, with no dealer premium.
                 </p>
               </CardContent>

@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { TrendingUp } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { formatUsd } from "@/lib/format";
+import { useFormat } from "@/lib/use-format";
 import { breakEven } from "@/lib/calculator";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -41,6 +41,7 @@ function clampPct(raw: string | null, fallback: number, max: number): number {
 }
 
 export function BreakEvenCalculator({ initialSpot, isStale }: Props) {
+  const fmt = useFormat();
   const searchParams = useSearchParams();
   const spotState = useSpotState(initialSpot);
 
@@ -95,7 +96,7 @@ export function BreakEvenCalculator({ initialSpot, isStale }: Props) {
           <div className="space-y-4">
             <ResultStat
               label="Break-even gold price"
-              value={formatUsd(result.breakEvenSpot)}
+              value={fmt.usd(result.breakEvenSpot)}
               sub={
                 <span className="flex items-center gap-1.5">
                   <TrendingUp className="text-bull size-4" aria-hidden="true" />
@@ -103,15 +104,15 @@ export function BreakEvenCalculator({ initialSpot, isStale }: Props) {
                   <strong className="text-foreground">
                     +{result.requiredRisePct.toFixed(1)}%
                   </strong>{" "}
-                  from {formatUsd(spotNum)} before you are back to even.
+                  from {fmt.usd(spotNum)} before you are back to even.
                 </span>
               }
             />
 
             <ResultStat
               label="Your effective cost per troy ounce of pure gold"
-              value={formatUsd(result.costPerPureTroyOz)}
-              sub={`Spot ${formatUsd(spotNum)} plus a ${premiumPct.toFixed(1)}% premium. This is your real entry price, whatever karat you bought.`}
+              value={fmt.usd(result.costPerPureTroyOz)}
+              sub={`Spot ${fmt.usd(spotNum)} plus a ${premiumPct.toFixed(1)}% premium. This is your real entry price, whatever karat you bought.`}
             />
 
             <Card>
@@ -125,16 +126,16 @@ export function BreakEvenCalculator({ initialSpot, isStale }: Props) {
                   <table className="w-full min-w-[420px] text-sm">
                     <thead>
                       <tr className="border-border text-muted-foreground border-b text-xs">
-                        <th scope="col" className="pr-3 pb-2 text-left font-medium">
+                        <th scope="col" className="pe-3 pb-2 text-start font-medium">
                           Typical product
                         </th>
-                        <th scope="col" className="pr-3 pb-2 text-right font-medium">
+                        <th scope="col" className="pe-3 pb-2 text-end font-medium">
                           Premium
                         </th>
-                        <th scope="col" className="pr-3 pb-2 text-right font-medium">
+                        <th scope="col" className="pe-3 pb-2 text-end font-medium">
                           Break-even price
                         </th>
-                        <th scope="col" className="pb-2 text-right font-medium">
+                        <th scope="col" className="pb-2 text-end font-medium">
                           Required rise
                         </th>
                       </tr>
@@ -155,16 +156,16 @@ export function BreakEvenCalculator({ initialSpot, isStale }: Props) {
                               benchmark.pct === premiumPct && "bg-muted/50 font-medium"
                             )}
                           >
-                            <th scope="row" className="py-2 pr-3 text-left font-medium">
+                            <th scope="row" className="py-2 pe-3 text-start font-medium">
                               {benchmark.label}
                             </th>
-                            <td className="text-muted-foreground py-2 pr-3 text-right tabular-nums">
+                            <td className="text-muted-foreground py-2 pe-3 text-end tabular-nums">
                               {benchmark.pct}%
                             </td>
-                            <td className="py-2 pr-3 text-right tabular-nums">
-                              {formatUsd(row.breakEvenSpot)}
+                            <td className="py-2 pe-3 text-end tabular-nums">
+                              {fmt.usd(row.breakEvenSpot)}
                             </td>
-                            <td className="py-2 text-right font-semibold tabular-nums">
+                            <td className="py-2 text-end font-semibold tabular-nums">
                               +{row.requiredRisePct.toFixed(1)}%
                             </td>
                           </tr>

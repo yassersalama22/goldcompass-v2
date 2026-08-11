@@ -1322,3 +1322,99 @@ Match the current site's look and feel:
     brand text only); the guard is already live in both dynamic OG routes. Per-article Arabic cards
     need a renderer with real shaping (`takumi`, but native binaries on arm64 Alpine) or an offline
     headless-Chrome pre-render. **Do not add localized text to an OG card until then.**
+- 2026-08-11: **Phase B — RTL readiness.** Arabic is fully renderable and exercised end to end, but
+  stays **off in production**: the registry keeps `ar` at `enabled: false`, and everything below was
+  verified against a build with `NEXT_PUBLIC_LOCALES_ENABLED="en,ar"`. No new dependencies.
+  - **Enablement is a build-time public var, and that is forced, not chosen.** `ACTIVE_LOCALES` is
+    read by the language switcher (a client component), so a server-only var would be `undefined`
+    in the browser bundle — the switcher would render on the server and vanish on hydration.
+    It also decides which `[locale]` routes get prerendered, so it must be an `ARG` (wired through
+    `Dockerfile` + `deploy.yml` from a repo **variable**, same pattern as the Turnstile site key);
+    setting it only in the container's runtime env would prerender one locale set and ship a client
+    bundle believing in another. The registry's `enabled` flag stays the source of truth for
+    production — **opening a language to search engines should be a reviewed code change**, since
+    enabling it makes it routed, sitemapped and hreflang-advertised. `locales.ts` throws at import
+    if the canonical locale is ever excluded.
+  - **⚠ Cascade-layer bug, and it failed silently.** The Arabic `--font-sans` override was written
+    inside `@layer base`, while `:root` is unlayered — and **an unlayered declaration beats a
+    layered one regardless of specificity**, so `html.font-arabic` lost to `:root` despite being
+    more specific. Arabic rendered in Geist with the browser substituting a system face for every
+    glyph. Invisible in a diff and in the HTML; caught only by reading `getComputedStyle`. The
+    override now sits unlayered next to `:root` and `.dark`. **Keep it there.**
+  - Related: `geistSans` moved off `--font-sans` onto `--font-geist-sans`, so `--font-sans` is a
+    *token we control* rather than one next/font owns. Without that split, overriding it for Arabic
+    would drop Geist entirely and the Latin runs inside Arabic prose ("PAXG", "XAU/USD", figures)
+    would fall back to a system face. `--font-heading` follows `--font-sans` via `@theme inline`, so
+    headings came along for free.
+  - **⚠ `dir="ltr"` on the price chart belongs on the `<figure>`, not the plot wrapper.** Pinned to
+    the wrapper first, which left the date axis (`<figcaption>`) and the sr-only table as RTL
+    siblings: the line ran chronologically while its own axis was mirrored, so the chart read as
+    starting today (Aug 11, left) and ending a month ago (Jul 13, right). Every automated check
+    passed — 0 axe violations, no overflow, no console errors. **Caught by looking at a
+    screenshot.** Time-series charts stay LTR in every locale (financial convention, Arabic press
+    included), and it also keeps `geom.x()`, the pointer handler and the `left`-percentage tooltip
+    honest, all of which measure from `rect.left`.
+  - **`<Num>` (`components/market/num.tsx`) is a correctness fix, not styling.** `+`, `-`, `$` and
+    `%` are bidi-*neutral*, so inside Arabic prose `-0.85%` reorders and the minus detaches — a fall
+    renders as something that reads like a rise, on a site whose whole job is saying which way gold
+    went. `<bdi dir="ltr">` opens an isolate. Applied to the outlook header, key levels, the macro
+    panel, the ticker and the signed P/L values. Numeric table columns are covered generically by a
+    `.tabular-nums { unicode-bidi: isolate }` rule rather than ~40 call-site edits.
+  - **Currency is no longer `style: "currency"`; the unit is per-locale.** `Intl` renders USD in
+    Arabic as `\u200f4,283.61 US$` — trailing "US$", invisible RLM prefix — which is CLDR-correct
+    and not what Arabic financial media writes. **Decided with the owner (native speaker):
+    `$4,283.61` in English, `4,283.61 دولار` in Arabic**, driven by a `currency: { unit, position }`
+    field on the locale registry. The locale still governs everything mechanical (grouping,
+    separator, Latin vs Arabic-Indic digits); only the unit and its side come from the registry.
+    Also keeps invisible bidi control characters out of the JSON API and Markdown.
+  - **⚠ Because the unit is a *word* in Arabic, a missing `locale` argument is now a visible bug,
+    not a subtle one** — it prints `$` on an Arabic page. `lib/format.ts` still defaults to English
+    (right for server code that has a locale in hand), so client components must never import it
+    directly: **`useFormat()` (`lib/use-format.ts`) binds the formatters to `useLocale()`** and the
+    seven interactive components (both charts/tickers, all five calculators) now go through it.
+    Note the two card sub-components inside `gold-calculator.tsx` each need their own hook call —
+    they format independently of their parent.
+  - **Markdown representations deliberately stay on the canonical `$` form.** They are the
+    machine-facing surface and already spell the ISO code out separately ("… USD per troy ounce",
+    "Price (USD)"), so a localized unit would hand an agent `4,283.61 دولار USD`.
+  - **⚠ Open for Phase C: `keyLevels[].value` is a literal string in the artifact** (`"$4,283.61"`),
+    so Arabic pages render the header spot as `4,283.61 دولار` and the key-levels grid directly
+    below it as `$4,283.61`. The Phase C field map must let that value be **reformatted** per locale
+    rather than listing it as never-translated — the numeral-parity check in `i18n:check` is exactly
+    what makes that safe, since it fails if any digit changes.
+  - **The language switcher uses plain `next/link` + `localizePath`, deliberately.** next-intl's
+    `Link` with a `locale` prop prefixes the *default* locale too, emitting `/en/outlook` — a URL
+    that exists only to 307 to `/outlook`. That routes every language switch through a redirect and
+    puts a redirecting URL behind an `hreflang` attribute. `localizePath` is the same helper behind
+    our canonicals, hreflang and sitemap, so the switcher cannot disagree with what we advertise.
+    The current language renders as `<span>`, not a self-link, which also stops `<Link>` prefetching
+    the page you are already on.
+  - Mechanical work: ~60 directional utilities across 19 files → logical (`ms/me/ps/pe/border-s/
+    text-start/start-*/end-*`). **Two files deliberately excluded**: `ui/sheet.tsx` (its
+    `data-[side=left]:left-0` variants are keyed to an explicit `side` prop — the *caller* picks the
+    side, and `mobile-nav.tsx` now chooses it from the locale so the drawer opens from the inline
+    end in both directions) and `price-chart.tsx` (pinned LTR, so physical offsets are correct).
+    `button.tsx`/`badge.tsx` had `has-data-[icon=inline-end]:pr-*` — a *logical* selector applying
+    *physical* padding, so icon gaps landed on the wrong side in RTL. 23 directional icons get
+    `rtl:rotate-180`; `ArrowUpRight` is excluded on purpose (it means "opens off-site", a diagonal
+    convention that is not reading-order dependent).
+  - **`npm run check:rtl`** (`scripts/check-rtl.mjs`) drives system Chrome over CDP — nothing to
+    install — and asserts, per page × theme: axe-core violations, console errors (hydration
+    mismatches included), computed direction, document horizontal overflow, and the resolved body
+    font. **22 page/theme combinations: 0 axe violations, 0 console errors, 0px overflow**, and the
+    Arabic font resolves to `"IBM Plex Sans Arabic", …, Geist, …`. Note it needs
+    `.next/static` + `public/` copied into `.next/standalone/` (the Dockerfile does this; running
+    the standalone server locally does not) — otherwise the page renders unstyled and the run is
+    meaningless rather than failing loudly.
+  - Also verified in-browser: the switcher preserves the current path (`/outlook` → `/ar/outlook`,
+    and back to `/outlook` not `/en/outlook`), the mobile drawer opens screen-left in RTL and
+    screen-right in LTR, and the profit/loss calculator returns **identical arithmetic** in both
+    locales (`+$312.00`, `+7.8%`, break-even `$4,081.63`).
+  - **English regression gate**: an English-only build's Markdown representations, `sitemap.xml`,
+    `insights/rss.xml` and `llms.txt` are **byte-identical** to the pre-i18n baseline, and no `/ar`
+    routes are emitted. `tsc` ✓, `eslint` ✓, `next build` ✓, `check:markdown` 37/37 ✓.
+  - **Arabic chrome strings are a first draft and need a native review** — `src/content/i18n/ui/
+    ar.json` covers nav, footer, the calculator FAQ and JSON-LD strings. Article and outlook bodies
+    are still English on `/ar/*`; that is Phase C.
+  - Next: **Phase C — contracts + translation pipeline** (per-locale artifacts, translatable-field
+    map, glossary, `TranslationProvider`, and the `i18n:check` gate).

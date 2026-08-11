@@ -98,7 +98,7 @@ export function NumberField({
       </div>
       <div className="relative">
         {prefix ? (
-          <span className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm">
+          <span className="text-muted-foreground pointer-events-none absolute top-1/2 start-3 -translate-y-1/2 text-sm">
             {prefix}
           </span>
         ) : null}
@@ -111,10 +111,10 @@ export function NumberField({
           placeholder={placeholder}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className={cn(inputClass, prefix ? "pl-7" : "pl-3", suffix ? "pr-12" : "pr-3")}
+          className={cn(inputClass, prefix ? "ps-7" : "ps-3", suffix ? "pe-12" : "pe-3")}
         />
         {suffix ? (
-          <span className="text-muted-foreground pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-sm">
+          <span className="text-muted-foreground pointer-events-none absolute top-1/2 end-3 -translate-y-1/2 text-sm">
             {suffix}
           </span>
         ) : null}
@@ -232,7 +232,7 @@ export function SpotField({
         <>
           {label}
           {isStale && !overridden ? (
-            <Badge variant="outline" className="ml-1.5 h-4 text-[10px]">
+            <Badge variant="outline" className="ms-1.5 h-4 text-[10px]">
               stale
             </Badge>
           ) : null}

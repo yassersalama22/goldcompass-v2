@@ -23,7 +23,7 @@ export function CtaSection() {
               className="bg-gold text-gold-foreground hover:bg-gold/90"
             >
               See the latest outlook
-              <ArrowRight aria-hidden="true" />
+              <ArrowRight className="rtl:rotate-180" aria-hidden="true" />
             </Button>
             <Button
               render={<Link href="/calculator" />}

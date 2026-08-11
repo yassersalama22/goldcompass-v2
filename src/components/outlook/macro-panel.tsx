@@ -1,5 +1,6 @@
 import { ArrowDown, ArrowRight, ArrowUp } from "lucide-react";
 
+import { Num } from "@/components/market/num";
 import { cn } from "@/lib/utils";
 import type { MacroIndicator, MacroSnapshot } from "@/types/macro";
 
@@ -91,16 +92,20 @@ export function MacroPanel({ macro }: { macro: MacroSnapshot }) {
                   ) : null}
                 </p>
               </div>
-              <div className="shrink-0 text-right">
-                <p className="text-xl font-bold tabular-nums">{formatValue(indicator)}</p>
+              <div className="shrink-0 text-end">
+                <p className="text-xl font-bold tabular-nums">
+                  <Num>{formatValue(indicator)}</Num>
+                </p>
                 {change ? (
-                  <p className="text-muted-foreground flex items-center justify-end gap-0.5 text-xs tabular-nums">
+                  <p className="text-muted-foreground flex items-center justify-end gap-0.5 text-xs whitespace-nowrap tabular-nums">
                     <Icon className="size-3" aria-hidden="true" />
                     <span className="sr-only">
                       {rising ? "up" : "down"} {change.replace("-", "")} over 30 days:{" "}
                     </span>
-                    <span aria-hidden="true">{change}</span>
-                    <span className="ml-0.5">30d</span>
+                    <span aria-hidden="true">
+                      <Num>{change}</Num>
+                    </span>
+                    <span className="ms-0.5">30d</span>
                   </p>
                 ) : null}
               </div>

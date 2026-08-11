@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
 
+import { Num } from "@/components/market/num";
 import { withLocaleMetadata, type LocaleParams } from "@/lib/seo";
 import { Link } from "@/i18n/navigation";
 
@@ -129,15 +130,15 @@ export default async function ProfitLossPage({ params }: LocaleParams) {
           </p>
           <p>
             <strong>Worked example.</strong> Suppose you bought one troy ounce of 24K gold at{" "}
-            <strong>{formatUsd(entrySpot)}</strong> with a 5% premium — an outlay of{" "}
-            <strong>{formatUsd(example.costBasis)}</strong> — and gold is now{" "}
-            <strong>{formatUsd(exitSpot)}</strong>, a{" "}
-            <strong>{formatSignedPct(example.spotMovePct, 1)}</strong> move. Selling into a 2%
-            buy-back spread returns <strong>{formatUsd(example.proceeds)}</strong>, a profit of{" "}
-            <strong>{formatUsd(example.pnlUsd)}</strong> — or{" "}
-            <strong>{formatSignedPct(example.pnlPct, 1)}</strong>. The metal moved{" "}
-            {formatSignedPct(example.spotMovePct, 1)}; you kept{" "}
-            {formatSignedPct(example.pnlPct, 1)}. The difference went to the round trip.
+            <strong>{formatUsd(entrySpot, locale)}</strong> with a 5% premium — an outlay of{" "}
+            <strong>{formatUsd(example.costBasis, locale)}</strong> — and gold is now{" "}
+            <strong>{formatUsd(exitSpot, locale)}</strong>, a{" "}
+            <strong><Num>{formatSignedPct(example.spotMovePct, 1)}</Num></strong> move. Selling into a 2%
+            buy-back spread returns <strong>{formatUsd(example.proceeds, locale)}</strong>, a profit of{" "}
+            <strong>{formatUsd(example.pnlUsd, locale)}</strong> — or{" "}
+            <strong><Num>{formatSignedPct(example.pnlPct, 1)}</Num></strong>. The metal moved{" "}
+            <Num>{formatSignedPct(example.spotMovePct, 1)}</Num>; you kept{" "}
+            <Num>{formatSignedPct(example.pnlPct, 1)}</Num>. The difference went to the round trip.
           </p>
           <p>
             That is why gold rewards patience: the transaction cost is paid once, so its drag on
@@ -149,7 +150,7 @@ export default async function ProfitLossPage({ params }: LocaleParams) {
             >
               break-even
             </Link>{" "}
-            — here, {formatUsd(example.breakEvenSpot)}.
+            — here, {formatUsd(example.breakEvenSpot, locale)}.
           </p>
           <p>
             Figures are pre-tax and exclude storage, insurance, and shipping. For a forward-looking
