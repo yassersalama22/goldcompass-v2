@@ -146,9 +146,24 @@ export type LocaleCode = (typeof LOCALES)[number]["code"];
  * as the Turnstile site key — it is inlined into the client bundle at build
  * time, so setting it only in the container's runtime env does nothing.
  */
-const localesOverride = process.env.NEXT_PUBLIC_LOCALES_ENABLED?.split(",")
+/*
+ * ⚠ An empty value means "not set", and getting this wrong broke a deploy.
+ *
+ * `${{ vars.NEXT_PUBLIC_LOCALES_ENABLED }}` in the workflow expands to an empty
+ * *string* when the repo variable does not exist, and Docker passes that through
+ * as `ENV NEXT_PUBLIC_LOCALES_ENABLED=""`. The obvious parse —
+ * `env?.split(",").filter(Boolean)` — yields `[]`, which is **truthy**, so the
+ * override won and the build produced zero active locales. Locally the variable
+ * was genuinely undefined, so `?.` short-circuited and it looked fine.
+ *
+ * Normalise to `undefined` for anything that contains no locale codes, so
+ * "unset", "", "   " and "," all mean the same thing: use the registry.
+ */
+const parsedOverride = process.env.NEXT_PUBLIC_LOCALES_ENABLED?.split(",")
   .map((code) => code.trim())
   .filter(Boolean);
+const localesOverride =
+  parsedOverride && parsedOverride.length > 0 ? parsedOverride : undefined;
 
 /** Locales that are routed, prerendered, and advertised in hreflang. */
 export const ACTIVE_LOCALES: readonly LocaleDef[] = LOCALES.filter((l) =>

@@ -1413,6 +1413,16 @@ Match the current site's look and feel:
   - **English regression gate**: an English-only build's Markdown representations, `sitemap.xml`,
     `insights/rss.xml` and `llms.txt` are **byte-identical** to the pre-i18n baseline, and no `/ar`
     routes are emitted. `tsc` ✓, `eslint` ✓, `next build` ✓, `check:markdown` 37/37 ✓.
+  - **⚠ Deploy trap (broke the first Phase B deploy): an unset GitHub repo variable is an empty
+    STRING, not absent.** `${{ vars.NEXT_PUBLIC_LOCALES_ENABLED }}` expands to `""` when the
+    variable does not exist, Docker passes `ENV NEXT_PUBLIC_LOCALES_ENABLED=""`, and the obvious
+    parse `env?.split(",").filter(Boolean)` yields `[]` — which is **truthy**, so the override won
+    and the build had zero active locales. Locally the variable was genuinely `undefined`, `?.`
+    short-circuited, and everything passed. The import-time guard did its job (loud failure, not a
+    silent zero-locale site) but the condition was wrong. `locales.ts` now normalises "", "   " and
+    "," all to `undefined`. Generalise the lesson: **any `vars.*`/`secrets.*` threaded through a
+    Docker ARG arrives as `""` when unset**, so every such parser needs an emptiness check, and
+    "works locally with the var unset" does not test the deployed path.
   - **Arabic chrome strings are a first draft and need a native review** — `src/content/i18n/ui/
     ar.json` covers nav, footer, the calculator FAQ and JSON-LD strings. Article and outlook bodies
     are still English on `/ar/*`; that is Phase C.
