@@ -77,7 +77,7 @@
     { "en": "real yield", "ar": "العائد الحقيقي", "variants": ["العوائد الحقيقية"] },
     { "en": "nominal yield", "ar": "العائد الاسمي" },
     { "en": "Treasury yield", "ar": "عائد سندات الخزانة", "variants": ["عوائد سندات الخزانة"] },
-    { "en": "breakeven inflation", "ar": "التضخم المتوقع" },
+    { "en": "breakeven inflation", "ar": "معدل التضخم التعادلي" },
     { "en": "dollar index", "ar": "مؤشر الدولار" },
     { "en": "broad dollar index", "ar": "مؤشر الدولار الواسع" },
     { "en": "safe haven", "ar": "الملاذ الآمن" },
