@@ -1449,3 +1449,62 @@ Match the current site's look and feel:
     arm64 runner, or building the Next app on x64 and assembling only the runtime image for arm64.
   - The `type=gha` build cache is keyed per platform, so the first run after the switch is a cold
     cache and slower than the steady state.
+- 2026-08-27: **Phase C — translation contracts + pipeline.** Arabic content can now be produced,
+  verified and rendered end to end. Still **off in production** (`ar` stays `enabled: false`), and
+  `i18n:translate` is a deliberate no-op until a locale is enabled. No new dependencies.
+  - **The field map is the safety spine** (`src/server/i18n/field-map.ts`). Nothing hands a whole
+    artifact to a model: a translator receives a flat `{ path: string }` built from an explicit
+    allowlist, must return the same key set, and values are written back onto a **deep copy of the
+    source**. So structure cannot drift, an omission degrades to "still English" rather than
+    "missing", and a model cannot introduce a field at all. 26 translatable fields on the outlook,
+    5 on an article.
+  - **`assertFieldMapCoverage()` makes a new contract field a loud failure.** Anything string-shaped
+    that is neither in the map nor in `NEVER_TRANSLATED` throws. "Not in the allowlist" and "decided
+    not to translate" look identical at runtime and mean very different things; this forces the
+    decision to be made once, by a person.
+  - **⚠ Money never reaches the model.** `keyLevels[].value` is reformatted deterministically by
+    `server/i18n/money.ts` (`$4,000–$4,070` → `4,000–4,070 دولار`). Asking a translator to "keep
+    every digit and move the currency symbol" is asking it not to make the one mistake that matters
+    most on this site, when a regex cannot make that mistake at all. This also closes the Phase B
+    gap where an Arabic page showed `4,283.61 دولار` in the header and `$4,283.61` in the grid below.
+  - **`i18n:check` is the gate, and it self-tests.** `npm run i18n:check` runs 12 fixtures that
+    mutate a valid translation in each way that matters and **fails if the checker does not catch
+    them** — a gate nobody has watched fail is not known to work. Rules: contract validation, key
+    parity, leaf-level equality of every non-translated field, numeral parity, no Arabic-Indic
+    digits, URL parity, Markdown structure parity, currency-unit presence, do-not-translate terms,
+    glossary compliance, length ratio, untranslated-residue, and `sourceHash` freshness.
+  - **⚠ Two real defects were caught by the self-test, not by review.** ① The "valid translation"
+    fixture was English money on an Arabic artifact — the checker was right and the fixture wrong.
+    ② The non-translatable comparison originally worked per top-level key, so **a flipped
+    `calls.0.signal` (BUY→SELL) passed unnoticed**, hidden behind the translatable `calls.0.label`.
+    It now compares **leaf paths**, including numbers and enums. That was the single worst thing
+    this checker could have missed.
+  - **Glossary** (`src/content/i18n/glossary/ar.json`, ~80 terms) is where terminology is decided,
+    not in individual translations. Only terms actually present in the text are sent, so the prompt
+    carries the handful that matter rather than burying them in eighty. Compliance findings are
+    **aggregated into one finding**: reported per term, an untranslated artifact emitted sixty
+    warnings and buried the errors above them. **Needs a native review — this is the highest-leverage
+    review in the whole project.**
+  - **Translation runs with NO web search** (`webSearchMaxUses: 0`). A translator that can browse
+    can import claims that were never in the source, which is the exact failure the field map exists
+    to prevent. `grounded-json.ts` was split into `generateJson` (shared loop) + `generateGroundedJson`
+    (same thing with the search tool), so all three LLM callers share one retry/pause-turn path.
+  - **`sourceHash` covers translatable fields only**, so a metadata-only change to the English
+    original does not invalidate a good translation and force a re-spend, while a prose change does.
+    Unchanged artifacts are skipped, which is where most of the cost saving lives.
+  - **Data access falls back but says so.** `getOutlookFor(locale)` returns `{ report, translated }`
+    and `isArticleTranslated(slug, locale)` exists precisely so a page can render English content
+    under an `/ar/` URL — better than a 404 for a reader who followed an Arabic link — **without**
+    hreflang then claiming a translation exists. Serving the wrong language to the wrong audience in
+    search results is the failure being avoided.
+  - **Wired but inert**: `daily-outlook.yml` and `articles.yml` gained a translate+check step and
+    `add-paths` widened to `src/content/<type>/**`, so the day Arabic is enabled both languages ship
+    in **one PR with one review**. New `content-check.yml` runs `i18n:check` on any PR touching
+    content — separate from `deploy.yml` so a content problem cannot block a hotfix.
+  - Verified: English Markdown for `/`, `/outlook`, `/insights`, `/insights/explainers`, `/trends`,
+    plus `sitemap.xml`, `llms.txt` and `rss.xml`, are **byte-identical to main**. With `ar` enabled,
+    `/ar/*` renders the translated artifacts and English pages are untouched. `tsc` ✓, `eslint` ✓,
+    `next build` ✓, `check:markdown` 37/37 ✓, `check:rtl` 22/22 with 0 axe violations ✓,
+    `i18n:check` self-test 12/12 ✓. Mock artifacts were removed, not committed.
+  - Next: **Phase D — static prose to Markdown artifacts**, then Phase E (glossary review, backfill,
+    enable `ar`).

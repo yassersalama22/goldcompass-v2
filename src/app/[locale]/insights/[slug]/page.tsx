@@ -33,7 +33,7 @@ export async function generateMetadata({
   params,
 }: LocaleParams & { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { locale, slug } = await params;
-  const article = getArticleBySlug(slug);
+  const article = getArticleBySlug(slug, locale);
   if (!article) return { title: "Insight not found" };
 
   // TODO(i18n Phase C): pass the locales this article actually has a translated
@@ -66,7 +66,7 @@ export default async function InsightPage({
   const { locale, slug } = await params;
   setRequestLocale(locale);
 
-  const article = getArticleBySlug(slug);
+  const article = getArticleBySlug(slug, locale);
   if (!article) notFound();
 
   const minutes = readingTimeMinutes(article.bodyMarkdown);

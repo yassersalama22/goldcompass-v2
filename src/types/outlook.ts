@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { macroSnapshotSchema } from "./macro";
+import { translationMetaSchema } from "./translation";
 
 /**
  * Outlook / recommendations contract — the SINGLE source of truth for:
@@ -86,6 +87,13 @@ export const outlookReportSchema = z.object({
   /** Full analysis as Markdown (rendered safely, never as raw HTML). */
   analysisMarkdown: z.string().min(1),
   sources: z.array(sourceSchema),
+  /**
+   * Language of this artifact. Optional so pre-i18n artifacts stay valid;
+   * absent means the canonical locale.
+   */
+  locale: z.string().min(1).optional(),
+  /** Present only on translated artifacts. See `types/translation.ts`. */
+  translation: translationMetaSchema.optional(),
 });
 export type OutlookReport = z.infer<typeof outlookReportSchema>;
 

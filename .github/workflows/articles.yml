@@ -41,6 +41,13 @@ jobs:
         run: |
           npm run articles:generate
           npm run articles:publish
+      - name: Translate + verify
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          npm run i18n:translate
+          npm run i18n:check
+
 
       - name: Open pull request
         uses: peter-evans/create-pull-request@v8

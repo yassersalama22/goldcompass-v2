@@ -39,6 +39,18 @@ jobs:
           npm run outlook:generate
           npm run outlook:publish
 
+      # No-op until a non-English locale is enabled in src/config/locales.ts:
+      # TRANSLATION_TARGETS follows the *active* locale set, so this prints
+      # "no translation targets" and exits 0 today. Wiring it now means the day
+      # Arabic is switched on, the daily outlook is already translated in the
+      # same PR — one review covering both languages rather than two.
+      - name: Translate + verify
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          npm run i18n:translate
+          npm run i18n:check
+
       - name: Open pull request
         uses: peter-evans/create-pull-request@v8
         with:
@@ -53,9 +65,12 @@ jobs:
             - Short- and long-term BUY/SELL calls + confidence
             - Spot price and key levels match reality
             - Analysis reads well and cites real sources
+            - Any translated artifacts under `src/content/outlook/<locale>/`
+              (numbers, structure and terminology are checked mechanically by
+              `i18n:check`; read the prose for meaning)
 
             Merging updates `src/content/outlook/current.json` and publishes.
           add-paths: |
-            src/content/outlook/current.json
+            src/content/outlook/**
           delete-branch: true
           assignees: yassersalama22

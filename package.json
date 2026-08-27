@@ -9,6 +9,8 @@
     "lint": "eslint",
     "check:markdown": "tsx scripts/check-markdown-negotiation.mts",
     "check:rtl": "node scripts/check-rtl.mjs",
+    "i18n:translate": "tsx scripts/translate-content.mts",
+    "i18n:check": "tsx scripts/check-translations.mts --self-test",
     "outlook:generate": "tsx scripts/generate-outlook.mts",
     "outlook:publish": "tsx scripts/publish-outlook.mts",
     "articles:generate": "tsx scripts/generate-article.mts",

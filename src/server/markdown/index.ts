@@ -203,7 +203,7 @@ function callsSection(report: OutlookReport): string[] {
 }
 
 function buildOutlook(locale: string): string | null {
-  const report = getPublishedOutlook();
+  const report = getPublishedOutlook(locale);
   if (!report) return null;
 
   return [
@@ -357,7 +357,7 @@ function buildArticleList(
 }
 
 function buildArticle(slug: string, locale: string): string | null {
-  const article = getArticleBySlug(slug);
+  const article = getArticleBySlug(slug, locale);
   if (!article) return null;
 
   // Joined with a hard line break so the metadata renders as one block of
@@ -389,8 +389,8 @@ function buildArticle(slug: string, locale: string): string | null {
 }
 
 function buildHome(locale: string): string {
-  const report = getPublishedOutlook();
-  const articles = getRecentArticles(5);
+  const report = getPublishedOutlook(locale);
+  const articles = getRecentArticles(5, locale);
 
   const lines: string[] = [
     `# ${siteConfig.name}`,
@@ -490,7 +490,7 @@ export async function buildMarkdown(
       return buildArticleList(
         "Gold market insights",
         "Explainers and market updates on gold, written for everyday investors and cited throughout.",
-        getAllArticles(),
+        getAllArticles(locale),
         "/insights",
         locale,
       );
@@ -504,7 +504,7 @@ export async function buildMarkdown(
     return buildArticleList(
       kind.heading,
       kind.intro,
-      getArticlesByKind(kind.kind),
+      getArticlesByKind(kind.kind, locale),
       kind.href,
       locale,
     );

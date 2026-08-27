@@ -37,7 +37,7 @@ export async function GET(
 ) {
   const { locale } = await params;
   const t = await getTranslations({ locale });
-  const articles = getAllArticles();
+  const articles = getAllArticles(locale);
   const abs = (path: string) => `${siteConfig.url}${localizePath(path, locale)}`;
   const items = articles
     .map((a) => {

@@ -23,7 +23,7 @@ export default async function OpengraphImage({
     return new ImageResponse(<BrandCard tagline={OG_TAGLINE} />, size);
   }
 
-  const article = getArticleBySlug(slug);
+  const article = getArticleBySlug(slug, locale);
 
   return new ImageResponse(
     (

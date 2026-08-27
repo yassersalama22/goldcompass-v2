@@ -1,0 +1,44 @@
+name: Content check
+
+# Validates translated content against its English source.
+#
+# Deliberately separate from `deploy.yml`, for the same reason `security-audit`
+# is: a content problem must be able to fail loudly without blocking an
+# unrelated hotfix from reaching production.
+#
+# The real trigger is the pull request. Both content pipelines open PRs
+# (`daily-outlook`, `articles`), so every generated or translated artifact
+# passes through here before it can be merged.
+
+on:
+  pull_request:
+    paths:
+      - "src/content/**"
+      - "src/server/i18n/**"
+      - "src/types/article.ts"
+      - "src/types/outlook.ts"
+      - "src/config/locales.ts"
+  push:
+    branches: [main]
+    paths:
+      - "src/content/**"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  i18n:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # `--self-test` runs the fixtures that mutate a valid translation in each
+      # way that matters — a changed number, a flipped signal, an edited URL, a
+      # dropped heading, a stale hash — and fails if the checker does not catch
+      # them. A gate nobody has watched fail is not known to work.
+      - run: npm run i18n:check
