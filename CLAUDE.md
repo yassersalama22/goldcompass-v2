@@ -1530,6 +1530,12 @@ Match the current site's look and feel:
     frontmatter parser is ~20 lines and deliberately not a YAML dependency: the keys are a fixed set
     of flat `key: value` strings, so a real parser would be a dependency *and* a parsing surface
     bought for nothing. It splits on the **first** colon only, because values contain colons.
+  - **⚠ `eyebrow` and `lede` are OPTIONAL on the page contract, and that is the point.** The first
+    conversion of `/disclaimer` gave it an invented lede paragraph and a "Legal" eyebrow, and
+    flattened its curly quotes — a content change to a **legal page** disguised as a mechanical
+    refactor. Caught by diffing the rendered text against `main` before merging, not by review. A
+    converted page must reproduce its original rendering exactly; verified word-for-word afterwards.
+    **Diff rendered text against `main` for every page conversion.**
   - **`/disclaimer` now has a Markdown representation** — the first prose page to get one, closing
     part of the gap `lib/agent-markdown.ts` documented as deliberately unfixed. The Markdown served
     is the artifact source, not a converted copy of the HTML. `check:markdown` **caught the stale

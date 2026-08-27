@@ -27,12 +27,19 @@ export const pageSchema = z.object({
   title: z.string().min(1),
   /** Meta description. */
   description: z.string().min(1).max(300),
-  /** Small label above the h1. */
-  eyebrow: z.string().min(1),
+  /**
+   * Small label above the h1. Optional: a converted page must be able to
+   * reproduce its original rendering exactly, and not every page had one.
+   */
+  eyebrow: z.string().min(1).optional(),
   /** The h1 itself — distinct from `title`, which is written for search results. */
   heading: z.string().min(1),
-  /** Lede paragraph, rendered larger than the body. */
-  lede: z.string().min(1),
+  /**
+   * Lede paragraph, rendered larger than the body. Optional for the same reason
+   * as `eyebrow` — inventing an opening paragraph for a legal page during a
+   * mechanical conversion would be a content change disguised as a refactor.
+   */
+  lede: z.string().min(1).optional(),
   /** ISO date, shown as "last updated" on the legal pages. */
   updatedAt: z.string(),
   /** Body as Markdown, rendered through `Prose` — never as raw HTML. */

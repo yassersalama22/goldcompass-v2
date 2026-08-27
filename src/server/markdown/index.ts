@@ -399,8 +399,7 @@ function buildProsePage(slug: string, locale: string): string {
   return [
     `# ${page.heading}`,
     "",
-    `> ${page.lede}`,
-    "",
+    ...(page.lede ? [`> ${page.lede}`, ""] : []),
     `*Last updated: ${page.updatedAt}*`,
     "",
     page.bodyMarkdown,

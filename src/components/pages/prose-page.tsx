@@ -26,14 +26,18 @@ export function ProsePage({
   return (
     <Container className="max-w-3xl py-12 sm:py-16">
       <header className="space-y-2">
-        <p className="text-gold-strong text-sm font-medium">{page.eyebrow}</p>
+        {page.eyebrow ? (
+          <p className="text-gold-strong text-sm font-medium">{page.eyebrow}</p>
+        ) : null}
         <h1 className="text-3xl font-bold text-balance sm:text-4xl">{page.heading}</h1>
         <p className="text-muted-foreground text-sm">
           {updatedLabel} {formatLongDate(page.updatedAt, locale)}
         </p>
       </header>
 
-      <p className="text-muted-foreground mt-6 text-lg text-pretty">{page.lede}</p>
+      {page.lede ? (
+        <p className="text-muted-foreground mt-6 text-lg text-pretty">{page.lede}</p>
+      ) : null}
 
       <div className="text-muted-foreground mt-8 text-sm leading-relaxed sm:text-base">
         <Prose markdown={page.bodyMarkdown} />

@@ -1,19 +1,17 @@
 ---
 title: Disclaimer
 description: GoldCompass provides educational information only and not financial advice. Read our full disclaimer covering market signals, third-party data, and investment risk.
-eyebrow: Legal
 heading: Disclaimer
-lede: GoldCompass publishes educational information about the gold market. It is not financial advice, and this page sets out exactly what that means and where our responsibility ends.
 updatedAt: 2026-06-23
 ---
 
 ## Educational information only
 
-The information provided by GoldCompass ("we," "us," or "our"), including on this website and in any emails, is for general educational and informational purposes only. It does not constitute financial, investment, tax, accounting, or legal advice, and must not be relied upon as such.
+The information provided by GoldCompass (“we,” “us,” or “our”), including on this website and in any emails, is for general educational and informational purposes only. It does not constitute financial, investment, tax, accounting, or legal advice, and must not be relied upon as such.
 
 ## Not financial advice or a recommendation
 
-Nothing on this site is a recommendation, solicitation, or offer to buy or sell gold, securities, or any other financial instrument. Market outlooks, signals (such as "buy" or "sell"), price levels, and calculator outputs are illustrative and reflect general analysis — not personalized advice. They do not take into account your individual financial situation, objectives, or risk tolerance.
+Nothing on this site is a recommendation, solicitation, or offer to buy or sell gold, securities, or any other financial instrument. Market outlooks, signals (such as “buy” or “sell”), price levels, and calculator outputs are illustrative and reflect general analysis — not personalized advice. They do not take into account your individual financial situation, objectives, or risk tolerance.
 
 ## No advisory relationship
 
@@ -29,7 +27,7 @@ Any outlooks, forecasts, or projections are forward-looking statements based on 
 
 ## Investment risk
 
-Gold and other precious-metal investments carry risk, including the potential loss of principal. Prices can be volatile and are affected by factors beyond anyone's control. Dealer premiums, storage, insurance, taxes, and buy-back spreads can materially affect returns. You are solely responsible for your own investment decisions and their outcomes.
+Gold and other precious-metal investments carry risk, including the potential loss of principal. Prices can be volatile and are affected by factors beyond anyone’s control. Dealer premiums, storage, insurance, taxes, and buy-back spreads can materially affect returns. You are solely responsible for your own investment decisions and their outcomes.
 
 ## Independence
 
