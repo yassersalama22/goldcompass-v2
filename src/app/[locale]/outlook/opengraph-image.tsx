@@ -34,7 +34,7 @@ export default async function OpengraphImage({
     return new ImageResponse(<BrandCard tagline={OG_TAGLINE} />, size);
   }
 
-  const report = getPublishedOutlook();
+  const report = getPublishedOutlook(locale);
   const change = report?.spot.changePct;
 
   return new ImageResponse(

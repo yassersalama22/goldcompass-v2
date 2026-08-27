@@ -28,7 +28,7 @@ export default async function InsightsPage({ params }: LocaleParams) {
   const { locale } = await params;
   setRequestLocale(locale);
 
-  const articles = getAllArticles();
+  const articles = getAllArticles(locale);
 
   return (
     <Container className="py-12 sm:py-16">

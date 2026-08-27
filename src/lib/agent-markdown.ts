@@ -67,12 +67,19 @@ export function prefersMarkdown(accept: string | null | undefined): boolean {
 /**
  * Which paths have a Markdown representation.
  *
- * Only routes whose content comes from the data-access layer are listed. The
- * hand-written prose pages (`/about`, `/methodology`, `/ai-disclosure`,
- * `/disclaimer`) and the interactive tool pages have no Markdown source — a
- * Markdown twin would be a hand-maintained copy that silently drifts from the
- * JSX, which is worse than serving the HTML those agents can already read. They
- * fall through to HTML, which is a valid content-negotiation outcome.
+ * Only routes whose content comes from the data-access layer are listed. A page
+ * whose prose lives in JSX gets no entry here: a Markdown twin would be a
+ * hand-maintained copy that silently drifts from the component, which is worse
+ * than serving the HTML an agent can already read. Falling through to HTML is a
+ * valid content-negotiation outcome.
+ *
+ * `/disclaimer` is listed because its body genuinely moved into a content
+ * artifact (`src/content/pages/disclaimer.md`), so the Markdown served IS the
+ * source rather than a copy of it. `/about`, `/methodology` and `/ai-disclosure`
+ * are deliberately absent — they are designed layouts (card grids, definition
+ * lists, a styled step sequence, section icons, heading anchors other pages link
+ * to), not prose documents, and flattening them into Markdown would lose the
+ * design without making them any more accurate.
  */
 const STATIC_MARKDOWN_PATHS = new Set([
   "/",
@@ -81,6 +88,7 @@ const STATIC_MARKDOWN_PATHS = new Set([
   "/insights",
   "/insights/explainers",
   "/insights/market-updates",
+  "/disclaimer",
 ]);
 
 /**

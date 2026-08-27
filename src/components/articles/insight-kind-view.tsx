@@ -24,7 +24,7 @@ export function InsightKindView({
   def: InsightKindDef;
   locale: string;
 }) {
-  const articles = getArticlesByKind(def.kind);
+  const articles = getArticlesByKind(def.kind, locale);
   const other = INSIGHT_KINDS.find((k) => k.kind !== def.kind);
 
   return (

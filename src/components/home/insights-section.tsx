@@ -4,10 +4,12 @@ import { ArrowRight } from "lucide-react";
 import { ArticleCard } from "@/components/articles/article-card";
 import { Container } from "@/components/layout/container";
 import { toArticleSummary } from "@/types/article";
+import { getLocale } from "next-intl/server";
+
 import { getRecentArticles } from "@/server/articles";
 
-export function InsightsSection() {
-  const articles = getRecentArticles(3);
+export async function InsightsSection() {
+  const articles = getRecentArticles(3, await getLocale());
   if (articles.length === 0) return null;
 
   return (

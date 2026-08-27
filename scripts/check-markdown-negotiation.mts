@@ -72,14 +72,22 @@ const HAS_MARKDOWN = [
   "/insights/explainers",
   "/insights/market-updates",
   "/insights/some-article-slug",
+  // Its body lives in `src/content/pages/disclaimer.md`, so the Markdown served
+  // IS the source rather than a hand-maintained copy of a JSX page.
+  "/disclaimer",
 ];
 
-/** Hand-written prose, interactive tools, feeds and the API: HTML/native only. */
+/**
+ * Designed layouts, interactive tools, feeds and the API: HTML/native only.
+ *
+ * `/about`, `/methodology` and `/ai-disclosure` are card grids, definition
+ * lists and styled step sequences rather than prose documents, so they keep
+ * their JSX and fall through to HTML — a valid negotiation outcome.
+ */
 const FALLS_THROUGH = [
   "/about",
   "/methodology",
   "/ai-disclosure",
-  "/disclaimer",
   "/subscribed",
   "/calculator",
   "/calculator/gold-break-even",

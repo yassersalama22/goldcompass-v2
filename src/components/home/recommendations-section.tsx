@@ -11,11 +11,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { getLocale } from "next-intl/server";
+
 import { getPublishedOutlook } from "@/server/outlook";
 
-export function RecommendationsSection() {
+export async function RecommendationsSection() {
   // Single source of truth — same data the /outlook page and /api/v1 serve.
-  const report = getPublishedOutlook();
+  const report = getPublishedOutlook(await getLocale());
   if (!report) return null;
 
   return (

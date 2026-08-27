@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { sourceSchema } from "@/types/outlook";
+import { translationMetaSchema } from "@/types/translation";
 
 /**
  * Article contract — the single source of truth for the articles/insights
@@ -49,6 +50,13 @@ export const articleSchema = z.object({
   bodyMarkdown: z.string().min(1),
   /** Sources the article draws its data/claims from — always cited. */
   sources: z.array(sourceSchema),
+  /**
+   * Language of this artifact. Optional so the pre-i18n English artifacts stay
+   * valid without a migration; absent means the canonical locale.
+   */
+  locale: z.string().min(1).optional(),
+  /** Present only on translated artifacts. See `types/translation.ts`. */
+  translation: translationMetaSchema.optional(),
 });
 export type Article = z.infer<typeof articleSchema>;
 

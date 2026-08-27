@@ -27,7 +27,7 @@ export async function generateMetadata({
   params,
 }: LocaleParams): Promise<Metadata> {
   const { locale } = await params;
-  const report = getPublishedOutlook();
+  const report = getPublishedOutlook(locale);
   return withLocaleMetadata(
     {
       title: "Gold Market Outlook",
@@ -49,7 +49,7 @@ export default async function OutlookPage({ params }: LocaleParams) {
   const { locale } = await params;
   setRequestLocale(locale);
 
-  const report = getPublishedOutlook();
+  const report = getPublishedOutlook(locale);
   if (!report) notFound();
 
   const change = report.spot.changePct;
