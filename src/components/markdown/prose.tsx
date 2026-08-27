@@ -21,14 +21,30 @@ const components: Components = {
   ),
   li: (props) => <li className="leading-7" {...props} />,
   strong: (props) => <strong className="text-foreground font-semibold" {...props} />,
-  a: (props) => (
-    <a
-      className="text-gold-strong font-medium underline underline-offset-4"
-      target="_blank"
-      rel="noopener noreferrer nofollow"
-      {...props}
-    />
-  ),
+  /*
+   * Internal and external links are treated differently, and the difference
+   * matters for SEO.
+   *
+   * External links are citations to other people's pages: new tab, and
+   * `nofollow` so we are not passing authority to sources we merely reference.
+   * Internal links are our own site: same tab, and **never `nofollow`** —
+   * nofollowing your own pages tells search engines not to follow your internal
+   * link graph, which is the opposite of what it is for. This became live the
+   * moment long-form prose with internal links moved into Markdown artifacts.
+   */
+  a: ({ href, ...props }) => {
+    const external = !!href && !href.startsWith("/") && !href.startsWith("#");
+    return (
+      <a
+        href={href}
+        className="text-gold-strong font-medium underline underline-offset-4"
+        {...(external
+          ? { target: "_blank", rel: "noopener noreferrer nofollow" }
+          : {})}
+        {...props}
+      />
+    );
+  },
   table: (props) => (
     <div className="my-6 overflow-x-auto">
       <table className="w-full border-collapse text-sm" {...props} />
