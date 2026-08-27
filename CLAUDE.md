@@ -1549,6 +1549,24 @@ Match the current site's look and feel:
     12/12 ✓, axe 0 violations over `/disclaimer` and `/ar/disclaimer` in light and dark. English
     Markdown for `/`, `/outlook`, `/insights` plus `sitemap.xml` and `llms.txt` byte-identical to
     main (`/trends` differs only by the live spot price moving between runs).
-  - **Still open**: catalog extraction for `/about`, `/methodology` and `/ai-disclosure`; the tool
-    pages' FAQ arrays (their worked examples must stay in JSX — they are computed from live spot at
-    render time, and freezing them into Markdown would undo that deliberately).
+  - **`/about` extracted to the catalog** (same day): its `whatWeDo` and `principles` arrays keep
+    only structure — icon and href — while every string moved to `about.*` in the UI catalog.
+    English copy verified unchanged; `/ar/about` renders Arabic.
+  - **New gate: UI catalog key parity** (`checkCatalogParity`, run by `i18n:check`). The catalogs are
+    hand-authored, so they have no `sourceHash` to go stale — their failure mode is a new English key
+    silently falling back to English on an otherwise-translated page. next-intl's `onError` logs a
+    missing message in production but does not fail a build, so nothing caught this before. Extra
+    keys warn too (usually a rename that left the old key behind). Verified by deleting a key and
+    watching it fail.
+  - **⚠ STOP before extracting the rest by hand — the architecture is wrong for it.** Remaining:
+    ~72 strings across the four tool pages, ~39 in `/methodology`, ~22 in `/ai-disclosure`. These
+    are **long financial prose**, not UI labels ("Break-even is the purchase spot price multiplied
+    by one plus the dealer premium, divided by one minus the sell-side spread…"). Hand-writing the
+    Arabic for them **bypasses the glossary and every rule in `i18n:check`** — precisely the
+    machinery Phase C exists to provide. `/about` was small enough to hand-translate; this is not,
+    and a language nobody here reads (Spanish) could not be done this way at all.
+    **Do this first**: make the UI catalog a pipeline-translated artifact — `catalogFields()` in the
+    field map, plus **per-key** freshness (a sibling `ui/<locale>.meta.json` of per-key source
+    hashes) so the owner's hand-edits survive and only new or changed English is re-translated.
+    Artifact-level `sourceHash` is wrong here because the catalog is part hand-authored.
+    Then extract English strings and let the pipeline produce the Arabic.

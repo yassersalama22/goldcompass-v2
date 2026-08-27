@@ -17,7 +17,7 @@ import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 
 import { LOCALES, requireLocale, type LocaleDef } from "@/config/locales";
-import { checkTranslation, type Finding } from "@/server/i18n/check";
+import { checkCatalogParity, checkTranslation, type Finding } from "@/server/i18n/check";
 import { articleFields, hashFields, outlookFields } from "@/server/i18n/field-map";
 import { articleSchema, type Article } from "@/types/article";
 import { outlookReportSchema, type OutlookReport } from "@/types/outlook";
@@ -197,8 +197,24 @@ async function selfTest() {
   }
 }
 
+async function checkCatalogs() {
+  console.log("UI catalogs:");
+  const canonical = JSON.parse(
+    await readFile(path.join(CONTENT, "i18n", "ui", "en.json"), "utf8"),
+  );
+  for (const locale of NON_CANONICAL) {
+    const raw = await readJson(path.join(CONTENT, "i18n", "ui", `${locale.code}.json`));
+    if (!raw) continue;
+    report(
+      `ui/${locale.code}.json`,
+      checkCatalogParity(canonical, raw as Record<string, unknown>, locale.code),
+    );
+  }
+}
+
 async function main() {
-  console.log("Translated artifacts:");
+  await checkCatalogs();
+  console.log("\nTranslated artifacts:");
   for (const locale of NON_CANONICAL) {
     await checkOutlook(locale);
     await checkArticles(locale);

@@ -102,6 +102,56 @@ function latinRatio(text: string, exempt: string[]): number {
 }
 
 /* -------------------------------------------------------------------------- */
+/* UI catalog parity                                                           */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * The UI message catalogs are hand-authored, not pipeline-translated, so they
+ * have no `sourceHash` to go stale. Their failure mode is different and just as
+ * quiet: someone adds an English key and the other locales silently fall back to
+ * English on a page that is otherwise fully translated.
+ *
+ * next-intl's `onError` logs a missing message in production but does not fail a
+ * build, so without this a half-translated catalog ships. Extra keys matter too —
+ * they are usually a rename that left the old key behind, which then rots.
+ */
+export function checkCatalogParity(
+  canonical: Record<string, unknown>,
+  target: Record<string, unknown>,
+  locale: string,
+): Finding[] {
+  const paths = (o: unknown, prefix = ""): string[] => {
+    if (o === null || typeof o !== "object") return prefix ? [prefix] : [];
+    return Object.entries(o).flatMap(([k, v]) =>
+      paths(v, prefix ? `${prefix}.${k}` : k),
+    );
+  };
+
+  const en = new Set(paths(canonical));
+  const tr = new Set(paths(target));
+  const findings: Finding[] = [];
+
+  const missing = [...en].filter((k) => !tr.has(k));
+  const extra = [...tr].filter((k) => !en.has(k));
+
+  if (missing.length > 0) {
+    findings.push({
+      severity: "error",
+      path: `ui/${locale}.json`,
+      message: `${missing.length} key(s) missing, so these fall back to English: ${missing.slice(0, 8).join(", ")}${missing.length > 8 ? ", …" : ""}`,
+    });
+  }
+  if (extra.length > 0) {
+    findings.push({
+      severity: "warning",
+      path: `ui/${locale}.json`,
+      message: `${extra.length} key(s) not present in the English catalog (likely a rename left behind): ${extra.slice(0, 8).join(", ")}${extra.length > 8 ? ", …" : ""}`,
+    });
+  }
+  return findings;
+}
+
+/* -------------------------------------------------------------------------- */
 /* The check                                                                   */
 /* -------------------------------------------------------------------------- */
 
