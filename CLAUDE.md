@@ -1508,3 +1508,47 @@ Match the current site's look and feel:
     `i18n:check` self-test 12/12 ✓. Mock artifacts were removed, not committed.
   - Next: **Phase D — static prose to Markdown artifacts**, then Phase E (glossary review, backfill,
     enable `ar`).
+- 2026-08-27: **Phase D (partial) — `/disclaimer` moved to a content artifact.** Scoped down from
+  the plan after looking at the pages properly; see the finding below. New: `src/types/page.ts`,
+  `src/server/pages/`, `src/content/pages/disclaimer.md`, `components/pages/prose-page.tsx`.
+  No new dependencies.
+  - **⚠ Only ONE of the four "prose pages" is actually a prose document.** The plan assumed
+    `/methodology`, `/ai-disclosure`, `/about` and `/disclaimer` were long-form text in JSX. They
+    are not: `/methodology` has 2 definition-list cards, a circled-number step sequence, 5 section
+    icons and 8 heading anchors (`/outlook` links straight to `#confidence`); `/ai-disclosure` has a
+    styled step list and 7 anchors; **`/about` is a 4-card grid plus an icon'd principles list,
+    both built from data arrays** — that one was initially mischaracterised from a grep that only
+    looked for `<dl>`/`<ol>`, and the error was caught by reading the file. Markdown has no `<dl>`,
+    react-markdown adds no heading ids, and icons keyed by heading text break the moment the
+    heading is translated. Converting them would flatten real design for no accuracy gain.
+  - **Decided with the owner: convert `/disclaimer` only.** The other three keep their JSX and will
+    be translated through the **message catalog** instead — short structured strings are what a
+    catalog is for, and long-form prose is what an artifact is for. The rule going forward: *the
+    content's shape decides the mechanism, not the page's length.*
+  - **Page artifacts are Markdown with frontmatter, not JSON** like articles. These are the pages a
+    human edits by hand, and a 400-line body inside a JSON string is unreviewable in a diff. The
+    frontmatter parser is ~20 lines and deliberately not a YAML dependency: the keys are a fixed set
+    of flat `key: value` strings, so a real parser would be a dependency *and* a parsing surface
+    bought for nothing. It splits on the **first** colon only, because values contain colons.
+  - **`/disclaimer` now has a Markdown representation** — the first prose page to get one, closing
+    part of the gap `lib/agent-markdown.ts` documented as deliberately unfixed. The Markdown served
+    is the artifact source, not a converted copy of the HTML. `check:markdown` **caught the stale
+    coverage list** on the first run (it still had `/disclaimer` under "falls through"), which is
+    exactly what that pinned test is for.
+  - **🐛 Fixed a pre-existing bug live in production: `node="[object Object]"` on every element
+    rendered through `Prose`.** react-markdown v10 passes the mdast `node` to custom renderers, and
+    all ten of them spread it straight onto the DOM — 29 invalid attributes on `/outlook` alone,
+    shipping since Phase 2. Renderers now drop `node` before spreading. Verified 0 occurrences
+    across `/outlook`, `/insights`, an article, and `/disclaimer`.
+  - **🐛 `Prose` was `nofollow`-ing internal links.** Every link got
+    `target="_blank" rel="noopener noreferrer nofollow"` — correct for article citations, actively
+    harmful for `/methodology`'s links to `/trends` and `/outlook`, since nofollowing your own pages
+    tells search engines not to follow your internal link graph. Now only external links get that
+    treatment. Latent before, live the moment prose with internal links moved into an artifact.
+  - Verified: `tsc` ✓, `eslint` ✓, `next build` ✓, `check:markdown` 37/37 ✓, `i18n:check` self-test
+    12/12 ✓, axe 0 violations over `/disclaimer` and `/ar/disclaimer` in light and dark. English
+    Markdown for `/`, `/outlook`, `/insights` plus `sitemap.xml` and `llms.txt` byte-identical to
+    main (`/trends` differs only by the live spot price moving between runs).
+  - **Still open**: catalog extraction for `/about`, `/methodology` and `/ai-disclosure`; the tool
+    pages' FAQ arrays (their worked examples must stay in JSX — they are computed from live spot at
+    render time, and freezing them into Markdown would undo that deliberately).

@@ -12,6 +12,7 @@ import {
   getArticlesByKind,
   getRecentArticles,
 } from "@/server/articles";
+import { getPage } from "@/server/pages";
 import { getGoldQuote, getGoldSeries30d } from "@/server/price";
 import { getPublishedOutlook } from "@/server/outlook";
 import type { Article } from "@/types/article";
@@ -388,6 +389,26 @@ function buildArticle(slug: string, locale: string): string | null {
   ].join("\n");
 }
 
+/**
+ * A static prose page. The body is already Markdown in its artifact, so this
+ * emits the source rather than converting rendered HTML back — the same property
+ * that makes the outlook and article representations lossless.
+ */
+function buildProsePage(slug: string, locale: string): string {
+  const page = getPage(slug, locale);
+  return [
+    `# ${page.heading}`,
+    "",
+    `> ${page.lede}`,
+    "",
+    `*Last updated: ${page.updatedAt}*`,
+    "",
+    page.bodyMarkdown,
+    "",
+    footer(`/${slug}`, locale),
+  ].join("\n");
+}
+
 function buildHome(locale: string): string {
   const report = getPublishedOutlook(locale);
   const articles = getRecentArticles(5, locale);
@@ -486,6 +507,8 @@ export async function buildMarkdown(
       return buildOutlook(locale);
     case "/trends":
       return buildTrends(locale);
+    case "/disclaimer":
+      return buildProsePage("disclaimer", locale);
     case "/insights":
       return buildArticleList(
         "Gold market insights",

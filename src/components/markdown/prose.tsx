@@ -7,20 +7,34 @@ import remarkGfm from "remark-gfm";
  * model/editorial content cannot inject scripts. Shared by the outlook and
  * articles. (No typography plugin — elements are styled explicitly.)
  */
+/**
+ * react-markdown hands every custom renderer a `node` prop (the mdast node).
+ * Spreading it straight onto a DOM element emits `node="[object Object]"` —
+ * invalid HTML on every heading, paragraph and list item the site renders
+ * through Prose. It was doing exactly that in production until this was added.
+ *
+ * Each renderer therefore drops `node` before spreading.
+ */
+function clean<T extends { node?: unknown }>(props: T): Omit<T, "node"> {
+  const { node: _node, ...rest } = props;
+  void _node;
+  return rest;
+}
+
 const components: Components = {
   h2: (props) => (
-    <h2 className="mt-10 mb-3 text-2xl font-bold first:mt-0" {...props} />
+    <h2 className="mt-10 mb-3 text-2xl font-bold first:mt-0" {...clean(props)} />
   ),
-  h3: (props) => <h3 className="mt-6 mb-2 text-lg font-semibold" {...props} />,
-  p: (props) => <p className="text-foreground/90 my-4 leading-7" {...props} />,
+  h3: (props) => <h3 className="mt-6 mb-2 text-lg font-semibold" {...clean(props)} />,
+  p: (props) => <p className="text-foreground/90 my-4 leading-7" {...clean(props)} />,
   ul: (props) => (
-    <ul className="text-foreground/90 marker:text-gold-strong my-4 list-disc space-y-2 ps-6" {...props} />
+    <ul className="text-foreground/90 marker:text-gold-strong my-4 list-disc space-y-2 ps-6" {...clean(props)} />
   ),
   ol: (props) => (
-    <ol className="text-foreground/90 my-4 list-decimal space-y-2 ps-6" {...props} />
+    <ol className="text-foreground/90 my-4 list-decimal space-y-2 ps-6" {...clean(props)} />
   ),
-  li: (props) => <li className="leading-7" {...props} />,
-  strong: (props) => <strong className="text-foreground font-semibold" {...props} />,
+  li: (props) => <li className="leading-7" {...clean(props)} />,
+  strong: (props) => <strong className="text-foreground font-semibold" {...clean(props)} />,
   /*
    * Internal and external links are treated differently, and the difference
    * matters for SEO.
@@ -41,19 +55,19 @@ const components: Components = {
         {...(external
           ? { target: "_blank", rel: "noopener noreferrer nofollow" }
           : {})}
-        {...props}
+        {...clean(props)}
       />
     );
   },
   table: (props) => (
     <div className="my-6 overflow-x-auto">
-      <table className="w-full border-collapse text-sm" {...props} />
+      <table className="w-full border-collapse text-sm" {...clean(props)} />
     </div>
   ),
   th: (props) => (
-    <th className="border-border border-b px-3 py-2 text-start font-semibold" {...props} />
+    <th className="border-border border-b px-3 py-2 text-start font-semibold" {...clean(props)} />
   ),
-  td: (props) => <td className="border-border border-b px-3 py-2" {...props} />,
+  td: (props) => <td className="border-border border-b px-3 py-2" {...clean(props)} />,
   blockquote: (props) => (
     <blockquote
       className="border-gold/40 text-muted-foreground my-4 border-s-4 ps-4 italic"

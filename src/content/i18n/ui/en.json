@@ -55,5 +55,8 @@
     "a3": "Karat indicates purity: 24K is 99.9% pure gold; 18K is 75% gold (750 fine); 14K is 58.3% gold (583 fine). Lower karat gold contains other metals (silver, copper) for durability. For investment purposes, 24K bars or coins are most common. The calculator adjusts quantity calculations for any purity level.",
     "q4": "How is break-even price calculated for gold?",
     "a4": "Break-even price = purchase spot price × (1 + dealer premium %). For example, buying at $4,000/oz with a 5% premium means gold must rise to $4,200 before you recover your investment when selling at spot. This calculator is for educational purposes and does not account for storage costs, taxes, or sell-side commissions."
+  },
+  "page": {
+    "lastUpdated": "Last updated:"
   }
 }
