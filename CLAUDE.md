@@ -1428,3 +1428,24 @@ Match the current site's look and feel:
     are still English on `/ar/*`; that is Phase C.
   - Next: **Phase C — contracts + translation pipeline** (per-locale artifacts, translatable-field
     map, glossary, `TranslationProvider`, and the `i18n:check` gate).
+- 2026-08-27: **Deploy pipeline moved to a native arm64 runner** — `deploy.yml` `runs-on:
+  ubuntu-latest` + `docker/setup-qemu-action` → **`ubuntu-24.04-arm`**, QEMU step deleted.
+  - **QEMU emulation was unsound, not just slow.** Builds intermittently died with
+    `qemu: uncaught target signal 4 (Illegal instruction) - core dumped` →
+    `⨯ Next.js build worker exited with code: null and signal: SIGILL`, during
+    "Generating static pages" — QEMU hitting an instruction it does not implement inside one of
+    Next's parallel build workers. The same fault can wedge a worker rather than kill it: the
+    i18n Phase B deploy sat "in progress" for **360 minutes** and was cancelled by GitHub's job
+    timeout, which is why that phase actually reached production via a later daily-outlook merge
+    rather than its own run. Failure odds rise with the static page count (41 at the time).
+  - **Do not diagnose this as "the pipeline is just slow."** It was mistaken for runner
+    variability once, on the evidence that an unrelated outlook merge had also taken 26 minutes.
+    The tell is in the build log, not the duration: grep the failed run for `SIGILL` / `qemu:`.
+  - arm64 runners are **free for public repositories** (GA since 2025-08) and this repo is public,
+    so the fix costs nothing and removes the failure class rather than retrying around it. It also
+    matches the t4g.micro target natively, so builds are several times faster.
+  - **⚠ If this repo ever goes private, arm64 runners stop being free** (paid plans only).
+    Reverting to QEMU brings the SIGILL crashes back; the alternatives would be a self-hosted
+    arm64 runner, or building the Next app on x64 and assembling only the runtime image for arm64.
+  - The `type=gha` build cache is keyed per platform, so the first run after the switch is a cold
+    cache and slower than the steady state.

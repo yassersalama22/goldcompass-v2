@@ -11,10 +11,33 @@ permissions:
 
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-latest
+    # Native arm64, matching the t4g.micro this deploys to.
+    #
+    # This used to be `ubuntu-latest` (x64) with `docker/setup-qemu-action`
+    # emulating arm64, and emulation was not merely slow — it was unsound.
+    # Builds intermittently died with
+    #   qemu: uncaught target signal 4 (Illegal instruction) - core dumped
+    #   ⨯ Next.js build worker exited with code: null and signal: SIGILL
+    # during "Generating static pages", i.e. QEMU hit an instruction it does not
+    # implement in one of Next's parallel build workers. The same fault could
+    # also wedge a worker instead of killing it, which once left a run hanging
+    # until GitHub's 6-hour job timeout cancelled it. It got likelier as the
+    # static page count grew (41 pages at the time of this change).
+    #
+    # arm64 runners are free for public repositories, so this costs nothing and
+    # removes the whole failure class rather than retrying around it. Builds are
+    # also several times faster without emulation.
+    #
+    # ⚠ If this repository ever goes private, these runners stop being free —
+    # arm64 is available on private repos only on paid plans. Reverting to QEMU
+    # would bring the SIGILL crashes back, so the alternative would be a
+    # self-hosted arm64 runner or building the Next app on x64 and assembling
+    # only the runtime image for arm64.
+    runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v6
-      - uses: docker/setup-qemu-action@v3
+      # No `setup-qemu-action`: the runner is already arm64, so there is nothing
+      # to emulate. Re-adding it would silently reintroduce the crash above.
       - uses: docker/setup-buildx-action@v3
       - uses: docker/login-action@v3
         with:
