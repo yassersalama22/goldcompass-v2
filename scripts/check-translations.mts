@@ -18,7 +18,13 @@ import path from "node:path";
 
 import { LOCALES, requireLocale, type LocaleDef } from "@/config/locales";
 import { checkCatalogParity, checkTranslation, type Finding } from "@/server/i18n/check";
-import { articleFields, hashFields, outlookFields } from "@/server/i18n/field-map";
+import {
+  articleFields,
+  catalogFields,
+  hashFields,
+  hashValue,
+  outlookFields,
+} from "@/server/i18n/field-map";
 import { articleSchema, type Article } from "@/types/article";
 import { outlookReportSchema, type OutlookReport } from "@/types/outlook";
 
@@ -112,6 +118,74 @@ async function checkArticles(locale: LocaleDef) {
 /* Self-test: prove each rule actually fires                                   */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * Catalog fixtures.
+ *
+ * Separate from the artifact ones because `checkCatalogParity` takes catalogs
+ * rather than field lists. These exist because the per-string content rules did
+ * NOT apply to catalogs until the tool-page copy moved in — a fabricated
+ * "99.9999 grams" in a FAQ answer passed the gate clean, on a page whose whole
+ * job is to state that a troy ounce is 31.1035 grams.
+ */
+function selfTestCatalog(): number {
+  console.log("\nSelf-test — catalog fixtures, each must be REJECTED:");
+
+  const en = {
+    tools: { conv: { faq: "A troy ounce is 31.1035 grams, not 28.35." } },
+    site: { titleTemplate: "%s | GoldCompass" },
+  };
+  const good = {
+    tools: { conv: { faq: "الأونصة التروية تساوي 31.1035 غرامًا، وليست 28.35." } },
+    site: { titleTemplate: "%s | GoldCompass" },
+  };
+  // Hashes recorded from the current English, so nothing reads as stale.
+  const meta = Object.fromEntries(
+    catalogFields(en).map((f) => [f.path, hashValue(f.value)]),
+  );
+
+  const run = (mutate: (c: Record<string, unknown>) => void) => {
+    const t = structuredClone(good) as Record<string, unknown>;
+    mutate(t);
+    return checkCatalogParity(en, t, "ar", meta).filter((f) => f.severity === "error");
+  };
+
+  type Nested = Record<string, Record<string, string>>;
+  const fixtures: [string, (c: Record<string, unknown>) => void][] = [
+    ["a fabricated number in a FAQ answer", (c) => {
+      (c.tools as Nested).conv.faq = "الأونصة التروية تساوي 99.9999 غرامًا، وليست 28.35.";
+    }],
+    ["a dropped precise constant", (c) => {
+      (c.tools as Nested).conv.faq = "الأونصة التروية تساوي غرامًا، وليست 28.35.";
+    }],
+    ["Arabic-Indic digits", (c) => {
+      (c.tools as Nested).conv.faq = "الأونصة التروية تساوي ٣١٫١٠٣٥ غرامًا، وليست 28.35.";
+    }],
+    ["a dropped %s in the title template", (c) => {
+      (c.site as Record<string, string>).titleTemplate = "GoldCompass";
+    }],
+  ];
+
+  let missed = 0;
+  for (const [name, mutate] of fixtures) {
+    if (run(mutate).length > 0) {
+      console.log(`  ok    rejects ${name}`);
+    } else {
+      console.log(`  FAIL  did NOT reject ${name}`);
+      missed++;
+    }
+  }
+
+  const clean = run(() => {});
+  if (clean.length === 0) {
+    console.log("  ok    accepts a valid catalog translation");
+  } else {
+    console.log("  FAIL  rejected a valid catalog translation:");
+    for (const f of clean) console.log(`          ✗ ${f.path}: ${f.message}`);
+    missed++;
+  }
+  return missed;
+}
+
 async function selfTest() {
   console.log("\nSelf-test — each fixture must be REJECTED:");
   const source: OutlookReport = outlookReportSchema.parse(
@@ -200,6 +274,8 @@ async function selfTest() {
     for (const f of clean) console.log(`          ✗ ${f.path}: ${f.message}`);
     missed++;
   }
+
+  missed += selfTestCatalog();
 
   if (missed > 0) {
     console.error(`\n${missed} self-test failure(s) — the gate is not working.`);

@@ -198,6 +198,134 @@ export function checkCatalogParity(
     });
   }
 
+  /*
+   * Per-string content checks — the same rules the artifacts get.
+   *
+   * These used to apply only to artifacts, on the assumption that a catalog
+   * holds short UI labels. That stopped being true when the tool-page copy moved
+   * in: the catalog now carries FAQ answers stating that a troy ounce is
+   * 31.1035 grams and a 1 kg bar is 32.15 ozt. A corrupted constant there is the
+   * same financial error it would be in an article, and it was passing clean.
+   */
+  const englishByPath = new Map(catalogFields(canonical).map((f) => [f.path, f.value]));
+  for (const field of catalogFields(target)) {
+    const source = englishByPath.get(field.path);
+    if (source === undefined) continue;
+    const at = `ui/${locale}.json → ${field.path}`;
+
+    /*
+     * Numeral parity, split by *precision* rather than by strict equality.
+     *
+     * A number that changed or was invented is always an error — that is the
+     * 99.9999-grams case, and there is no benign reading of it.
+     *
+     * A number present in English and absent from the translation is judged on
+     * what kind of number it is, because prose genuinely spells small round
+     * numbers as words: "a 30-day chart" → "رسم بياني لثلاثين يومًا", "a 1 kg
+     * bar" → "سبيكة الكيلوغرام الواحد". Both are correct translations, and both
+     * appear in this catalog today. But a value carrying a decimal — 31.1035
+     * grams, 32.15 ozt, 4,283.61 — is a precise constant nobody spells out, so
+     * its disappearance is an omission. Three or more digits counts as precise
+     * for the same reason.
+     */
+    const tokens = (text: string) =>
+      (text.match(/\d[\d.,٫٬]*/g) ?? []).map((raw) => ({
+        raw,
+        norm: raw.replace(/[.,٫٬]/g, ""),
+        // A decimal separator, or enough digits that it is not a spoken round
+        // number, means the exact value carries meaning.
+        precise: /[.,٫٬]\d/.test(raw) || raw.replace(/[.,٫٬]/g, "").length >= 3,
+      }));
+
+    const remaining = tokens(field.value);
+    const dropped: { raw: string; precise: boolean }[] = [];
+    for (const t of tokens(source)) {
+      const i = remaining.findIndex((r) => r.norm === t.norm);
+      if (i === -1) dropped.push(t);
+      else remaining.splice(i, 1);
+    }
+
+    if (remaining.length > 0) {
+      findings.push({
+        severity: "error",
+        path: at,
+        message: `numbers not in the English source: [${remaining.map((r) => r.raw).join(", ")}]`,
+      });
+    }
+    const lostPrecise = dropped.filter((d) => d.precise);
+    const lostRound = dropped.filter((d) => !d.precise);
+    if (lostPrecise.length > 0) {
+      findings.push({
+        severity: "error",
+        path: at,
+        message: `precise value(s) dropped from the translation: [${lostPrecise.map((d) => d.raw).join(", ")}]`,
+      });
+    }
+    if (lostRound.length > 0) {
+      findings.push({
+        severity: "warning",
+        path: at,
+        message: `[${lostRound.map((d) => d.raw).join(", ")}] not written as digits — fine if spelled as a word, check it is not an omission`,
+      });
+    }
+
+    if (ARABIC_INDIC.test(field.value)) {
+      findings.push({
+        severity: "error",
+        path: at,
+        message: "contains Arabic-Indic digits; the site renders Latin digits everywhere",
+      });
+    }
+
+    const sp = placeholders(source);
+    const tp = placeholders(field.value);
+    if (sp.join("|") !== tp.join("|")) {
+      findings.push({
+        severity: "error",
+        path: at,
+        message: `placeholders changed: source has [${sp.join(", ") || "none"}], translation has [${tp.join(", ") || "none"}]`,
+      });
+    }
+  }
+
+  /*
+   * Glossary compliance, corpus-wide and aggregated — the same shape as the
+   * artifact rule, for the same reasons. Corpus-wide because a term may move
+   * between strings; aggregated because reported per term an untranslated
+   * catalog buries every other finding under sixty warnings.
+   */
+  const glossary = loadGlossary(locale);
+  if (glossary) {
+    const sourceCorpus = catalogFields(canonical)
+      .map((f) => f.value)
+      .join("\n")
+      .toLowerCase();
+    const targetCorpus = catalogFields(target)
+      .map((f) => f.value)
+      .join("\n");
+    const missed: string[] = [];
+    let applicable = 0;
+    for (const entry of glossaryEntries(glossary)) {
+      if (!sourceCorpus.includes(entry.en.toLowerCase())) continue;
+      applicable++;
+      if (!entry.accepted.some((form) => targetCorpus.includes(form))) {
+        missed.push(`${entry.en} → ${entry.accepted.join(" / ")}`);
+      }
+    }
+    if (missed.length > 0) {
+      const shown = missed.slice(0, 5);
+      const rest = missed.length - shown.length;
+      findings.push({
+        severity: "warning",
+        path: `ui/${locale}.json → <glossary>`,
+        message:
+          `${missed.length}/${applicable} glossary terms have no approved rendering anywhere in the catalog: ` +
+          shown.join("; ") +
+          (rest > 0 ? `; …and ${rest} more` : ""),
+      });
+    }
+  }
+
   return findings;
 }
 
