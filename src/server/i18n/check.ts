@@ -1,7 +1,9 @@
 import { requireLocale } from "@/config/locales";
 import {
   assertFieldMapCoverage,
+  catalogFields,
   hashFields,
+  hashValue,
   type TranslatableField,
 } from "@/server/i18n/field-map";
 import { glossaryEntries, loadGlossary } from "@/server/i18n/glossary";
@@ -45,6 +47,18 @@ function numerals(text: string): string[] {
     .map((n) => n.replace(/[.,٫٬]/g, ""))
     .filter(Boolean)
     .sort();
+}
+
+/**
+ * Interpolation tokens that must survive translation intact.
+ *
+ * Covers ICU-style `{name}` (next-intl) and `%s` (Next.js's metadata title
+ * template). Dropping one is silent and total: a translated `titleTemplate`
+ * without its `%s` gives every page on the site the same title, and a lost
+ * `{name}` renders the literal word rather than the brand.
+ */
+function placeholders(text: string): string[] {
+  return [...(text.match(/\{[a-zA-Z0-9_]+\}|%[sd]/g) ?? [])].sort();
 }
 
 function urls(text: string): string[] {
@@ -119,6 +133,8 @@ export function checkCatalogParity(
   canonical: Record<string, unknown>,
   target: Record<string, unknown>,
   locale: string,
+  /** `<locale>.meta.json` — per-key hashes of the English each translation was made from. */
+  meta: Record<string, string> = {},
 ): Finding[] {
   const paths = (o: unknown, prefix = ""): string[] => {
     if (o === null || typeof o !== "object") return prefix ? [prefix] : [];
@@ -148,6 +164,30 @@ export function checkCatalogParity(
       message: `${extra.length} key(s) not present in the English catalog (likely a rename left behind): ${extra.slice(0, 8).join(", ")}${extra.length > 8 ? ", …" : ""}`,
     });
   }
+
+  /*
+   * Stale keys: the English changed after this translation was made.
+   *
+   * Distinct from a *missing* key, and quieter — the page still renders
+   * translated text, it is just translated from an older English string. Only
+   * the per-key meta can tell the difference, which is why it exists.
+   */
+  const stale = catalogFields(canonical)
+    .filter((f) => {
+      const recorded = meta[f.path];
+      // No record means "adopted at bootstrap", not stale — see catalog.ts.
+      return recorded !== undefined && recorded !== hashValue(f.value);
+    })
+    .map((f) => f.path);
+
+  if (stale.length > 0) {
+    findings.push({
+      severity: "error",
+      path: `ui/${locale}.json`,
+      message: `${stale.length} key(s) translated from an older English source; re-run i18n:translate: ${stale.slice(0, 8).join(", ")}${stale.length > 8 ? ", …" : ""}`,
+    });
+  }
+
   return findings;
 }
 
@@ -244,14 +284,24 @@ export function checkTranslation(input: CheckInput): Finding[] {
       err(path, "contains Arabic-Indic digits; the site renders Latin digits everywhere");
     }
 
-    /* 5. URLs must be identical and equally numerous. */
+    /* 5. Interpolation tokens must survive exactly. */
+    const sp = placeholders(source.value);
+    const tp = placeholders(target.value);
+    if (sp.join("|") !== tp.join("|")) {
+      err(
+        path,
+        `placeholders changed: source has [${sp.join(", ") || "none"}], translation has [${tp.join(", ") || "none"}]`,
+      );
+    }
+
+    /* 6. URLs must be identical and equally numerous. */
     const su = urls(source.value);
     const tu = urls(target.value);
     if (su.join("|") !== tu.join("|")) {
       err(path, `URLs changed: source ${su.length}, translation ${tu.length}`);
     }
 
-    /* 6. Markdown structure parity. */
+    /* 7. Markdown structure parity. */
     if (source.kind === "markdown") {
       const s = markdownShape(source.value);
       const t = markdownShape(target.value);
@@ -267,7 +317,7 @@ export function checkTranslation(input: CheckInput): Finding[] {
         err(path, "introduced a code fence that is not in the source");
     }
 
-    /* 7. Money fields are reformatted, never re-valued. Digits are already
+    /* 8. Money fields are reformatted, never re-valued. Digits are already
      *    covered above; this asserts the locale's currency unit is present. */
     if (source.kind === "money" && /[$£€]|USD/.test(source.value)) {
       if (!target.value.includes(locale.currency.unit)) {
@@ -278,7 +328,7 @@ export function checkTranslation(input: CheckInput): Finding[] {
       }
     }
 
-    /* 8. Do-not-translate terms must survive verbatim. */
+    /* 9. Do-not-translate terms must survive verbatim. */
     for (const term of exempt) {
       if (source.value.includes(term) && !target.value.includes(term)) {
         err(path, `do-not-translate term "${term}" is missing from the translation`);
@@ -286,7 +336,7 @@ export function checkTranslation(input: CheckInput): Finding[] {
     }
   }
 
-  /* 9. Glossary compliance, across the whole artifact rather than per field —
+  /* 10. Glossary compliance, across the whole artifact rather than per field —
    *    a term may legitimately move between sentences during translation. */
   const sourceCorpus = input.sourceFields.map((f) => f.value).join("\n").toLowerCase();
   const targetCorpus = input.translatedFields.map((f) => f.value).join("\n");
@@ -314,7 +364,7 @@ export function checkTranslation(input: CheckInput): Finding[] {
     );
   }
 
-  /* 10. Length ratio — catches truncation and omission without comprehension. */
+  /* 11. Length ratio — catches truncation and omission without comprehension. */
   const sourceLen = input.sourceFields.reduce((n, f) => n + f.value.length, 0);
   const targetLen = input.translatedFields.reduce((n, f) => n + f.value.length, 0);
   const ratio = sourceLen > 0 ? targetLen / sourceLen : 1;
@@ -326,7 +376,7 @@ export function checkTranslation(input: CheckInput): Finding[] {
     );
   }
 
-  /* 11. Untranslated residue. A warning, not an error: quoted English, tickers
+  /* 12. Untranslated residue. A warning, not an error: quoted English, tickers
    *     and institution names legitimately appear in Arabic financial prose. */
   if (locale.dir === "rtl") {
     // Aggregated like the glossary check: an untranslated artifact would
@@ -346,7 +396,7 @@ export function checkTranslation(input: CheckInput): Finding[] {
     }
   }
 
-  /* 12. Freshness. Proves the translation matches the current source rather
+  /* 13. Freshness. Proves the translation matches the current source rather
    *     than an older revision of it. */
   if (input.storedHash !== undefined) {
     const expected = hashFields(input.sourceFields);

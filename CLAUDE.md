@@ -1576,3 +1576,35 @@ Match the current site's look and feel:
     hashes) so the owner's hand-edits survive and only new or changed English is re-translated.
     Artifact-level `sourceHash` is wrong here because the catalog is part hand-authored.
     Then extract English strings and let the pipeline produce the Arabic.
+- 2026-08-28: **UI catalog is now pipeline-translated, with PER-KEY freshness.** Unblocks the
+  remaining page-string extraction (~133 strings across the four tool pages, `/methodology` and
+  `/ai-disclosure`), which is long financial prose and must not be hand-translated — doing so
+  bypasses the glossary and every rule in `i18n:check`. No new dependencies.
+  - **⚠ Per-key, not per-artifact, and the reason is not performance.** The catalogs are *part
+    hand-authored*: a native speaker has corrected strings in them. An artifact-level `sourceHash`
+    would either re-translate the whole file on any change (discarding those corrections) or mark
+    the file stale forever. A sibling **`ui/<locale>.meta.json`** records, per key, the hash of the
+    English the current translation was made from. A key is retranslated only when it is missing or
+    when its English changed; a hand-edit leaves the hash untouched and therefore survives every
+    later run.
+  - **⚠ Bootstrap adopts, it does not retranslate.** On the first run there is no meta file, and
+    treating "no record" as "needs translation" would have overwritten all 71 reviewed Arabic
+    strings. An existing target string with no recorded hash is **adopted** — assumed correct for
+    the current English and recorded as such. Verified: first run reported `0 translated, 71 up to
+    date` and `ar.json` was byte-identical afterwards. **Do not "simplify" this to a plain
+    missing-hash check.**
+  - Behaviour verified end to end with the mock: a **new** English key translated alone
+    (`1 translated, 71 left untouched`); a **changed** English string retranslated alone with `nav`
+    untouched; a **hand-edit** of that same key survived the next run (`0 translated, 72 up to
+    date`).
+  - **New check: placeholder parity**, on every translated field, artifact or catalog. Covers ICU
+    `{name}` and Next's `%s`. Losing one is silent and total — a translated `site.titleTemplate`
+    without its `%s` gives **every page on the site the same `<title>`**. 8 catalog strings carry
+    placeholders today. Guarded by a self-test fixture.
+  - **New check: catalog staleness.** Distinct from a *missing* key and much quieter: the page still
+    renders translated text, just translated from an older English string. Only the per-key meta can
+    tell the difference, which is the second reason it exists. Verified by editing an English string
+    and watching the gate fail.
+  - Self-test is now **14 fixtures**; `i18n:check` also validates catalog key parity and staleness.
+  - **Next**: extract the ~133 remaining strings into the catalog (English only), then run
+    `TRANSLATE_ONLY=catalog npm run i18n:translate` and review the Arabic. Then Phase E.

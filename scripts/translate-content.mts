@@ -3,7 +3,7 @@
  *
  *   npm run i18n:translate              # all locales, all artifacts
  *   TRANSLATE_LOCALE=ar npm run i18n:translate
- *   TRANSLATE_ONLY=outlook npm run i18n:translate
+ *   TRANSLATE_ONLY=outlook npm run i18n:translate     # outlook | articles | catalog
  *
  * Writes siblings under `src/content/<type>/<locale>/`. Artifacts whose source
  * has not changed since the last run are skipped — the stored `sourceHash`
@@ -24,6 +24,16 @@ import {
   hashFields,
   outlookFields,
 } from "@/server/i18n/field-map";
+import {
+  buildMeta,
+  planCatalog,
+  readCatalog,
+  readMeta,
+  setPath,
+  writeCatalog,
+  writeMeta,
+} from "@/server/i18n/catalog";
+import { catalogFields, hashValue } from "@/server/i18n/field-map";
 import { reformatMoney } from "@/server/i18n/money";
 import { getTranslationProvider } from "@/server/i18n/translate";
 import type { TranslatableField } from "@/server/i18n/field-map";
@@ -160,6 +170,54 @@ async function translateArticles(locale: LocaleDef): Promise<{ written: number; 
   return { written, skipped };
 }
 
+/**
+ * Translate the UI catalog, per key.
+ *
+ * Only missing or source-changed keys are sent; everything else — including
+ * every hand-reviewed correction — is left exactly as it is. See
+ * `server/i18n/catalog.ts` for why freshness is per key here rather than per
+ * artifact.
+ */
+async function translateCatalog(locale: LocaleDef): Promise<string> {
+  const english = readCatalog("en");
+  if (!english) throw new Error("No English UI catalog.");
+
+  const target = readCatalog(locale.code) ?? {};
+  const meta = readMeta(locale.code);
+  const plan = planCatalog(english, target, meta);
+
+  if (plan.orphaned.length > 0) {
+    console.warn(
+      `[i18n] ${locale.code} catalog has ${plan.orphaned.length} key(s) not in English ` +
+        `(likely a rename left behind): ${plan.orphaned.slice(0, 5).join(", ")}`,
+    );
+  }
+
+  if (plan.stale.length === 0) {
+    // Still rewrite the meta: a first run adopts existing translations, and
+    // without recording their hashes they would be re-adopted forever rather
+    // than being watched for source changes.
+    writeMeta(locale.code, buildMeta(english, target));
+    return `0 translated, ${plan.current.length} up to date`;
+  }
+
+  const byPath = new Map(catalogFields(english).map((f) => [f.path, f]));
+  const fields = plan.stale.map((s) => byPath.get(s.path)!).filter(Boolean);
+
+  const provider = await getTranslationProvider();
+  const { values } = await provider.translate({ locale, fields });
+
+  for (const [path, value] of Object.entries(values)) setPath(target, path, value);
+
+  writeCatalog(locale.code, target);
+
+  const next = buildMeta(english, target);
+  for (const { path, value } of plan.stale) next[path] = hashValue(value);
+  writeMeta(locale.code, next);
+
+  return `${plan.stale.length} translated, ${plan.current.length} left untouched`;
+}
+
 async function main() {
   const only = process.env.TRANSLATE_ONLY;
   const requested = process.env.TRANSLATE_LOCALE;
@@ -180,6 +238,10 @@ async function main() {
   console.log(`[i18n] provider=${provider.name} targets=${targets.map((t) => t.code).join(",")}`);
 
   for (const locale of targets) {
+    if (only === undefined || only === "catalog") {
+      console.log(`[i18n] ${locale.code} catalog: ${await translateCatalog(locale)}`);
+    }
+    if (only === "catalog") continue;
     if (only !== "articles") {
       const r = await translateOutlook(locale);
       console.log(`[i18n] ${locale.code} outlook: ${r}`);
