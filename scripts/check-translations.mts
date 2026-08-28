@@ -118,7 +118,11 @@ async function selfTest() {
     JSON.parse(await readFile(path.join(CONTENT, "outlook", "current.json"), "utf8")),
   );
   const locale = "ar";
-  const fields = outlookFields(source);
+  const fields = outlookFields(source).map((f) =>
+    // Give one source field a placeholder so the placeholder-parity fixture has
+    // something to lose.
+    f.path === "calls.0.label" ? { ...f, value: `${f.value} {term}` } : f,
+  );
 
   // A "good" translation baseline: structurally identical to the source, with
   // money reformatted the way the target locale writes it. The prose stays
@@ -132,6 +136,9 @@ async function selfTest() {
     ...level,
     value: level.value.replace(/\$([\d,.]+)/g, `$1 ${unit}`),
   }));
+  // Mirror the placeholder the source fields carry, so the baseline is a valid
+  // translation of them rather than one that has already lost a placeholder.
+  if (good.calls[0]) good.calls[0].label = `${good.calls[0].label} {term}`;
   good.locale = locale;
   good.translation = {
     sourceLocale: "en",
@@ -166,6 +173,9 @@ async function selfTest() {
     ["an added markdown link", (r) => { r.analysisMarkdown += "\n\n[extra](https://example.com)"; }],
     ["a truncated body", (r) => { r.analysisMarkdown = r.analysisMarkdown.slice(0, 40); }],
     ["a stale sourceHash", (r) => { r.translation!.sourceHash = "0".repeat(32); }],
+    // Placeholders are silent when lost: a titleTemplate without its %s gives
+    // every page on the site the same <title>.
+    ["a dropped {placeholder}", (r) => { r.calls[0]!.label = r.calls[0]!.label.replace(" {term}", ""); }],
     ["a changed signal enum", (r) => { r.calls[0]!.signal = r.calls[0]!.signal === "BUY" ? "SELL" : "BUY"; }],
     ["a key level with its currency unit dropped", (r) => { if (r.keyLevels[0]) r.keyLevels[0].value = r.keyLevels[0].value.replace(unit, "").trim(); }],
   ];
@@ -205,9 +215,17 @@ async function checkCatalogs() {
   for (const locale of NON_CANONICAL) {
     const raw = await readJson(path.join(CONTENT, "i18n", "ui", `${locale.code}.json`));
     if (!raw) continue;
+    const meta = (await readJson(
+      path.join(CONTENT, "i18n", "ui", `${locale.code}.meta.json`),
+    )) as Record<string, string> | null;
     report(
       `ui/${locale.code}.json`,
-      checkCatalogParity(canonical, raw as Record<string, unknown>, locale.code),
+      checkCatalogParity(
+        canonical,
+        raw as Record<string, unknown>,
+        locale.code,
+        meta ?? {},
+      ),
     );
   }
 }
