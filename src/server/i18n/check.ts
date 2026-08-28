@@ -1,4 +1,4 @@
-import { requireLocale } from "@/config/locales";
+import { isActiveLocale, requireLocale } from "@/config/locales";
 import {
   assertFieldMapCoverage,
   catalogFields,
@@ -151,8 +151,18 @@ export function checkCatalogParity(
   const extra = [...tr].filter((k) => !en.has(k));
 
   if (missing.length > 0) {
+    /*
+     * Severity depends on whether the locale is actually routed.
+     *
+     * A missing key in a locale nobody can reach cannot affect a visitor — it is
+     * work-in-progress, and failing CI over it would mean English extraction and
+     * its translation had to land in one commit, which is exactly the coupling
+     * the per-key model exists to avoid. The moment the locale is enabled in the
+     * registry it becomes an error, which is precisely when a silent fallback to
+     * English would start reaching readers.
+     */
     findings.push({
-      severity: "error",
+      severity: isActiveLocale(locale) ? "error" : "warning",
       path: `ui/${locale}.json`,
       message: `${missing.length} key(s) missing, so these fall back to English: ${missing.slice(0, 8).join(", ")}${missing.length > 8 ? ", …" : ""}`,
     });

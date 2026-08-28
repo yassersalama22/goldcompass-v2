@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { withLocaleMetadata, type LocaleParams } from "@/lib/seo";
 import { Link } from "@/i18n/navigation";
@@ -34,52 +34,28 @@ const pageMetadata: Metadata = {
   },
 };
 
-const faqs: ToolFaq[] = [
-  {
-    question: "How much is 18K gold worth per gram?",
-    answer:
-      "18K gold is 75% pure (750 fine), so a gram of it is worth 75% of a gram of pure gold. Divide the spot price per troy ounce by 31.1035 to get the price per gram of pure gold, then multiply by 0.75. This calculator does that for every karat at the current live gold price.",
-  },
-  {
-    question: "What does the karat number actually mean?",
-    answer:
-      "Karat measures how many parts out of 24 are gold. 24K is pure gold, 18K is 18 parts gold and 6 parts other metals (75%), 14K is 58.3%, and 10K is 41.7%. The remaining metal is usually copper, silver, or zinc, added for hardness and colour. Karat describes purity, not weight or quality of workmanship.",
-  },
-  {
-    question: "What is the difference between karat and fineness?",
-    answer:
-      "They express the same thing on different scales. Fineness is parts per thousand, so 18K (75% gold) is stamped 750, 14K is 585 or 583, and 24K is 999 or 999.9. European and modern jewellery is usually stamped with fineness; the karat mark is more common in the United States.",
-  },
-  {
-    question: "Will a dealer pay me the melt value of my gold?",
-    answer:
-      "No. Melt value is what the metal in an item is worth, and it is the ceiling, not the offer. Scrap buyers typically pay somewhere between 70% and 90% of melt, keeping the difference to cover refining, assay, and margin. Getting quotes from more than one buyer is the practical way to see where you sit in that range.",
-  },
-  {
-    question: "Does the calculator account for gemstones or non-gold parts?",
-    answer:
-      "It does not. It values the weight you enter as if all of it were gold alloy of the karat you select. For a ring with stones, or a piece with a steel clasp or spring, weigh only the gold portion or expect the true value to be lower than the figure shown.",
-  },
-];
+/**
+ * Copy lives in the UI catalog under `tools.goldKaratPrice.*` so it is pipeline-translated
+ * with the glossary applied, rather than hand-written per locale.
+ *
+ * ⚠ The same array is rendered visibly AND passed to `faqSchema()` by
+ * `ToolPageShell`. Google requires FAQ markup to match what a reader sees, so it
+ * must stay ONE array built from ONE source — never two lists that can drift.
+ */
+function buildFaqs(t: (key: string) => string): ToolFaq[] {
+  return Array.from({ length: 5 }, (_, i) => ({
+    question: t(`faqs.q${i + 1}.question`),
+    answer: t(`faqs.q${i + 1}.answer`),
+  }));
+}
 
-const mistakes = [
-  {
-    title: "Weighing in the wrong ounce",
-    body: "Gold is priced in troy ounces (31.1035 g), not the kitchen-scale ounce (28.35 g). A troy ounce is about 10% heavier, so using the wrong one understates your gold by roughly a tenth.",
-  },
-  {
-    title: "Treating melt value as the price a dealer will pay",
-    body: "Melt value is the metal content only. A scrap buyer pays below it, and a retailer selling you the same gold charges above it. The gap on both sides is the dealer's margin.",
-  },
-  {
-    title: "Trusting an unclear hallmark",
-    body: "A worn or missing stamp is not proof of purity, and plated items can carry marks that look convincing. If the value matters, have the piece tested before you rely on any number here.",
-  },
-  {
-    title: "Including stones and findings in the weight",
-    body: "Gemstones, clasps, and pins are usually not gold. Weighing the whole item inflates the result, sometimes substantially on stone-set jewellery.",
-  },
-];
+function buildMistakes(t: (key: string) => string) {
+  return Array.from({ length: 4 }, (_, i) => ({
+    title: t(`mistakes.m${i + 1}.title`),
+    body: t(`mistakes.m${i + 1}.body`),
+  }));
+}
+
 
 export async function generateMetadata({
   params,
@@ -91,6 +67,7 @@ export async function generateMetadata({
 export default async function KaratPricePage({ params }: LocaleParams) {
   const { locale } = await params;
   setRequestLocale(locale);
+  const t = await getTranslations(`tools.goldKaratPrice`);
 
   const priceResult = await getGoldQuote();
   const initialSpot = priceResult.ok && priceResult.data ? priceResult.data.price : null;
@@ -103,9 +80,9 @@ export default async function KaratPricePage({ params }: LocaleParams) {
     <ToolPageShell
       locale={locale}
       tool={tool}
-      intro="Gold is quoted as one price per troy ounce of pure metal, but almost nothing you own is pure. Enter a weight and a karat to see what the gold in it is actually worth."
-      faqs={faqs}
-      mistakes={mistakes}
+      intro={t("intro")}
+      faqs={buildFaqs(t)}
+      mistakes={buildMistakes(t)}
       about={
         <>
           <p>

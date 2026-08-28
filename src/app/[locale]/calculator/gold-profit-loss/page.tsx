@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { Num } from "@/components/market/num";
 import { withLocaleMetadata, type LocaleParams } from "@/lib/seo";
@@ -34,52 +34,28 @@ const pageMetadata: Metadata = {
   },
 };
 
-const faqs: ToolFaq[] = [
-  {
-    question: "How do I calculate profit on physical gold?",
-    answer:
-      "Work out the pure gold content of your holding in troy ounces, multiply by your purchase price plus the premium you paid to get your cost, then multiply the same content by the selling price minus any buy-back spread to get your proceeds. Profit is proceeds minus cost. The percentage return is that profit divided by what you originally paid, not by the metal's market value.",
-  },
-  {
-    question: "Why is my return lower than the gold price rise?",
-    answer:
-      "Because you bought above spot and sold below it. If gold rose 10% but you paid a 5% premium and lost 2% on the buy-back, roughly 7 points of that move went to covering transaction costs, leaving about 3%. The gap between the headline move and your return is the round-trip cost, and it shrinks in importance the longer you hold.",
-  },
-  {
-    question: "Does this calculator include tax?",
-    answer:
-      "No. Tax treatment of gold varies widely — many jurisdictions treat physical bullion as a collectible or as a capital asset with its own rate, and some exempt certain legal-tender coins entirely. The figures here are pre-tax, and the after-tax outcome depends on your jurisdiction and holding period. Speak to a qualified tax adviser.",
-  },
-  {
-    question: "How should I account for a purchase made in several lots?",
-    answer:
-      "Use your weighted average purchase price as the buy price and the total quantity as the amount. If the lots carried very different premiums, running them separately and adding the results is more accurate, since the premium is applied to each lot's own cost.",
-  },
-  {
-    question: "Should I use spot price or the price I actually paid?",
-    answer:
-      "Enter the spot price at the time of each transaction and let the premium and spread inputs handle the costs — that way the calculator can show you the break-even and separate the market move from the friction. If you only remember the total you handed over, set the premium to zero and enter that all-in price per ounce instead.",
-  },
-];
+/**
+ * Copy lives in the UI catalog under `tools.goldProfitLoss.*` so it is pipeline-translated
+ * with the glossary applied, rather than hand-written per locale.
+ *
+ * ⚠ The same array is rendered visibly AND passed to `faqSchema()` by
+ * `ToolPageShell`. Google requires FAQ markup to match what a reader sees, so it
+ * must stay ONE array built from ONE source — never two lists that can drift.
+ */
+function buildFaqs(t: (key: string) => string): ToolFaq[] {
+  return Array.from({ length: 5 }, (_, i) => ({
+    question: t(`faqs.q${i + 1}.question`),
+    answer: t(`faqs.q${i + 1}.answer`),
+  }));
+}
 
-const mistakes = [
-  {
-    title: "Measuring return against the metal's value instead of what you paid",
-    body: "Dividing profit by the current market value flatters the result. Your return is profit divided by your actual outlay, premium included.",
-  },
-  {
-    title: "Ignoring the premium on the way in",
-    body: "Comparing your buy price to today's spot and calling the difference profit skips the cost that made you unprofitable on day one.",
-  },
-  {
-    title: "Using item weight instead of pure gold content",
-    body: "A 100 g 14K bracelet contains 58.3 g of gold. Valuing all 100 g at the gold price overstates the position by roughly 70%.",
-  },
-  {
-    title: "Forgetting holding costs on long positions",
-    body: "Vault storage and insurance accrue every year you hold. They do not appear here, and over a decade they can consume a meaningful slice of the gain.",
-  },
-];
+function buildMistakes(t: (key: string) => string) {
+  return Array.from({ length: 4 }, (_, i) => ({
+    title: t(`mistakes.m${i + 1}.title`),
+    body: t(`mistakes.m${i + 1}.body`),
+  }));
+}
+
 
 export async function generateMetadata({
   params,
@@ -91,6 +67,7 @@ export async function generateMetadata({
 export default async function ProfitLossPage({ params }: LocaleParams) {
   const { locale } = await params;
   setRequestLocale(locale);
+  const t = await getTranslations(`tools.goldProfitLoss`);
 
   const priceResult = await getGoldQuote();
   const initialSpot = priceResult.ok && priceResult.data ? priceResult.data.price : null;
@@ -112,9 +89,9 @@ export default async function ProfitLossPage({ params }: LocaleParams) {
     <ToolPageShell
       locale={locale}
       tool={tool}
-      intro="The gold price rising 10% does not mean you made 10%. Enter what you paid, what you would sell for, and how much you hold to see the return after the costs on both sides."
-      faqs={faqs}
-      mistakes={mistakes}
+      intro={t("intro")}
+      faqs={buildFaqs(t)}
+      mistakes={buildMistakes(t)}
       about={
         <>
           <p>

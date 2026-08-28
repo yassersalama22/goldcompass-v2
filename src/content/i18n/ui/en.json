@@ -107,5 +107,179 @@
     "subscribeHeading": "Get the weekly gold update",
     "subscribeBody": "The latest outlook and market insights in your inbox. Free, and no spam — unsubscribe anytime.",
     "subscribeCta": "Or explore the latest outlook"
+  },
+  "tools": {
+    "goldBreakEven": {
+      "faqs": {
+        "q1": {
+          "question": "How do you calculate the break-even price for gold?",
+          "answer": "Break-even is the purchase spot price multiplied by one plus the dealer premium, divided by one minus the sell-side spread. Buying at $4,000 with a 5% premium and no selling cost means gold must reach $4,200 before you are level. Add a 2% buy-back spread and break-even rises to about $4,286."
+        },
+        "q2": {
+          "question": "Why am I losing money the moment I buy gold?",
+          "answer": "Because you paid above spot and would sell at or below it. The dealer premium covers minting, distribution, and margin, and it is not part of the metal's market value. Until the spot price climbs past your premium, selling would return less than you paid — this is normal for physical gold and is the reason it suits long holding periods."
+        },
+        "q3": {
+          "question": "Does buying a higher karat lower my break-even?",
+          "answer": "No. Purity scales what you paid and what you would receive by exactly the same factor, so it cancels out of the calculation. A 10K buyer and a 24K buyer paying the same percentage premium both need the same percentage rise in the gold price. What lowers break-even is a smaller premium, which usually means larger bars rather than higher karats."
+        },
+        "q4": {
+          "question": "What is a typical dealer premium on gold?",
+          "answer": "Premiums fall roughly as product size rises. Kilogram bars often trade near 1–3% over spot, one-ounce bars around 3–5%, popular bullion coins around 4–8%, and jewellery commonly 10–15% or more because it prices in craftsmanship. Collectible and limited-mintage coins can carry far higher premiums that have little to do with metal content."
+        },
+        "q5": {
+          "question": "Should I include storage and insurance in break-even?",
+          "answer": "If you pay for them, yes — but they behave differently from premiums. A premium is a one-off cost fixed at purchase, whereas storage and insurance accrue each year, so your break-even price rises the longer you hold. This calculator covers the transaction costs; add roughly 0.5–1% per year of holding costs if you use a paid vault."
+        }
+      },
+      "mistakes": {
+        "m1": {
+          "title": "Forgetting the sell side",
+          "body": "Most people budget for the premium they pay and ignore the spread they lose on the way out. Both sit between you and break-even, and a buy-back discount can be as large as the original premium."
+        },
+        "m2": {
+          "title": "Chasing high-premium products for the wrong reason",
+          "body": "Fractional coins and small bars carry the steepest premiums per ounce. They are convenient and easy to sell in pieces, but the gold price has to travel considerably further before you are even."
+        },
+        "m3": {
+          "title": "Thinking a higher karat gets you there faster",
+          "body": "Purity cancels out of break-even entirely. The percentage move required is set by your costs, not by the alloy you chose."
+        },
+        "m4": {
+          "title": "Comparing break-even against a headline price you cannot get",
+          "body": "The quoted spot price is a wholesale benchmark. What a retail buy-back actually pays is a little below it, which is what the sell-side spread input is for."
+        }
+      },
+      "intro": "Buying physical gold starts you below water: you pay above spot and sell at or below it. This works out exactly how far the gold price has to move before you have your money back."
+    },
+    "goldKaratPrice": {
+      "faqs": {
+        "q1": {
+          "question": "How much is 18K gold worth per gram?",
+          "answer": "18K gold is 75% pure (750 fine), so a gram of it is worth 75% of a gram of pure gold. Divide the spot price per troy ounce by 31.1035 to get the price per gram of pure gold, then multiply by 0.75. This calculator does that for every karat at the current live gold price."
+        },
+        "q2": {
+          "question": "What does the karat number actually mean?",
+          "answer": "Karat measures how many parts out of 24 are gold. 24K is pure gold, 18K is 18 parts gold and 6 parts other metals (75%), 14K is 58.3%, and 10K is 41.7%. The remaining metal is usually copper, silver, or zinc, added for hardness and colour. Karat describes purity, not weight or quality of workmanship."
+        },
+        "q3": {
+          "question": "What is the difference between karat and fineness?",
+          "answer": "They express the same thing on different scales. Fineness is parts per thousand, so 18K (75% gold) is stamped 750, 14K is 585 or 583, and 24K is 999 or 999.9. European and modern jewellery is usually stamped with fineness; the karat mark is more common in the United States."
+        },
+        "q4": {
+          "question": "Will a dealer pay me the melt value of my gold?",
+          "answer": "No. Melt value is what the metal in an item is worth, and it is the ceiling, not the offer. Scrap buyers typically pay somewhere between 70% and 90% of melt, keeping the difference to cover refining, assay, and margin. Getting quotes from more than one buyer is the practical way to see where you sit in that range."
+        },
+        "q5": {
+          "question": "Does the calculator account for gemstones or non-gold parts?",
+          "answer": "It does not. It values the weight you enter as if all of it were gold alloy of the karat you select. For a ring with stones, or a piece with a steel clasp or spring, weigh only the gold portion or expect the true value to be lower than the figure shown."
+        }
+      },
+      "mistakes": {
+        "m1": {
+          "title": "Weighing in the wrong ounce",
+          "body": "Gold is priced in troy ounces (31.1035 g), not the kitchen-scale ounce (28.35 g). A troy ounce is about 10% heavier, so using the wrong one understates your gold by roughly a tenth."
+        },
+        "m2": {
+          "title": "Treating melt value as the price a dealer will pay",
+          "body": "Melt value is the metal content only. A scrap buyer pays below it, and a retailer selling you the same gold charges above it. The gap on both sides is the dealer's margin."
+        },
+        "m3": {
+          "title": "Trusting an unclear hallmark",
+          "body": "A worn or missing stamp is not proof of purity, and plated items can carry marks that look convincing. If the value matters, have the piece tested before you rely on any number here."
+        },
+        "m4": {
+          "title": "Including stones and findings in the weight",
+          "body": "Gemstones, clasps, and pins are usually not gold. Weighing the whole item inflates the result, sometimes substantially on stone-set jewellery."
+        }
+      },
+      "intro": "Gold is quoted as one price per troy ounce of pure metal, but almost nothing you own is pure. Enter a weight and a karat to see what the gold in it is actually worth."
+    },
+    "goldProfitLoss": {
+      "faqs": {
+        "q1": {
+          "question": "How do I calculate profit on physical gold?",
+          "answer": "Work out the pure gold content of your holding in troy ounces, multiply by your purchase price plus the premium you paid to get your cost, then multiply the same content by the selling price minus any buy-back spread to get your proceeds. Profit is proceeds minus cost. The percentage return is that profit divided by what you originally paid, not by the metal's market value."
+        },
+        "q2": {
+          "question": "Why is my return lower than the gold price rise?",
+          "answer": "Because you bought above spot and sold below it. If gold rose 10% but you paid a 5% premium and lost 2% on the buy-back, roughly 7 points of that move went to covering transaction costs, leaving about 3%. The gap between the headline move and your return is the round-trip cost, and it shrinks in importance the longer you hold."
+        },
+        "q3": {
+          "question": "Does this calculator include tax?",
+          "answer": "No. Tax treatment of gold varies widely — many jurisdictions treat physical bullion as a collectible or as a capital asset with its own rate, and some exempt certain legal-tender coins entirely. The figures here are pre-tax, and the after-tax outcome depends on your jurisdiction and holding period. Speak to a qualified tax adviser."
+        },
+        "q4": {
+          "question": "How should I account for a purchase made in several lots?",
+          "answer": "Use your weighted average purchase price as the buy price and the total quantity as the amount. If the lots carried very different premiums, running them separately and adding the results is more accurate, since the premium is applied to each lot's own cost."
+        },
+        "q5": {
+          "question": "Should I use spot price or the price I actually paid?",
+          "answer": "Enter the spot price at the time of each transaction and let the premium and spread inputs handle the costs — that way the calculator can show you the break-even and separate the market move from the friction. If you only remember the total you handed over, set the premium to zero and enter that all-in price per ounce instead."
+        }
+      },
+      "mistakes": {
+        "m1": {
+          "title": "Measuring return against the metal's value instead of what you paid",
+          "body": "Dividing profit by the current market value flatters the result. Your return is profit divided by your actual outlay, premium included."
+        },
+        "m2": {
+          "title": "Ignoring the premium on the way in",
+          "body": "Comparing your buy price to today's spot and calling the difference profit skips the cost that made you unprofitable on day one."
+        },
+        "m3": {
+          "title": "Using item weight instead of pure gold content",
+          "body": "A 100 g 14K bracelet contains 58.3 g of gold. Valuing all 100 g at the gold price overstates the position by roughly 70%."
+        },
+        "m4": {
+          "title": "Forgetting holding costs on long positions",
+          "body": "Vault storage and insurance accrue every year you hold. They do not appear here, and over a decade they can consume a meaningful slice of the gain."
+        }
+      },
+      "intro": "The gold price rising 10% does not mean you made 10%. Enter what you paid, what you would sell for, and how much you hold to see the return after the costs on both sides."
+    },
+    "goldUnitConverter": {
+      "faqs": {
+        "q1": {
+          "question": "How many grams are in a troy ounce of gold?",
+          "answer": "One troy ounce is 31.1035 grams. This is the unit gold is priced in worldwide, and it is heavier than the everyday avoirdupois ounce used for food and post, which is 28.3495 grams."
+        },
+        "q2": {
+          "question": "Why is gold weighed in troy ounces instead of normal ounces?",
+          "answer": "The troy system is a medieval standard for precious metals that survived the switch to avoirdupois for general goods. Because bullion markets, refiners, and futures contracts all standardised on it, gold quotes stayed in troy ounces. The practical consequence is that a troy ounce of gold is about 10% heavier than an ounce of anything else."
+        },
+        "q3": {
+          "question": "What is a tola and where is it used?",
+          "answer": "A tola is 11.6638 grams, a traditional South Asian unit still in everyday use for gold in India, Pakistan, Bangladesh, and the Gulf. Bars are commonly cast in 10-tola sizes, which is why a 116.64 g bar is a standard product rather than an odd one."
+        },
+        "q4": {
+          "question": "What is a pennyweight?",
+          "answer": "A pennyweight (dwt) is 1.55517 grams, or one twentieth of a troy ounce. North American scrap-gold buyers and some jewellers quote in pennyweight, so an offer 'per dwt' is per 1.56 g — a smaller unit than a gram buyer might assume."
+        },
+        "q5": {
+          "question": "Does purity change the weight conversion?",
+          "answer": "No. Ten grams is ten grams whether the item is 10K or 24K, so the weight columns do not move when you change purity. What purity changes is value: a gram of 14K gold contains 0.583 g of pure gold, so it is worth 58.3% of what a gram of pure gold is worth."
+        }
+      },
+      "mistakes": {
+        "m1": {
+          "title": "Confusing troy ounces with ordinary ounces",
+          "body": "The two differ by about 10%. Selling 10 'ounces' priced as avoirdupois when you actually hold troy ounces gives away roughly a full ounce of gold."
+        },
+        "m2": {
+          "title": "Comparing a per-gram quote to a per-pennyweight quote",
+          "body": "A dealer quoting per dwt is quoting per 1.555 g. A price that looks higher per unit can be the lower offer once both are converted to the same basis."
+        },
+        "m3": {
+          "title": "Assuming a kilo bar is 32 troy ounces",
+          "body": "A 1 kg bar is 32.15 troy ounces. Rounding it to 32 quietly loses about half an ounce of gold, which is not a rounding error at bullion prices."
+        },
+        "m4": {
+          "title": "Reading a converted value as an offer price",
+          "body": "The values here are pure metal content at spot. What you actually pay or receive includes a dealer premium or spread on top."
+        }
+      },
+      "intro": "Gold trades in troy ounces, is sold by the gram, and is bought by the tola or pennyweight depending where you are. Convert between all of them — and see what each is worth right now."
+    }
   }
 }

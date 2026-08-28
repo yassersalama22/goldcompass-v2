@@ -1608,3 +1608,27 @@ Match the current site's look and feel:
   - Self-test is now **14 fixtures**; `i18n:check` also validates catalog key parity and staleness.
   - **Next**: extract the ~133 remaining strings into the catalog (English only), then run
     `TRANSLATE_ONLY=catalog npm run i18n:translate` and review the Arabic. Then Phase E.
+- 2026-08-28: **Tool-page copy extracted to the catalog** (76 strings across the four calculators:
+  5 FAQ Q&A pairs, 4 "common mistakes", and an intro each). English rendering verified unchanged.
+  - **The FAQ JSON-LD ↔ visible-text constraint survived, and is now enforced by a script.**
+    `ToolPageShell` still receives ONE array, built from the catalog and both rendered and passed to
+    `faqSchema()`. **`npm run check:faq`** (`scripts/check-faq-parity.mjs`) fetches each tool page,
+    parses the JSON-LD and asserts every question and answer appears in the visible text: **40/40**.
+    Google treats marked-up FAQ content that a reader cannot see as a structured-data violation, so
+    this is a correctness gate, not tidiness.
+  - **⚠ `JsonLd` emits ONE `<script>` containing an ARRAY of schemas**, not one script per schema.
+    Two successive probe versions reported "NO FAQPage" against a page whose markup was perfectly
+    fine, because they looked for a top-level `@type` on each parsed block. `.flat()` the parsed
+    result. Worth remembering before concluding that structured data is missing.
+  - **Missing catalog keys are an error only for a *routed* locale**, a warning otherwise. A key
+    missing in a language nobody can reach cannot affect a visitor; failing CI over it would force
+    English extraction and its translation into one commit, which is the coupling the per-key
+    freshness model exists to avoid. It escalates to an error automatically the moment the locale is
+    enabled — exactly when a silent fallback to English would start reaching readers. Verified both
+    ways.
+  - **Arabic for these 76 strings is NOT written yet.** Mock output was deliberately not committed
+    (same rule as the generators). Produce it with
+    `TRANSLATE_LOCALE=ar TRANSLATE_ONLY=catalog npm run i18n:translate` and a real
+    `ANTHROPIC_API_KEY`, then review — it goes through the glossary and every `i18n:check` rule,
+    which is the entire reason the catalog was made pipeline-translatable first.
+  - **Still to extract**: `/methodology` (~39 strings) and `/ai-disclosure` (~22).

@@ -15,7 +15,8 @@
     "outlook:publish": "tsx scripts/publish-outlook.mts",
     "articles:generate": "tsx scripts/generate-article.mts",
     "articles:publish": "tsx scripts/publish-article.mts",
-    "brand:assets": "tsx scripts/generate-brand-assets.mts"
+    "brand:assets": "tsx scripts/generate-brand-assets.mts",
+    "check:faq": "node scripts/check-faq-parity.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.105.0",

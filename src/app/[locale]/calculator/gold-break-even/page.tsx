@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { withLocaleMetadata, type LocaleParams } from "@/lib/seo";
 import { Link } from "@/i18n/navigation";
@@ -33,52 +33,28 @@ const pageMetadata: Metadata = {
   },
 };
 
-const faqs: ToolFaq[] = [
-  {
-    question: "How do you calculate the break-even price for gold?",
-    answer:
-      "Break-even is the purchase spot price multiplied by one plus the dealer premium, divided by one minus the sell-side spread. Buying at $4,000 with a 5% premium and no selling cost means gold must reach $4,200 before you are level. Add a 2% buy-back spread and break-even rises to about $4,286.",
-  },
-  {
-    question: "Why am I losing money the moment I buy gold?",
-    answer:
-      "Because you paid above spot and would sell at or below it. The dealer premium covers minting, distribution, and margin, and it is not part of the metal's market value. Until the spot price climbs past your premium, selling would return less than you paid — this is normal for physical gold and is the reason it suits long holding periods.",
-  },
-  {
-    question: "Does buying a higher karat lower my break-even?",
-    answer:
-      "No. Purity scales what you paid and what you would receive by exactly the same factor, so it cancels out of the calculation. A 10K buyer and a 24K buyer paying the same percentage premium both need the same percentage rise in the gold price. What lowers break-even is a smaller premium, which usually means larger bars rather than higher karats.",
-  },
-  {
-    question: "What is a typical dealer premium on gold?",
-    answer:
-      "Premiums fall roughly as product size rises. Kilogram bars often trade near 1–3% over spot, one-ounce bars around 3–5%, popular bullion coins around 4–8%, and jewellery commonly 10–15% or more because it prices in craftsmanship. Collectible and limited-mintage coins can carry far higher premiums that have little to do with metal content.",
-  },
-  {
-    question: "Should I include storage and insurance in break-even?",
-    answer:
-      "If you pay for them, yes — but they behave differently from premiums. A premium is a one-off cost fixed at purchase, whereas storage and insurance accrue each year, so your break-even price rises the longer you hold. This calculator covers the transaction costs; add roughly 0.5–1% per year of holding costs if you use a paid vault.",
-  },
-];
+/**
+ * Copy lives in the UI catalog under `tools.goldBreakEven.*` so it is pipeline-translated
+ * with the glossary applied, rather than hand-written per locale.
+ *
+ * ⚠ The same array is rendered visibly AND passed to `faqSchema()` by
+ * `ToolPageShell`. Google requires FAQ markup to match what a reader sees, so it
+ * must stay ONE array built from ONE source — never two lists that can drift.
+ */
+function buildFaqs(t: (key: string) => string): ToolFaq[] {
+  return Array.from({ length: 5 }, (_, i) => ({
+    question: t(`faqs.q${i + 1}.question`),
+    answer: t(`faqs.q${i + 1}.answer`),
+  }));
+}
 
-const mistakes = [
-  {
-    title: "Forgetting the sell side",
-    body: "Most people budget for the premium they pay and ignore the spread they lose on the way out. Both sit between you and break-even, and a buy-back discount can be as large as the original premium.",
-  },
-  {
-    title: "Chasing high-premium products for the wrong reason",
-    body: "Fractional coins and small bars carry the steepest premiums per ounce. They are convenient and easy to sell in pieces, but the gold price has to travel considerably further before you are even.",
-  },
-  {
-    title: "Thinking a higher karat gets you there faster",
-    body: "Purity cancels out of break-even entirely. The percentage move required is set by your costs, not by the alloy you chose.",
-  },
-  {
-    title: "Comparing break-even against a headline price you cannot get",
-    body: "The quoted spot price is a wholesale benchmark. What a retail buy-back actually pays is a little below it, which is what the sell-side spread input is for.",
-  },
-];
+function buildMistakes(t: (key: string) => string) {
+  return Array.from({ length: 4 }, (_, i) => ({
+    title: t(`mistakes.m${i + 1}.title`),
+    body: t(`mistakes.m${i + 1}.body`),
+  }));
+}
+
 
 export async function generateMetadata({
   params,
@@ -90,6 +66,7 @@ export async function generateMetadata({
 export default async function BreakEvenPage({ params }: LocaleParams) {
   const { locale } = await params;
   setRequestLocale(locale);
+  const t = await getTranslations(`tools.goldBreakEven`);
 
   const priceResult = await getGoldQuote();
   const initialSpot = priceResult.ok && priceResult.data ? priceResult.data.price : null;
@@ -102,9 +79,9 @@ export default async function BreakEvenPage({ params }: LocaleParams) {
     <ToolPageShell
       locale={locale}
       tool={tool}
-      intro="Buying physical gold starts you below water: you pay above spot and sell at or below it. This works out exactly how far the gold price has to move before you have your money back."
-      faqs={faqs}
-      mistakes={mistakes}
+      intro={t("intro")}
+      faqs={buildFaqs(t)}
+      mistakes={buildMistakes(t)}
       about={
         <>
           <p>Break-even has two costs in it, one on each side of the trade:</p>
