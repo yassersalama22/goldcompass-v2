@@ -1631,4 +1631,14 @@ Match the current site's look and feel:
     `TRANSLATE_LOCALE=ar TRANSLATE_ONLY=catalog npm run i18n:translate` and a real
     `ANTHROPIC_API_KEY`, then review — it goes through the glossary and every `i18n:check` rule,
     which is the entire reason the catalog was made pipeline-translatable first.
-  - **Still to extract**: `/methodology` (~39 strings) and `/ai-disclosure` (~22).
+  - **⚠ `/methodology` and `/ai-disclosure` need RICH-TEXT messages, not plain ones.** Measured
+    before starting: `/methodology` has **10 plain paragraphs and 10 containing inline `<Link>`,
+    `<strong>` or `<em>`**. Extracting only the arrays, headings and plain paragraphs would leave
+    the page half-translatable — and worse, the catalog parity check would then *pass* while an
+    Arabic reader still saw English paragraphs. **Do not start it that way.**
+    Use next-intl's `t.rich()` (confirmed available in `use-intl`'s `createTranslator`): the message
+    carries its own markup, e.g. `"… the 30-day chart on our <trends>trends page</trends> — is
+    fetched from a market data source."`, with the tag supplied as a render function. Keeping each
+    paragraph as ONE string is not a convenience: splitting at a `<strong>` boundary hands the
+    translator sentence fragments that cannot be reordered for Arabic word order, which is exactly
+    how a translation ends up grammatical in pieces and wrong as a whole.
