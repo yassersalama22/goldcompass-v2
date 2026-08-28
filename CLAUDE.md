@@ -1642,3 +1642,55 @@ Match the current site's look and feel:
     paragraph as ONE string is not a convenience: splitting at a `<strong>` boundary hands the
     translator sentence fragments that cannot be reordered for Arabic word order, which is exactly
     how a translation ends up grammatical in pieces and wrong as a whole.
+- 2026-08-28: **First real catalog translation run (76 tool-page strings) + catalog gate hardened.**
+  Arabic still `enabled: false`; nothing reached visitors. No new dependencies.
+  - **Per-key freshness proved itself on real output**: `76 translated, 71 left untouched`, and the
+    71 previously reviewed strings verified **byte-identical key-by-key** afterwards. This is the
+    behaviour the sibling `ui/<locale>.meta.json` exists for; it is now demonstrated, not assumed.
+  - **⚠ `generateJson` had to move to streaming, and this will bite any large batch.** The SDK
+    **refuses a non-streaming request whose predicted duration exceeds 10 minutes**, and that
+    prediction scales with `max_tokens` — so the 76-key batch at `maxTokens: 32000` was rejected
+    *before it was ever sent* (`AnthropicError: Streaming is required for operations that may take
+    longer than 10 minutes`). Fix: `client.messages.stream(...).finalMessage()`. Callers still see
+    one whole `Message`, so nothing downstream changed. **Do not "fix" a recurrence by lowering
+    `max_tokens`** — that sizes the work to an SDK guard instead of to the job.
+  - **⚠ The per-string content rules did NOT apply to catalogs, and the hole was real.** They were
+    artifact-only on the assumption that a catalog holds short UI labels. That stopped being true
+    the moment the tool copy moved in: the catalog now asserts a troy ounce is **31.1035** grams.
+    **Probed it before fixing it** — a fabricated *"99.9999 grams"* substituted into a FAQ answer
+    was reported `ok` by the gate. `checkCatalogParity` now also runs numeral parity, the
+    Arabic-Indic digit ban, placeholder parity, and corpus-wide glossary compliance. (Note the
+    2026-08-28 claim that placeholder parity covered "artifact or catalog" was aspirational — the
+    catalog half landed here.)
+  - **⚠ Catalog numerals are judged by PRECISION, not strict equality — strict equality is wrong
+    here.** Two false positives on the very first run, both correct Arabic: `"a 30-day chart"` →
+    `"رسم بياني لثلاثين يومًا"` and `"A 1 kg bar"` → `"سبيكة الكيلوغرام الواحد"`. Prose spells small
+    round numbers as words. So: a **changed or invented** number is always an error; a **dropped**
+    one is an error when it carries a decimal separator or has ≥3 digits (a precise constant nobody
+    spells out — 31.1035, 32.15, 4,283.61), and a warning otherwise. Nothing precise can hide in
+    that exemption. Artifacts keep strict equality — their prose is market analysis, not UI copy.
+  - Five catalog self-test fixtures added (fabricated number, dropped precise constant,
+    Arabic-Indic digits, dropped `%s`, plus a clean baseline). Self-test is now **17**.
+  - **Glossary compliance surfaced 5/39 misses — all inflection, none a terminology error.** The
+    matcher is case-insensitive **substring**, which cannot see Arabic morphology: `signal` →
+    `إشارات` (plural; the entry lists `إشارة`), `buy-back spread` → `فارق إعادة شراء` (indefinite;
+    entry is definite `فارق إعادة الشراء`), `outlay` → `مبلغك المدفوع` (possessive), `long-term` →
+    the coordinated `على المدى القصير والطويل`, `coin` → `عملات الذهب` (idafa). Several are in
+    strings the **owner already reviewed**, so the `variants` lists are incomplete rather than the
+    translations wrong. Warning severity is correct. **Fix by adding variants, not by rewording
+    good Arabic** — and that is the owner's call, terminology being decided in the glossary.
+  - Verified: `tsc` ✓, `eslint` ✓, `next build` (en+ar) ✓, `i18n:check` **0 errors** / 2 warnings
+    (both the spelled-out numbers above), self-test **17/17**, `check:faq` **40/40 English and
+    40/40 Arabic** with Arabic present in the FAQ JSON-LD, `check:rtl` **22/22, 0 axe violations,
+    0 console errors**, `check:markdown` **37/37**. `ui/en.json` untouched, so English rendering is
+    unchanged by construction.
+  - **⚠ Local standalone testing trap that wasted two probes**: `/ar/*` returned **404** twice. Neither
+    was a routing bug. ① `NEXT_PUBLIC_LOCALES_ENABLED` must be set for the **running server** as well
+    as the build — the runtime registry decides which locales route, so an env-less `node server.js`
+    404s every `/ar` path against a build that prerendered them. ② The second 404 was `EADDRINUSE`
+    in the server log: `pkill -f "node server.js"` did not kill the first instance, so the new one
+    never bound and curl kept hitting the old one. Use `lsof -ti:PORT | xargs kill -9`, and **read
+    the server log before believing a 404**.
+  - **Still open**: the 76 Arabic tool strings need the owner's native review (they went through the
+    glossary and every `i18n:check` rule, but no human has read them); `/methodology` (~39 strings)
+    and `/ai-disclosure` (~22) still need `t.rich()` extraction; then Phase E.
