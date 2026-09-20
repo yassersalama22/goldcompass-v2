@@ -1,15 +1,15 @@
 {
   "contractVersion": 1,
-  "date": "2026-09-18",
-  "updatedAt": "2026-09-18T10:43:50.247Z",
+  "date": "2026-09-20",
+  "updatedAt": "2026-09-20T10:48:28.645Z",
   "origin": "generated",
   "status": "published",
-  "summary": "Gold trades at $4,374/oz, up 1.36% today but down 2.68% over 30 days after slipping from ~$4,495. The macro tug-of-war is clear: a softer broad dollar (-0.91) helps, but rising 10-year real yields (2.68%, +0.24pp) are a stiffer headwind. Price is holding the lower third of its monthly range. We favor HOLD short-term (consolidation, yield pressure) and BUY long-term (resilience near records signals durable demand).",
+  "summary": "Gold sits near $4,360/oz, essentially flat on the day but down about 5.2% over the past month after the Federal Reserve raised rates for the first time in three years and signaled another hike may come by year-end. Rising real yields are a genuine headwind, but a weaker broad dollar plus record central-bank buying and returning ETF inflows are cushioning the correction. We favor HOLD short-term and BUY long-term.",
   "spot": {
-    "price": 4374.3,
+    "price": 4360.44,
     "currency": "USD",
-    "asOf": "2026-09-18T10:40:20.000Z",
-    "changePct": 1.3620619602066877
+    "asOf": "2026-09-20T10:44:50.000Z",
+    "changePct": -0.10765285697764936
   },
   "macro": {
     "indicators": [
@@ -25,19 +25,19 @@
       {
         "key": "real10y",
         "label": "10-year real yield",
-        "value": 2.68,
+        "value": 2.61,
         "unit": "percent",
-        "change30d": 0.24,
-        "asOf": "2026-09-16",
+        "change30d": 0.2,
+        "asOf": "2026-09-17",
         "goldEffect": "headwind"
       },
       {
         "key": "nominal10y",
         "label": "10-year Treasury yield",
-        "value": 5.01,
+        "value": 4.94,
         "unit": "percent",
-        "change30d": 0.29,
-        "asOf": "2026-09-16",
+        "change30d": 0.23,
+        "asOf": "2026-09-17",
         "goldEffect": "headwind"
       },
       {
@@ -45,13 +45,13 @@
         "label": "10-year inflation breakeven",
         "value": 2.33,
         "unit": "percent",
-        "change30d": 0.05,
-        "asOf": "2026-09-16",
+        "change30d": 0.03,
+        "asOf": "2026-09-17",
         "goldEffect": "tailwind"
       }
     ],
     "source": "Source: FRED, Federal Reserve Bank of St. Louis (Board of Governors; U.S. Treasury)",
-    "fetchedAt": "2026-09-18T10:42:21.281Z"
+    "fetchedAt": "2026-09-20T10:47:15.450Z"
   },
   "calls": [
     {
@@ -60,8 +60,8 @@
       "horizon": "Next 1–4 weeks",
       "signal": "HOLD",
       "confidence": "medium",
-      "reason": "Gold bounced 1.36% today but sits in the lower third of its 30-day range after a 2.68% monthly pullback, and rising 10-year real yields (2.68%, +0.24pp) cap near-term upside even as a softer broad dollar cushions the downside. With drivers pulling in opposite directions, this looks like consolidation rather than a fresh trend. Wait for confirmation before adding.",
-      "invalidation": "A decisive close above ~$4,500 would flip us bullish; a sustained break below the 30-day low of $4,273 would turn us defensive/bearish."
+      "reason": "The Fed's hawkish September hike pushed the 10-year real yield up to 2.61% (+0.20pp over 30 days), raising the opportunity cost of holding a non-yielding asset and driving gold's ~5% monthly pullback. Yet the correction has stalled above $4,300 as ETF inflows and central-bank demand provide a floor, and a slightly softer broad dollar helps. That tug-of-war argues for patience rather than chasing.",
+      "invalidation": "A sustained daily close below ~$4,273 (the 30-day low) or another leg higher in real yields would flip the near-term view to SELL; a decisive close back above ~$4,470 with easing yields would argue for BUY."
     },
     {
       "term": "long",
@@ -69,30 +69,30 @@
       "horizon": "Next 3–12 months",
       "signal": "BUY",
       "confidence": "medium",
-      "reason": "Gold is holding near $4,374 despite historically restrictive real yields (2.68%) and 5.01% 10-year Treasuries, which signals strong underlying demand that is not yield-driven. A softening broad dollar and the prospect of real yields eventually normalizing lower argue for accumulating dips. We view pullbacks toward the low-$4,300s/$4,270s as long-term entry zones.",
-      "invalidation": "A sustained monthly close below $4,273, or 10-year real yields grinding toward 3% while the dollar stabilizes/strengthens, would undermine the bullish thesis."
+      "reason": "The structural bid is intact: central banks are still net buyers on a multi-year de-dollarization logic, and gold-backed ETFs saw one of their largest monthly inflows on record in August. Major-bank year-end and 2027 targets cluster at or above today's price, and the current level represents a sizable discount to January's record within an ongoing bull trend.",
+      "invalidation": "A durable central-bank pivot to net selling, a sustained surge in real yields well above 3%, or a decisive breakdown below the ~$4,000 structural support zone would invalidate the constructive long-term case."
     }
   ],
   "keyLevels": [
     {
       "label": "Spot (XAU/USD)",
-      "value": "$4,374",
+      "value": "$4,360",
       "emphasis": true
     },
     {
-      "label": "30-day high",
-      "value": "$4,672",
-      "emphasis": false
-    },
-    {
-      "label": "30-day low / support",
+      "label": "30-day low (support)",
       "value": "$4,274",
       "emphasis": true
     },
     {
-      "label": "Resistance (1-month-ago level)",
-      "value": "$4,495",
+      "label": "30-day high (resistance)",
+      "value": "$4,672",
       "emphasis": false
+    },
+    {
+      "label": "10-yr real yield",
+      "value": "2.61% (+0.20pp/30d)",
+      "emphasis": true
     },
     {
       "label": "Broad dollar index",
@@ -100,16 +100,48 @@
       "emphasis": false
     },
     {
-      "label": "10-yr real yield",
-      "value": "2.68% (+0.24pp/30d)",
-      "emphasis": true
+      "label": "Approx. 200-day MA",
+      "value": "~$4,340",
+      "emphasis": false
     }
   ],
-  "analysisMarkdown": "## Market Overview\n\nGold is changing hands at **$4,374.30 per ounce**, up **1.36% on the day** but down **2.68% over the past 30 days**, having eased from roughly **$4,494.80** a month ago. Over that window it swung between a low of **$4,273.73** and a high of **$4,672.31**, so today's price sits in the **lower third of its monthly range**. In plain terms: gold remains at historically elevated levels, but the recent trend has been a modest pullback and consolidation rather than a breakout.\n\n## Key Drivers\n\nFor gold, the two most important macro levers are the **US dollar** and the **10-year real (inflation-adjusted) yield**. Right now they are pulling in opposite directions:\n\n- **The dollar is a mild tailwind.** The Federal Reserve's trade-weighted **broad dollar index** stands at **118.21, down 0.91 over 30 days**. A softer dollar makes gold cheaper for holders of other currencies and typically supports the price.\n- **Real yields are a stronger headwind.** The **10-year real yield has risen to 2.68% (+0.24pp)**, while the **nominal 10-year Treasury yield climbed to 5.01% (+0.29pp)**. Gold pays no income, so when the *real* return on safe government bonds rises, the opportunity cost of holding gold increases — a genuine drag.\n- **Inflation expectations are steady.** The **10-year breakeven is 2.33%, up just 0.05pp**, meaning the jump in nominal yields is being driven mostly by *real* yields, not by inflation fears. That combination is normally the least friendly backdrop for gold.\n\nThe striking takeaway is **resilience**: with real yields this restrictive, textbook models would argue for a much deeper decline. Instead gold is only ~2.7% off its month-ago level and still near record territory. That points to robust demand that is **not** yield-sensitive — the kind historically associated with **central-bank reserve buying and geopolitical/hedging demand**. (Note: fresh central-bank, ETF-flow and geopolitical headlines could not be independently verified in this session, so this reading is inferred from price behaviour and the verified macro data rather than from a specific news source.)\n\n## Technical Picture\n\n- **Support:** The **30-day low near $4,274** is the line in the sand. Holding above it keeps the consolidation constructive.\n- **Resistance:** The **~$4,495** area (where price sat a month ago) is the first hurdle; above that, the **$4,672** monthly high is the target.\n- **Momentum:** Today's **+1.36%** bounce from the lower end of the range is encouraging but not yet decisive. Price is essentially mid-consolidation — neither confirming a new leg up nor breaking down.\n\n## Short-Term Outlook (1–4 weeks): HOLD\n\nWith rising real yields capping rallies and a softer dollar cushioning declines, the near-term path looks like **range-bound consolidation**. We would not chase the bounce here. A **daily/weekly close above ~$4,500** would argue for turning tactically bullish; a **break below $4,273** would flip the near-term bias to defensive. Until one of those happens, patience is the higher-probability stance.\n\n## Long-Term Outlook (3–12 months): BUY\n\nThe fact that gold is defending record-adjacent levels **despite** a 2.68% real yield and a 5% 10-year Treasury tells us the structural bid is strong. If real yields eventually ease from today's restrictive levels and the broad dollar continues its gentle slide, gold has room to retest and exceed the **$4,672** high. We therefore treat **dips into the low-$4,300s and toward $4,270** as **accumulation opportunities** for patient investors, using position sizing and staggered entries rather than a single lump-sum buy.\n\n## Risks\n\n- **Real yields grind higher toward 3%.** This is the single biggest threat; it would raise gold's opportunity cost further and likely pressure price below support.\n- **A dollar reversal.** If the broad dollar stops falling and turns higher, an important tailwind disappears.\n- **A break of $4,273.** A sustained move below the monthly low would invalidate the constructive read and open the door to a deeper correction.\n- **Demand fade.** If the non-yield demand currently underpinning price (reserve buying, hedging) cools, gold becomes far more vulnerable to the high-real-yield backdrop.\n\n**Bottom line:** near-term, sit tight and let the range resolve; longer-term, the resilience beneath the surface favours buying weakness — with the $4,273 floor as your risk-management anchor.",
+  "analysisMarkdown": "## Market Overview\n\nGold is trading around **$4,360/oz**, effectively unchanged on the day (-0.11%) but down about **5.2% over the past 30 days**, having slipped from roughly $4,599 a month ago. The metal has carved out a 30-day range of **$4,274 to $4,672**, so today's price sits in the lower third of that band. The proximate trigger for the pullback was the **Federal Reserve's September meeting**, at which policymakers raised the benchmark rate by a quarter point — the first hike in three years — and, via an upgraded dot plot, signaled that another increase is likely before year-end. Gold initially dropped toward the $4,270s before rebounding roughly 2% as investors reassessed positioning.\n\nContext matters here: even after this correction, gold remains far above pre-2026 levels and well off the record highs printed early in the year. In other words, this looks like a correction **within** a longer bull trend rather than the end of one.\n\n## Key Drivers\n\n**Monetary policy and real yields (headwind).** This is the dominant near-term force. The **10-year real yield has climbed to 2.61%, up 0.20 percentage points over 30 days**, while the nominal 10-year Treasury yield rose to **4.94% (+0.23pp)**. Rising real yields increase the opportunity cost of holding gold, which pays no income — historically a reliable drag on the metal. With markets now pricing meaningful odds of a further hike, this headwind is unlikely to disappear in the next few weeks.\n\n**The dollar (mild tailwind).** The Federal Reserve's **broad, trade-weighted dollar index stands at 118.21, down 0.91 over the past 30 days**. A softer dollar makes gold cheaper for non-dollar buyers and typically supports prices. The move is modest, but the direction is helpful and partly offsets the yield headwind. Note this is the broad dollar index, not the narrower ICE dollar gauge.\n\n**Inflation expectations (neutral).** The **10-year inflation breakeven is 2.33%, up only 0.03pp over 30 days** — essentially flat. So the rise in nominal yields is being driven by *real* rates, not inflation expectations, which is the less gold-friendly combination.\n\n**Central-bank demand (structural support).** Official-sector buying remains the backbone of the bull case. Reporting through 2026 points to continued record accumulation — Q2 official buying near 289 tonnes and steady monthly purchases — driven by reserve diversification rather than short-term price views. China has extended a long, multi-month buying streak, and survey data show a large share of central banks expect to keep adding reserves. This is price-insensitive demand that quietly absorbs supply.\n\n**ETF and physical demand (improving).** After being net sellers earlier in the year, Western investors returned in force: the World Gold Council reported one of the largest monthly gold-ETF inflows on record in August, pushing holdings to fresh highs. Asian retail and bar-and-coin demand also remains firm. For the first time in a while, official and private buyers are leaning the same way.\n\n**Geopolitics (elevated but partly priced).** Middle East tensions have kept a risk premium in the market, though recent price action suggests much of the immediate war premium is already discounted; gold has at times *fallen* on Fed repricing even as regional headlines flared.\n\n## Technical Picture\n\nGold is consolidating just above its rising **200-day moving average (around $4,340)** and well below its **50-day average (near $4,730)** — what one major bank aptly described as a technical no-man's-land. The **$4,274 low** is the line in the sand for the near term: holding it keeps the corrective-within-uptrend interpretation alive. On the upside, reclaiming the mid-$4,400s and then the $4,672 monthly high would signal that buyers have regained control. Momentum is soft after the post-Fed drop, which is why we prefer to wait for confirmation rather than anticipate a bottom.\n\n## Short-Term Outlook (1–4 weeks): HOLD\n\nThe near-term setup is a genuine tug-of-war. On one side, a hawkish Fed and rising real yields cap rallies; on the other, resilient demand and a softer dollar cushion dips. With another potential hike hanging over the market, the risk of a retest of the lows is real, but the demand floor makes an aggressive sell equally unattractive. **Holding existing positions and keeping some dry powder** is the balanced stance. A close below $4,274 or a fresh jump in real yields would tilt us bearish; a close back above ~$4,470 with yields easing would tilt us bullish.\n\n## Long-Term Outlook (3–12 months): BUY\n\nOver a 3–12 month horizon, the structural drivers dominate the cyclical noise. Persistent central-bank accumulation, a recovering ETF bid, constrained mine supply, and ongoing geopolitical and fiscal uncertainty all argue for higher prices, and mainstream bank targets for late 2026 and 2027 sit at or above current levels. Today's price is a notable discount to the year's peak. We would treat weakness toward the low-$4,000s to $4,300 as **accumulation opportunities** for patient investors, ideally averaging in rather than committing all at once.\n\n## Risks\n\n- **Real yields keep climbing.** If the Fed hikes again and real yields push toward or above 3%, gold could grind lower even with strong physical demand.\n- **Central banks slow or reverse buying.** A pullback in official-sector demand would remove the single most important structural pillar.\n- **A sharp risk-asset sell-off** can force investors to sell gold to raise cash, causing short, sharp drawdowns.\n- **Geopolitical de-escalation** would drain the risk premium and could pressure prices near-term.\n\nBottom line: patience now, accumulation into weakness over the longer haul.",
   "sources": [
     {
-      "title": "FRED — Federal Reserve Bank of St. Louis (Broad Dollar Index, 10-Yr Real Yield, 10-Yr Treasury, 10-Yr Breakeven)",
-      "url": "https://fred.stlouisfed.org/"
+      "title": "Gold Holds Decline After Fed Tilts Hawkish and Raises Rates — Bloomberg",
+      "url": "https://www.bloomberg.com/news/articles/2026-09-16/gold-holds-decline-after-fed-tilts-hawkish-and-raises-rates"
+    },
+    {
+      "title": "Gold Steadies Below $4,300 as Markets Await Fed Rate Decision — Bloomberg",
+      "url": "https://www.bloomberg.com/news/articles/2026-09-16/gold-steadies-below-4-300-as-markets-await-fed-rate-decision"
+    },
+    {
+      "title": "Gold price today, Thursday, September 17, 2026 — Yahoo Finance",
+      "url": "https://finance.yahoo.com/personal-finance/investing/article/gold-price-today-thursday-september-17-2026-gold-prices-relatively-stable-following-fed-rate-increase-110852391.html"
+    },
+    {
+      "title": "Gold - Price - Chart - Historical Data - News — Trading Economics",
+      "url": "https://tradingeconomics.com/commodity/gold"
+    },
+    {
+      "title": "Gold Price Outlook September 2026: What the Fed's Meeting Means — GoldSilver",
+      "url": "https://goldsilver.com/industry-news/article/gold-price-outlook-september-2026/"
+    },
+    {
+      "title": "Gold Price 2026 Holds — Central Banks Buy the Dip — Discovery Alert",
+      "url": "https://discoveryalert.com/analysis/gold-price-floor-fed-hike-september-2026/"
+    },
+    {
+      "title": "Gold Is Forecast to Climb as Central Banks Buy the Precious Metal — Goldman Sachs",
+      "url": "https://www.goldmansachs.com/insights/articles/gold-is-forecast-to-climb-as-central-banks-buy-the-precious-metal"
+    },
+    {
+      "title": "Gold Price Predictions for 2026 and 2027 — J.P. Morgan Global Research",
+      "url": "https://www.jpmorgan.com/insights/global-research/commodities/gold-prices"
+    },
+    {
+      "title": "Central bank gold statistics: Central banks remain committed to gold — World Gold Council",
+      "url": "https://www.gold.org/goldhub/gold-focus/2026/07/central-bank-gold-statistics-central-banks-remain-committed-gold"
     }
   ]
 }
