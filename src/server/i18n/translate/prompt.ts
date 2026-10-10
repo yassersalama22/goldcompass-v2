@@ -3,7 +3,7 @@ import type { GlossaryEntry } from "@/server/i18n/glossary";
 import type { TranslatableField } from "@/server/i18n/field-map";
 
 /** Bump on any change to the wording below; recorded on every artifact. */
-export const TRANSLATION_PROMPT_VERSION = "2026-08-27.1";
+export const TRANSLATION_PROMPT_VERSION = "2026-10-10.1";
 
 const KIND_RULES: Record<TranslatableField["kind"], string> = {
   title:
@@ -41,6 +41,7 @@ export function buildSystemPrompt(locale: LocaleDef): string {
     "4. NEVER remove information. Every claim, caveat and disclaimer in the source must appear in the translation.",
     "5. NEVER translate a URL, and never change one.",
     "6. Preserve Markdown structure exactly: heading levels, list items, tables, emphasis, and link targets.",
+    "7. Preserve interpolation tokens and inline tags exactly. `{name}` and `%s` are filled in by the site and must appear verbatim. Tags such as `<trends>…</trends>` or `<strong>…</strong>` mark a link or emphasis: keep every tag pair, never rename or translate a tag name, and translate only the words between the tags. You may move a tag pair within the sentence when word order requires it, as long as it still wraps the words with the same meaning.",
     "",
     "## Numerals and currency",
     "",

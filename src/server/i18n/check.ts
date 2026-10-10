@@ -56,9 +56,15 @@ function numerals(text: string): string[] {
  * template). Dropping one is silent and total: a translated `titleTemplate`
  * without its `%s` gives every page on the site the same title, and a lost
  * `{name}` renders the literal word rather than the brand.
+ *
+ * Also covers next-intl rich-text tags (`<trends>…</trends>`, `<strong>…`).
+ * A dropped tag pair is silent too — the link simply vanishes from the
+ * translated page — and a renamed one throws at render time because no render
+ * function exists for it. The translator may move a tag pair within the
+ * sentence (word order requires it), so only the multiset is compared.
  */
 function placeholders(text: string): string[] {
-  return [...(text.match(/\{[a-zA-Z0-9_]+\}|%[sd]/g) ?? [])].sort();
+  return [...(text.match(/\{[a-zA-Z0-9_]+\}|%[sd]|<\/?[a-zA-Z][\w-]*>/g) ?? [])].sort();
 }
 
 function urls(text: string): string[] {

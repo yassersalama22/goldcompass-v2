@@ -133,10 +133,13 @@ function selfTestCatalog(): number {
   const en = {
     tools: { conv: { faq: "A troy ounce is 31.1035 grams, not 28.35." } },
     site: { titleTemplate: "%s | GoldCompass" },
+    page: { rich: "See the chart on our <trends>trends page</trends>, <strong>not</strong> a forecast." },
   };
   const good = {
     tools: { conv: { faq: "الأونصة التروية تساوي 31.1035 غرامًا، وليست 28.35." } },
     site: { titleTemplate: "%s | GoldCompass" },
+    // The link moved within the sentence — legitimate, and must pass.
+    page: { rich: "<strong>ليس</strong> توقعًا: راجع الرسم البياني في <trends>صفحة الاتجاهات</trends>." },
   };
   // Hashes recorded from the current English, so nothing reads as stale.
   const meta = Object.fromEntries(
@@ -162,6 +165,12 @@ function selfTestCatalog(): number {
     }],
     ["a dropped %s in the title template", (c) => {
       (c.site as Record<string, string>).titleTemplate = "GoldCompass";
+    }],
+    ["a dropped rich-text tag pair", (c) => {
+      (c.page as Record<string, string>).rich = "<strong>ليس</strong> توقعًا: راجع الرسم البياني في صفحة الاتجاهات.";
+    }],
+    ["a translated rich-text tag name", (c) => {
+      (c.page as Record<string, string>).rich = "<strong>ليس</strong> توقعًا: راجع الرسم البياني في <اتجاهات>صفحة الاتجاهات</اتجاهات>.";
     }],
   ];
 
