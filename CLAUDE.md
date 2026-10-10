@@ -1694,3 +1694,40 @@ Match the current site's look and feel:
   - **Still open**: the 76 Arabic tool strings need the owner's native review (they went through the
     glossary and every `i18n:check` rule, but no human has read them); `/methodology` (~39 strings)
     and `/ai-disclosure` (~22) still need `t.rich()` extraction; then Phase E.
+- 2026-10-10: **`/methodology` + `/ai-disclosure` translated; real remaining scope measured.**
+  Branch `feat/i18n-page-strings` (merged with main first). Arabic still `enabled: false`.
+  - **Rich-text extraction done** — both pages read `methodology.*` / `aiDisclosure.*` via
+    `t.rich()`; tag renderers shared in **`src/i18n/rich.tsx`** (link tags named by destination, so
+    the catalog never carries a URL). English verified identical to a pre-change build (text,
+    title, description, OG, JSON-LD) — except it **fixed a live bug**: production rendered
+    `broaddollar` (no space after `<em>broad</em>`).
+  - **Tag parity added to the gate** — `placeholders()` in `check.ts` now also counts
+    `<tag>`/`</tag>`; prompt rule 7 + `TRANSLATION_PROMPT_VERSION 2026-10-10.1`; 2 new self-test
+    fixtures (dropped pair, translated tag name).
+  - **🐛 It caught a real defect on the first run**: the translator's `stripHtml` removed every
+    rich-text tag, i.e. **every link on the translated pages**. `stripHtml(text, keepTags)` now keeps
+    only *bare* tags whose names appear in that field's **English source** (`richTagNames()`);
+    attributes, `<script>`, invented tags, and all Markdown paths are still stripped.
+  - **🐛 `src/i18n/messages.ts` never registered `ar`** → every non-render caller (all JSON-LD,
+    Markdown builder) served **English on `/ar/*`**, including an English `FAQPage` under Arabic
+    visible FAQs on `/ar/calculator`. Registered with per-key English fallback (`withFallback`);
+    `i18n:check` now **errors on an unregistered catalog** (verified by unregistering it).
+  - **🐛 `/calculator` emitted FAQPage JSON-LD with NO visible FAQ** — live in English since Phase 5,
+    a Google structured-data violation. Now renders one `faqs` array and passes the same array to
+    `faqSchema()`; `calculatorFaqSchema()` deleted. `check:faq` now covers `/calculator` and takes
+    `FAQ_LOCALES=en,ar` → **96/96**.
+  - Verified: `tsc` ✓ `eslint` ✓ `next build` (en, and en+ar) ✓, `i18n:check` 0 errors / self-test
+    19 ✓, `check:rtl` 24/24 incl. `/ar/ai-disclosure` (0 axe, 0 console errors), `check:markdown` 37/37.
+  - **⚠ The remaining scope is much larger than "two pages".** A text audit of every `/ar` route
+    (Latin-script chunks in rendered HTML) found **hardcoded English chrome across ~20 components**
+    that were never extracted: home sections (hero, recommendations, features, insights, CTA),
+    outlook page chrome (key levels, calls, confidence meter, macro panel, methodology box),
+    `SignalBadge` ("Buy signal"), `SubscribeForm`/`SubscribeCta`, theme-toggle aria-label, trends
+    page + ticker + chart labels, insights list/detail chrome + `ArticleCard`, `/calculator` page
+    copy + `config/tools.ts` names/descriptions, `ToolPageShell` (breadcrumbs, "Frequently asked
+    questions", "Common mistakes"), the five calculator client components, `/subscribed`, and
+    page metadata on outlook/trends/insights/calculator. `check:rtl` cannot see any of this — it
+    checks layout, not language. **Content** (outlook body, articles, `/disclaimer`) is separate:
+    that is Phase E backfill.
+  - Next: extract that chrome (in batches by area, English verified unchanged per batch), one
+    pipeline run, then Phase E.
