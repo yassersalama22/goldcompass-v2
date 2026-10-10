@@ -163,20 +163,6 @@ export function methodologyPageSchema(locale: string = DEFAULT_LOCALE) {
   };
 }
 
-/** schema.org FAQPage for the gold calculator page. */
-export function calculatorFaqSchema(locale: string = DEFAULT_LOCALE) {
-  const faq = messages(locale).calculatorFaq;
-  return faqSchema(
-    [
-      { question: faq.q1, answer: faq.a1 },
-      { question: faq.q2, answer: faq.a2 },
-      { question: faq.q3, answer: faq.a3 },
-      { question: faq.q4, answer: faq.a4 },
-    ],
-    locale,
-  );
-}
-
 /**
  * schema.org WebPage for /ai-disclosure. Kept distinct from the methodology
  * schema so the two pages declare different subjects rather than competing for

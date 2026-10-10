@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { loadGlossary, glossaryForText } from "@/server/i18n/glossary";
 import { generateJson, parseEffort } from "@/server/llm/grounded-json";
-import { stripHtml } from "@/server/llm/sanitize";
+import { richTagNames, stripHtml } from "@/server/llm/sanitize";
 import { buildSystemPrompt, buildUserPrompt, TRANSLATION_PROMPT_VERSION } from "./prompt";
 import type { TranslationProvider, TranslationRequest, TranslationResult } from "./provider";
 
@@ -47,9 +47,16 @@ export function createClaudeTranslationProvider(): TranslationProvider {
       );
 
       // Same defense-in-depth as the generators: artifacts stay plain Markdown,
-      // so a model can never put HTML into stored content.
+      // so a model can never put HTML into stored content. The one exception is
+      // a catalog's rich-text tags: a field may keep the bare tags its own
+      // English source carries (stripping them silently deleted every link on
+      // the translated page), and nothing else.
+      const sourceByPath = new Map(fields.map((f) => [f.path, f.value]));
       const sanitized = Object.fromEntries(
-        Object.entries(values).map(([path, text]) => [path, stripHtml(text)]),
+        Object.entries(values).map(([path, text]) => [
+          path,
+          stripHtml(text, richTagNames(sourceByPath.get(path) ?? "")),
+        ]),
       );
 
       return { values: sanitized, model, promptVersion: TRANSLATION_PROMPT_VERSION };

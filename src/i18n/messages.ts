@@ -1,3 +1,4 @@
+import ar from "@/content/i18n/ui/ar.json";
 import en from "@/content/i18n/ui/en.json";
 
 import { DEFAULT_LOCALE } from "@/config/locales";
@@ -16,11 +17,39 @@ import { DEFAULT_LOCALE } from "@/config/locales";
  * locale adds one import and one map entry; they are a few KB of chrome strings,
  * so holding them all in memory is cheaper than the machinery to avoid it.
  */
-const CATALOGS: Record<string, typeof en> = {
+export type UiMessages = typeof en;
+
+/**
+ * Layer a translated catalog over the canonical one, key by key. A key that is
+ * missing from a translation (new English not yet translated) falls back to
+ * English rather than to `undefined` — the same outcome a reader gets in a
+ * rendered page, and it keeps a partial catalog from crashing a schema builder.
+ */
+function withFallback(base: unknown, over: unknown): unknown {
+  if (typeof base !== "object" || base === null || Array.isArray(base)) {
+    return typeof over === typeof base ? over : base;
+  }
+  const o = (typeof over === "object" && over !== null ? over : {}) as Record<string, unknown>;
+  return Object.fromEntries(
+    Object.entries(base).map(([k, v]) => [k, withFallback(v, o[k])]),
+  );
+}
+
+/**
+ * Every catalog in `src/content/i18n/ui/` must be registered here. A locale
+ * missing from this map silently serves ENGLISH from every caller of
+ * `messages()` — which is how `/ar/*` pages shipped English JSON-LD (including
+ * an English FAQPage under Arabic visible FAQs) until 2026-10-10.
+ */
+const CATALOGS: Record<string, UiMessages> = {
   en,
+  ar: withFallback(en, ar) as UiMessages,
 };
 
-export type UiMessages = typeof en;
+/** Whether a locale's catalog is registered above. Checked by `i18n:check`. */
+export function hasCatalog(locale: string): boolean {
+  return locale in CATALOGS;
+}
 
 /** Catalog for a locale, falling back to the canonical one. */
 export function messages(locale: string): UiMessages {

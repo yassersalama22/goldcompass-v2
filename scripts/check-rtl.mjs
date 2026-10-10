@@ -34,6 +34,7 @@ const PAGES = process.env.PAGES
       "/ar/calculator/gold-profit-loss",
       "/ar/about",
       "/ar/methodology",
+      "/ar/ai-disclosure",
       "/",
       "/outlook",
       "/trends",

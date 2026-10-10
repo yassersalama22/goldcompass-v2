@@ -57,7 +57,8 @@
     "a4": "Break-even price = purchase spot price × (1 + dealer premium %). For example, buying at $4,000/oz with a 5% premium means gold must rise to $4,200 before you recover your investment when selling at spot. This calculator is for educational purposes and does not account for storage costs, taxes, or sell-side commissions."
   },
   "page": {
-    "lastUpdated": "Last updated:"
+    "lastUpdated": "Last updated:",
+    "faqHeading": "Frequently asked questions"
   },
   "about": {
     "eyebrow": "About {name}",

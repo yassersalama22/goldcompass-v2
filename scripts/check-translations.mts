@@ -17,6 +17,7 @@ import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 
 import { LOCALES, requireLocale, type LocaleDef } from "@/config/locales";
+import { hasCatalog } from "@/i18n/messages";
 import { checkCatalogParity, checkTranslation, type Finding } from "@/server/i18n/check";
 import {
   articleFields,
@@ -303,15 +304,23 @@ async function checkCatalogs() {
     const meta = (await readJson(
       path.join(CONTENT, "i18n", "ui", `${locale.code}.meta.json`),
     )) as Record<string, string> | null;
-    report(
-      `ui/${locale.code}.json`,
-      checkCatalogParity(
-        canonical,
-        raw as Record<string, unknown>,
-        locale.code,
-        meta ?? {},
-      ),
+    const findings = checkCatalogParity(
+      canonical,
+      raw as Record<string, unknown>,
+      locale.code,
+      meta ?? {},
     );
+    // A catalog file that `messages()` does not know about is served as ENGLISH
+    // to every non-render caller — JSON-LD, Markdown, scripts — while the page
+    // around it renders translated. Silent, and it shipped once.
+    if (!hasCatalog(locale.code)) {
+      findings.unshift({
+        path: `ui/${locale.code}.json`,
+        severity: "error",
+        message: "catalog exists but is not registered in src/i18n/messages.ts (CATALOGS)",
+      });
+    }
+    report(`ui/${locale.code}.json`, findings);
   }
 }
 
