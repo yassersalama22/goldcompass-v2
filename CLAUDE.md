@@ -1608,3 +1608,34 @@ Match the current site's look and feel:
   - Self-test is now **14 fixtures**; `i18n:check` also validates catalog key parity and staleness.
   - **Next**: extract the ~133 remaining strings into the catalog (English only), then run
     `TRANSLATE_ONLY=catalog npm run i18n:translate` and review the Arabic. Then Phase E.
+- 2026-10-19: **Dependency security update** (from an `npm audit` report: 24 advisories, 2 critical).
+  Branch `chore/security-deps-2026-10`. Full audit **24 → 9**, production tree **0**, CI gate green.
+  - **next 16.2.12 → 16.3.8** (+ `eslint-config-next` to match). Fixes RCE in `next/og`
+    `ImageResponse` (we use it for every OG card), two ISR cache-poisoning bugs in self-hosted apps,
+    SSRF in image optimization, and a metadata-image `dynamicParams` disclosure. **16.3.8 chosen over
+    16.4.x deliberately**: it is the first version clearing every Next advisory, and 16.4.x was
+    4–13 days old at the time. `sharp` override `^0.35.0 → ^0.35.5` (libheif/librsvg CVEs).
+    Transitive fixes (undici, proxy-addr, fast-uri, hono, qs, …) via `npm audit fix` (no `--force`).
+    Lock file generated with **npm@10.9.4** per the Phase A deploy trap.
+  - **`shadcn` moved to `devDependencies`.** Its only runtime-adjacent use is
+    `@import "shadcn/tailwind.css"`, compiled at build time like `tailwindcss` (already a devDep);
+    the Docker `deps` stage runs a full `npm ci`, and the runner copies only the standalone output.
+    This is what makes the `--omit=dev` gate pass: every `braces` release is flagged
+    (GHSA-vfj7-8cjw-p6xm, **no fixed version exists**) and it reaches the tree only via the shadcn
+    CLI's `fast-glob`. **Ignore npm's suggested "fix"** (downgrade shadcn to 1.0.0 / eslint-config-next
+    to 14.2.35) — those are majors backwards. The 9 remaining highs are all this dev/build-only chain.
+  - **⚠ Behaviour change in 16.3: a bare `RSC: 1` request now 307s to `?_rsc=…`** (Next forces the
+    cache-busting param, part of the cache-poisoning fix). Browsers always send `_rsc`, so real
+    navigation is unaffected — verified soft nav in headless Chrome on both versions: 0 full reloads,
+    0 console errors, flight responses 200 `text/x-component`. Expect `curl -H "RSC: 1" /` checks
+    (e.g. the 2026-07-28 Cloudflare rule verification) to show a 307 now; add `-L` or `?_rsc=x`.
+  - **⚠ Local smoke-test trap (cost an hour): bind the standalone server to `0.0.0.0` or
+    `localhost`, never `127.0.0.1`, when curling `localhost`.** With `HOSTNAME=127.0.0.1`, Next sees
+    the proxy's same-origin `NextResponse.rewrite()` as cross-origin and *proxies* it; the proxied
+    `/en/…` request re-enters next-intl and 307s back → every page self-redirects and OG images 500
+    ("Failed to proxy … socket hang up"). Looks exactly like a framework regression and **is not** —
+    `main` on 16.2.12 does the same. Production binds `0.0.0.0` (Dockerfile) and is unaffected.
+  - Verified (prod binding): `next build` ✓ with 0 warnings, route table + every ISR window unchanged
+    vs main, `tsc` ✓, `eslint` ✓, `check:markdown` 37/37 ✓, `i18n:check` ✓; standalone serves 200 on
+    all pages, all 3 OG PNGs, RSS, sitemap, llms.txt, `/api/v1/*`, Markdown negotiation; `/en/*`
+    307s; `/api/subscribe` validation 400s.
