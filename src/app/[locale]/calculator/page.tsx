@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { withLocaleMetadata, type LocaleParams } from "@/lib/seo";
 import { Link } from "@/i18n/navigation";
@@ -12,7 +12,7 @@ import { GoldCalculator } from "@/components/calculator/gold-calculator";
 import { Card, CardContent } from "@/components/ui/card";
 import { TOOLS } from "@/config/tools";
 import { getGoldQuote } from "@/server/price";
-import { calculatorFaqSchema } from "@/lib/structured-data";
+import { faqSchema } from "@/lib/structured-data";
 
 export const revalidate = 300; // ISR: refresh spot price every 5 min
 
@@ -43,9 +43,19 @@ export default async function CalculatorPage({ params }: LocaleParams) {
   const priceResult = await getGoldQuote();
   const initialSpot = priceResult.ok && priceResult.data ? priceResult.data.price : null;
 
+  // ONE array, rendered visibly below AND emitted as FAQPage JSON-LD — Google
+  // requires marked-up FAQs to be visible. Until 2026-10-10 this page emitted
+  // the JSON-LD with no visible FAQ at all.
+  const tf = await getTranslations("calculatorFaq");
+  const faqs = ([1, 2, 3, 4] as const).map((n) => ({
+    question: tf(`q${n}`),
+    answer: tf(`a${n}`),
+  }));
+  const tp = await getTranslations("page");
+
   return (
     <>
-      <JsonLd data={calculatorFaqSchema(locale)} />
+      <JsonLd data={faqSchema(faqs, locale)} />
 
       <Container className="py-10 sm:py-14">
         {/* Header */}
@@ -125,6 +135,20 @@ export default async function CalculatorPage({ params }: LocaleParams) {
             <li>1 troy oz = 31.1035 grams. Spot price source: CoinGecko (PAX Gold proxy).</li>
           </ul>
         </div>
+
+        <section aria-labelledby="faq-heading" className="mt-12 space-y-4">
+          <h2 id="faq-heading" className="text-2xl font-bold">
+            {tp("faqHeading")}
+          </h2>
+          <dl className="divide-border divide-y border-t border-b">
+            {faqs.map((faq) => (
+              <div key={faq.question} className="py-4">
+                <dt className="font-semibold">{faq.question}</dt>
+                <dd className="text-muted-foreground mt-2 leading-7">{faq.answer}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
       </Container>
     </>
   );
