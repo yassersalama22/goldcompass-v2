@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { ShieldAlert } from "lucide-react";
 
 import { ConfidenceMeter } from "@/components/market/confidence-meter";
@@ -12,6 +13,7 @@ import {
 import type { OutlookCall } from "@/types/outlook";
 
 export function OutlookCallCard({ call }: { call: OutlookCall }) {
+  const t = useTranslations("outlook.call");
   return (
     <Card className="border-s-gold border-s-4">
       <CardHeader>
@@ -27,7 +29,7 @@ export function OutlookCallCard({ call }: { call: OutlookCall }) {
         {/* Conviction sits on its own row so it reads as a peer of the signal,
             not as metadata trailing the horizon. */}
         <div className="border-border flex items-center justify-between gap-3 border-y py-2.5">
-          <span className="text-muted-foreground text-sm">Conviction</span>
+          <span className="text-muted-foreground text-sm">{t("conviction")}</span>
           <ConfidenceMeter confidence={call.confidence} />
         </div>
         <p className="text-foreground/90 leading-7">{call.reason}</p>
@@ -38,7 +40,7 @@ export function OutlookCallCard({ call }: { call: OutlookCall }) {
               aria-hidden="true"
             />
             <span>
-              <span className="font-medium">What would change our view: </span>
+              <span className="font-medium">{t("invalidation")} </span>
               {call.invalidation}
             </span>
           </p>

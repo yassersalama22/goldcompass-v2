@@ -1762,3 +1762,32 @@ Match the current site's look and feel:
   - Next batches: outlook page chrome (key levels, call card, macro panel, methodology box, page
     metadata), insights (list/kind views/detail chrome), trends, calculator + `ToolPageShell` +
     5 client calculators + `config/tools.ts`, `/subscribed`.
+- 2026-10-22: **i18n chrome batch 2 — `/outlook`.** Merged `main` first (PR #102 had landed; the
+  only conflict was `ar.meta.json`, resolved by taking the branch's copy after verifying it is a
+  strict superset of `main`'s — all 72 of `main`'s hashes matched).
+  - Converted the page (metadata, "Updated … UTC", headings, conviction note → `linkTag(
+    "/methodology#confidence")`, methodology + disclaimer box as rich messages), `OutlookCallCard`
+    ("Conviction", "What would change our view:"), and `MacroPanel` (heading, intro, "as of", 
+    supportive/restrictive, sr text, "30d", "pp", footnote; hardcoded `en-US` date →
+    `formatMediumDate`). English verified **identical** incl. `<head>` metadata and JSON-LD.
+  - **Two RTL bugs found by screenshot, not by any check** (`check:rtl` was green throughout):
+    ① the change line put the Arabic unit (نقطة مئوية) *inside* the `<Num>` LTR isolate, so it
+    was laid out left-to-right with the digits — `formatChange` now returns `{ num, unit }` and only
+    the number is isolated. ② The English provider attribution (`macro.source`, never translated)
+    had its parentheses/semicolon reordered against the Arabic sentence — the footnote is now
+    `<attribution>{source}</attribution>. …` rendered as `<bdi dir="ltr" lang="en">`.
+    **Lesson: when a message embeds a language-neutral or foreign-language value, isolate the
+    value and keep units/words outside the isolate.** Verify ordering by measuring child
+    `getBoundingClientRect()` x-positions — reading a screenshot of mixed-direction text misled me
+    once in this batch.
+  - `/ar/outlook` chrome is clean; `check:untranslated` still lists 76 chunks, **all** artifact
+    content (summary, key-level labels, calls, macro indicator labels, analysis) plus the source
+    titles, which are deliberately never translated.
+  - **⚠ For Phase E — fallback content renders garbled in RTL.** Untranslated English content on an
+    `/ar` page ("10-year real yield") is laid out in the RTL paragraph direction and reads
+    "year real yield-10". Normally the translation ships in the same PR as the content, so this is
+    the rare path — but where `getOutlookFor` / `isArticleTranslated` report a fallback, the
+    content containers should carry `lang="en" dir="ltr"` (also correct for screen readers).
+  - Verified: `check:rtl` 24/24 (0 axe, 0 console errors), `check:markdown` 37/37, `i18n:check`
+    0 errors (25 + 1 keys translated; the freshness gate correctly failed the footnote after its
+    English changed, and it was re-run through the pipeline rather than hand-patched).

@@ -549,5 +549,36 @@
       "generic": "Something went wrong. Please try again.",
       "network": "Network error. Please try again."
     }
+  },
+  "outlook": {
+    "metaTitle": "Gold Market Outlook",
+    "metaDescriptionFallback": "Short-term and long-term gold market outlooks with supporting analysis.",
+    "ogTitle": "Gold Market Outlook · {name}",
+    "updated": "Updated {date} UTC",
+    "heading": "Gold Market Outlook",
+    "keyLevelsHeading": "Key price levels",
+    "callsHeading": "Our recommendations",
+    "convictionNote": "Conviction describes how strongly the evidence supports the call — not how likely the outcome is. <confidence>How we set it</confidence>.",
+    "analysisHeading": "Full analysis",
+    "sourcesHeading": "Sources",
+    "methodologyHeading": "How we form this view",
+    "methodologyBody": "Our outlook combines live market data (spot price and momentum) with analysis of the key macro drivers — the US dollar, real yields, central-bank demand, and positioning. The analysis is AI-drafted on top of that data and reviewed by a human before it publishes; the price figures are fetched from a market data source, never generated. Read our <methodology>full methodology</methodology> for the sources, the review process, and the limitations.",
+    "disclaimer": "This is educational information only and <strong>not financial advice</strong>. See our <disclaimer>full disclaimer</disclaimer>.",
+    "call": {
+      "conviction": "Conviction",
+      "invalidation": "What would change our view:"
+    },
+    "macro": {
+      "heading": "Macro pressure",
+      "intro": "The backdrop this outlook was written against. A stronger dollar and higher real yields are headwinds for gold; rising inflation expectations are a tailwind.",
+      "asOf": "as of <time>{date}</time>",
+      "supportive": "supportive for gold",
+      "restrictive": "restrictive for gold",
+      "srUp": "up {change} over 30 days:",
+      "srDown": "down {change} over 30 days:",
+      "window": "30d",
+      "pp": "pp",
+      "footnote": "<attribution>{source}</attribution>. The dollar figure is the Federal Reserve’s trade-weighted broad dollar index, not the ICE “DXY”. Inflation breakeven is derived as the 10-year Treasury yield minus the 10-year real yield."
+    }
   }
 }
