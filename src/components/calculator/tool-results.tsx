@@ -67,7 +67,10 @@ export function InputsCard({ title, children }: { title: string; children: React
 }
 
 export function ToolGrid({ children }: { children: ReactNode }) {
-  return <div className="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">{children}</div>;
+  // `grid-cols-1` (= minmax(0, 1fr)) below lg: an implicit `auto` column grows to
+  // the min-content width of the results tables and scrolls the whole page
+  // sideways on a phone, instead of the table scrolling inside its wrapper.
+  return <div className="grid grid-cols-1 gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">{children}</div>;
 }
 
 /** Suspense fallback for the tools, which read search params on the client. */

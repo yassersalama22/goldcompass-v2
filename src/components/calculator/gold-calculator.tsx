@@ -96,7 +96,8 @@ export function GoldCalculator({ initialSpot, isStale }: Props) {
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[360px_1fr]">
+    // grid-cols-1 below lg — see ToolGrid: an implicit auto column overflows phones.
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
       {/* ── Inputs ── */}
       <div className="lg:sticky lg:top-20 lg:self-start">
         <Card>
@@ -439,7 +440,7 @@ function ScenariosCard({ results }: { results: CalcResults }) {
                     >
                       {s.pnlUsd >= 0 ? "+" : ""}
                       {fmt.usd(s.pnlUsd)}
-                      <span className="ms-1 text-xs font-normal opacity-75">
+                      <span className="ms-1 text-xs font-normal">
                         ({s.pnlPct >= 0 ? "+" : ""}
                         {s.pnlPct.toFixed(1)}%)
                       </span>
