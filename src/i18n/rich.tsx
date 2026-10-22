@@ -36,4 +36,17 @@ export const richTags = {
   methodology: linkTag("/methodology"),
   aiDisclosure: linkTag("/ai-disclosure"),
   disclaimer: linkTag("/disclaimer"),
+  breakEven: linkTag("/calculator/gold-break-even"),
+  karatPrice: linkTag("/calculator/gold-karat-price"),
+  profitLoss: linkTag("/calculator/gold-profit-loss"),
+  unitConverter: linkTag("/calculator/gold-unit-converter"),
+};
+
+/**
+ * For prose whose `<strong>` inherits the surrounding colour (calculator
+ * explainers, notes) rather than lifting to the foreground colour.
+ */
+export const plainRichTags = {
+  ...richTags,
+  strong: (chunks: ReactNode) => <strong>{chunks}</strong>,
 };

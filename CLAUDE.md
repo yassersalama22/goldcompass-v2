@@ -1833,3 +1833,47 @@ Match the current site's look and feel:
   - Verified: `check:rtl` 24/24 + 12/12 on the insights pages (0 axe, 0 console errors),
     `check:faq` 96/96, `check:markdown` 37/37, `i18n:check` 0 errors (26 keys translated, 340
     untouched). `/ar/insights*` chrome is clean; remaining chunks are article content + source titles.
+- 2026-10-22: **i18n chrome batch 4 — `/trends` + all five calculators. Interface translation is now
+  complete on every routed page** (`check:untranslated` reports 0 chrome chunks on trends +
+  calculators, static and hydrated; what remains site-wide is artifact content → Phase E).
+  - Same structure-vs-copy split as insight kinds: **`config/tools.ts` keeps `slug`/`href`/
+    `messageKey`; names/descriptions live in `tools.<key>` and are read via `toolCopy(def, locale)`**
+    (sync — JSON-LD, Markdown builder, `llms.txt`). Tool-page metadata and the four `about` blocks
+    (formula + worked example with live numbers as pre-formatted string placeholders) are catalog
+    messages too. Calculator UI is under `calc.*`; `lib/calculator.ts` stays pure math — unit and
+    purity labels come from `useUnitOptions()` / `usePurityOptions()` / `useKaratLabel()`
+    (`"18K"` stays the key in data and URLs; Arabic shows `عيار 18`, non-breaking).
+  - **Money inputs follow the locale's currency position** (`useCurrencyAffix()`): `$` prefix in
+    English, `دولار` suffix in Arabic. Ticker times use the registry's `intlLocale`.
+  - **⚠ `SignedUsd` (in `components/market/num.tsx`) for any signed money amount.** `<Num>` around
+    `+4,000.00 دولار` keeps the sign attached but flips the word order for an Arabic reader; only
+    the signed AMOUNT may be isolated, the suffix unit must follow outside it. Verified by measuring
+    `getBoundingClientRect()` (number right of `دولار` in RTL). English output is unchanged
+    (`+$4,000.00`, `$-103.38`). `formatUsdParts()` added to `lib/format.ts` for this.
+  - **⚠ next-intl resolves tags and arguments from ONE values object.** `<breakEven>…</breakEven> —
+    {breakEven}` hands the link tag a string and throws at render. Caught by reading, then made a
+    gate rule (both sides, self-tested in isolation).
+  - **Three pre-existing ENGLISH bugs found because `check:rtl` only ever loaded empty calculators:**
+    ① **mobile horizontal scroll** on `/calculator` and three tool pages once results render
+    (441–461px document width at a 390px viewport) — the grids were `grid lg:grid-cols-[…]`, so
+    below `lg` an implicit `auto` column grew to the results tables' `min-w`. Fixed with
+    `grid-cols-1` (= `minmax(0,1fr)`). ② **contrast**: the P/L `(+x%)` used `opacity-75` on
+    bull/bear → under 4.5:1; opacity removed. ③ **dark-mode contrast** of bear text on the
+    highlighted "Today's spot" row: 4.35:1 → dark `--bear` raised L0.64→0.68 (5.12:1; also lifts the
+    SELL badge 5.17→6.09:1). **`check:rtl` now loads six results-state URLs by default** (36
+    combinations) — that is the state where all three lived.
+  - **Signed percentages in calculator tables/lines now use `<Num>`** (they rendered `20%-` and
+    `%5.0+` in Arabic). Two English result lines (`Gold must rise +x% …`, `… return on a $X
+    outlay`) now wrap as one sentence instead of separate flex items — same text, slightly tighter.
+  - English verified: static HTML of `/trends` + 5 calculator pages identical (digits masked — the
+    live spot moves between builds); hydrated DOM text identical (same masking; whitespace differs
+    only where `<Num>` is inline-block); `llms.txt` byte-identical; `check:markdown` 37/37.
+    `check:rtl` 36/36 (0 axe, 0 console errors), `check:faq` 96/96, `i18n:check` 0 errors
+    (238 + 2 keys translated, existing untouched).
+  - **Arabic for review**: `{unit} خالص` lacks gender agreement with `أونصة` (feminine); `ozt`/`oz`/
+    `dwt` short units kept Latin; "stale" → `قديم`; formulas are written in Arabic word order.
+  - **Next: Phase E.** Interface work is done. Remaining before `enabled: true`: ① translate the
+    content artifacts (outlook, 13 articles, `/disclaimer`) — spends API budget, owner review;
+    ② the three Phase E code TODOs (per-article hreflang + sitemap via `isArticleTranslated`,
+    `lang="en" dir="ltr"` on fallback content); ③ native review of the glossary + catalog;
+    ④ flip `ar` to `enabled: true` in a reviewed PR.

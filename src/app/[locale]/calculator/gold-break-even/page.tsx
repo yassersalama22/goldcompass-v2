@@ -3,7 +3,8 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { withLocaleMetadata, type LocaleParams } from "@/lib/seo";
-import { Link } from "@/i18n/navigation";
+import { plainRichTags } from "@/i18n/rich";
+import { Num } from "@/components/market/num";
 
 import { BreakEvenCalculator } from "@/components/calculator/break-even-calculator";
 import { ToolPageShell, type ToolFaq } from "@/components/calculator/tool-page-shell";
@@ -19,19 +20,6 @@ const tool = getTool("gold-break-even")!;
 
 const FALLBACK_SPOT = 4150;
 
-const pageMetadata: Metadata = {
-  title: "Gold Break-Even Calculator — How Far Must Gold Rise?",
-  description:
-    "Work out the gold price you need to get your money back after dealer premiums and buy-back spreads. See how break-even changes across bars, coins, and jewellery.",
-  alternates: { canonical: tool.href },
-  openGraph: {
-    title: "Gold Break-Even Calculator",
-    description:
-      "Premiums mean you start underwater. Find the gold price that returns your money.",
-    url: tool.href,
-    type: "website",
-  },
-};
 
 /**
  * Copy lives in the UI catalog under `tools.goldBreakEven.*` so it is pipeline-translated
@@ -60,13 +48,29 @@ export async function generateMetadata({
   params,
 }: LocaleParams): Promise<Metadata> {
   const { locale } = await params;
-  return withLocaleMetadata(pageMetadata, "/calculator/gold-break-even", locale);
+  const t = await getTranslations({ locale, namespace: "tools.goldBreakEven.meta" });
+  return withLocaleMetadata(
+    {
+      title: t("title"),
+      description: t("description"),
+      alternates: { canonical: tool.href },
+      openGraph: {
+        title: t("ogTitle"),
+        description: t("ogDescription"),
+        url: tool.href,
+        type: "website",
+      },
+    },
+    "/calculator/gold-break-even",
+    locale,
+  );
 }
 
 export default async function BreakEvenPage({ params }: LocaleParams) {
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations(`tools.goldBreakEven`);
+  const ta = await getTranslations(`tools.goldBreakEven.about`);
 
   const priceResult = await getGoldQuote();
   const initialSpot = priceResult.ok && priceResult.data ? priceResult.data.price : null;
@@ -84,43 +88,23 @@ export default async function BreakEvenPage({ params }: LocaleParams) {
       mistakes={buildMistakes(t)}
       about={
         <>
-          <p>Break-even has two costs in it, one on each side of the trade:</p>
+          <p>{ta("p1")}</p>
           <p className="bg-muted/60 border-border rounded-lg border px-4 py-3 font-mono text-sm">
-            break-even = spot × (1 + premium) ÷ (1 − sell spread)
+            {ta("formula")}
           </p>
           <p>
-            <strong>Worked example.</strong> Buying at today&apos;s spot of{" "}
-            <strong>{formatUsd(exampleSpot, locale)}</strong> with a 5% dealer premium means you effectively
-            pay <strong>{formatUsd(example.costPerPureTroyOz, locale)}</strong> per troy ounce of pure gold.
-            If you could sell at spot with no cost, gold would need to reach{" "}
-            <strong>{formatUsd(spotOnly.breakEvenSpot, locale)}</strong>. Allow a 2% buy-back spread and the
-            target rises to <strong>{formatUsd(example.breakEvenSpot, locale)}</strong> — a{" "}
-            <strong>+{example.requiredRisePct.toFixed(1)}%</strong> move before you make a cent.
+            {ta.rich("p2", {
+              ...plainRichTags,
+              num: (chunks) => <Num>{chunks}</Num>,
+              spot: formatUsd(exampleSpot, locale),
+              cost: formatUsd(example.costPerPureTroyOz, locale),
+              spotOnly: formatUsd(spotOnly.breakEvenSpot, locale),
+              target: formatUsd(example.breakEvenSpot, locale),
+              rise: `+${example.requiredRisePct.toFixed(1)}%`,
+            })}
           </p>
-          <p>
-            Notice what is <em>not</em> in that formula: purity. Karat scales your cost and your
-            proceeds identically, so it cancels out. Two buyers paying the same premium need the
-            same percentage move whether they bought 10K or 24K. The lever that genuinely moves
-            break-even is the premium, which is mostly a function of product size.
-          </p>
-          <p>
-            To see whether a given move is plausible from here, read the current{" "}
-            <Link href="/outlook" className="text-gold-strong underline underline-offset-4">
-              gold market outlook
-            </Link>{" "}
-            and the{" "}
-            <Link href="/trends" className="text-gold-strong underline underline-offset-4">
-              30-day price trend
-            </Link>
-            . To turn a break-even into an actual profit figure, use the{" "}
-            <Link
-              href="/calculator/gold-profit-loss"
-              className="text-gold-strong underline underline-offset-4"
-            >
-              profit and loss calculator
-            </Link>
-            .
-          </p>
+          <p>{ta.rich("p3", plainRichTags)}</p>
+          <p>{ta.rich("p4", plainRichTags)}</p>
         </>
       }
     >

@@ -81,7 +81,13 @@ function placeholders(text: string): string[] {
  * check.
  */
 type IcuInfo =
-  | { ok: true; args: Set<string>; branches: Map<string, { type: "plural" | "select"; keys: string[] }>; literal: string }
+  | {
+      ok: true;
+      args: Set<string>;
+      tags: Set<string>;
+      branches: Map<string, { type: "plural" | "select"; keys: string[] }>;
+      literal: string;
+    }
   | { ok: false; error: string };
 
 function icuInfo(text: string): IcuInfo {
@@ -92,6 +98,7 @@ function icuInfo(text: string): IcuInfo {
     return { ok: false, error: e instanceof Error ? e.message : String(e) };
   }
   const args = new Set<string>();
+  const tags = new Set<string>();
   const branches = new Map<string, { type: "plural" | "select"; keys: string[] }>();
   const literal: string[] = [];
   const walk = (els: MessageFormatElement[]) => {
@@ -100,7 +107,10 @@ function icuInfo(text: string): IcuInfo {
       else if (el.type === TYPE.argument) args.add(`${el.value}:argument`);
       else if (el.type === TYPE.number) args.add(`${el.value}:number`);
       else if (el.type === TYPE.date || el.type === TYPE.time) args.add(`${el.value}:date`);
-      else if (el.type === TYPE.tag) walk(el.children);
+      else if (el.type === TYPE.tag) {
+        tags.add(el.value);
+        walk(el.children);
+      }
       else if (el.type === TYPE.plural || el.type === TYPE.select) {
         const type = el.type === TYPE.plural ? "plural" : "select";
         args.add(`${el.value}:${type}`);
@@ -110,7 +120,7 @@ function icuInfo(text: string): IcuInfo {
     }
   };
   walk(ast);
-  return { ok: true, args, branches, literal: literal.join(" ") };
+  return { ok: true, args, tags, branches, literal: literal.join(" ") };
 }
 
 /**
@@ -128,6 +138,17 @@ function icuFindings(source: IcuInfo, target: IcuInfo, locale: string, at: strin
     return [{ severity: "error", path: at, message: `translation is not valid ICU (it would throw at render time): ${target.error}` }];
   }
   const findings: Finding[] = [];
+  /* next-intl resolves tags and arguments from ONE values object, so a tag and
+   * an argument with the same name (`<breakEven>…</breakEven> — {breakEven}`)
+   * hands the tag a string instead of a render function and the page throws.
+   * Checked on both sides: an English collision is an authoring bug. */
+  for (const [side, info] of [["English source", source], ["translation", target]] as const) {
+    const names = new Set([...info.args].map((a) => a.split(":")[0]!));
+    const clash = [...info.tags].filter((tag) => names.has(tag));
+    if (clash.length > 0) {
+      findings.push({ severity: "error", path: at, message: `${side} uses the same name for a tag and an argument (throws at render time): ${clash.join(", ")}` });
+    }
+  }
   const s = [...source.args].sort().join(", ");
   const t = [...target.args].sort().join(", ");
   if (s !== t) {

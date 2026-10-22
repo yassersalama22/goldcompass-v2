@@ -1,6 +1,6 @@
 import { DEFAULT_LOCALE, localizePath, requireLocale } from "@/config/locales";
 import { siteConfig } from "@/config/site";
-import type { ToolDef } from "@/config/tools";
+import { toolCopy, type ToolDef } from "@/config/tools";
 import { interpolate, messages } from "@/i18n/messages";
 import type { OutlookReport } from "@/types/outlook";
 import type { Article } from "@/types/article";
@@ -215,13 +215,14 @@ export function toolApplicationSchema(
   tool: ToolDef,
   locale: string = DEFAULT_LOCALE,
 ) {
+  const copy = toolCopy(tool, locale);
   return {
     "@context": "https://schema.org",
     "@type": "WebApplication",
-    name: tool.name,
+    name: copy.name,
     url: abs(tool.href, locale),
     inLanguage: lang(locale),
-    description: tool.description,
+    description: copy.description,
     applicationCategory: "FinanceApplication",
     operatingSystem: "Any",
     browserRequirements: "Requires JavaScript",

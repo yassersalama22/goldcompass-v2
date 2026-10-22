@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { withLocaleMetadata, type LocaleParams } from "@/lib/seo";
 import { Link } from "@/i18n/navigation";
+import { richTags } from "@/i18n/rich";
 
 import { Container } from "@/components/layout/container";
 import { PriceChart } from "@/components/trends/price-chart";
@@ -14,17 +15,16 @@ import { getGoldQuote, getGoldSeries30d } from "@/server/price";
 // ISR: re-render every 5 min; the client ticker also polls for live updates.
 export const revalidate = 300;
 
-const pageMetadata: Metadata = {
-  title: "Gold Price Trends",
-  description:
-    "Live XAU/USD gold spot price and an interactive 30-day price chart, updated throughout the day.",
-};
-
 export async function generateMetadata({
   params,
 }: LocaleParams): Promise<Metadata> {
   const { locale } = await params;
-  return withLocaleMetadata(pageMetadata, "/trends", locale);
+  const t = await getTranslations({ locale, namespace: "trends" });
+  return withLocaleMetadata(
+    { title: t("metaTitle"), description: t("metaDescription") },
+    "/trends",
+    locale,
+  );
 }
 
 export default async function TrendsPage({ params }: LocaleParams) {
@@ -35,14 +35,14 @@ export default async function TrendsPage({ params }: LocaleParams) {
     getGoldQuote(),
     getGoldSeries30d(),
   ]);
+  const t = await getTranslations();
 
   return (
     <Container className="max-w-4xl py-12 sm:py-16">
       <header className="mb-8 space-y-3">
-        <h1 className="text-3xl font-bold sm:text-4xl">Gold Price Trends</h1>
+        <h1 className="text-3xl font-bold sm:text-4xl">{t("trends.heading")}</h1>
         <p className="text-muted-foreground text-lg text-pretty">
-          The live gold spot price (XAU/USD) and how it has moved over the past
-          30 days.
+          {t("trends.lede")}
         </p>
       </header>
 
@@ -52,35 +52,26 @@ export default async function TrendsPage({ params }: LocaleParams) {
         </CardHeader>
         <CardContent className="space-y-3">
           <h2 className="text-muted-foreground text-sm font-medium">
-            Last 30 days
+            {t("trends.last30")}
           </h2>
           {series.data && series.data.points.length >= 2 ? (
             <PriceChart points={series.data.points} />
           ) : (
             <p className="text-muted-foreground py-12 text-center text-sm">
-              The 30-day chart is temporarily unavailable. Please check back
-              shortly.
+              {t("trends.chartUnavailable")}
             </p>
           )}
         </CardContent>
       </Card>
 
       <p className="text-muted-foreground mt-6 text-xs">
-        Price data is provided for educational purposes and may be delayed.
-        Source: CoinGecko (PAX Gold proxy). Not financial advice — see our{" "}
-        <Link
-          href="/disclaimer"
-          className="text-gold-strong underline underline-offset-4"
-        >
-          disclaimer
-        </Link>
-        .
+        {t.rich("trends.footnote", richTags)}
       </p>
 
       <div className="mt-8 flex flex-wrap gap-3">
-        <Button render={<Link href="/outlook" />}>Read the outlook</Button>
+        <Button render={<Link href="/outlook" />}>{t("trends.ctaOutlook")}</Button>
         <Button render={<Link href="/calculator" />} variant="outline">
-          Gold Calculator
+          {t("nav.calculator")}
         </Button>
       </div>
     </Container>

@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useTranslations } from "next-intl";
 
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -42,12 +43,13 @@ export function ResultStat({
 }
 
 export function EmptyResults({ message }: { message: string }) {
+  const t = useTranslations("calc");
   return (
     <div className="border-border text-muted-foreground flex flex-col items-center justify-center rounded-xl border border-dashed py-16 text-center">
       <span className="mb-3 text-3xl" aria-hidden="true">
         🪙
       </span>
-      <p className="text-foreground font-medium">Enter your details to see results</p>
+      <p className="text-foreground font-medium">{t("emptyTitle")}</p>
       <p className="mt-1 max-w-xs text-sm">{message}</p>
     </div>
   );
@@ -67,7 +69,10 @@ export function InputsCard({ title, children }: { title: string; children: React
 }
 
 export function ToolGrid({ children }: { children: ReactNode }) {
-  return <div className="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">{children}</div>;
+  // `grid-cols-1` (= minmax(0, 1fr)) below lg: an implicit `auto` column grows to
+  // the min-content width of the results tables and scrolls the whole page
+  // sideways on a phone, instead of the table scrolling inside its wrapper.
+  return <div className="grid grid-cols-1 gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">{children}</div>;
 }
 
 /** Suspense fallback for the tools, which read search params on the client. */

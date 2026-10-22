@@ -2,10 +2,50 @@
 
 import { useEffect, useId, useState, type ReactNode } from "react";
 import { useSearchParams } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
 import { RotateCcw } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { requireLocale } from "@/config/locales";
+import { GOLD_PURITIES, WEIGHT_UNITS, type PurityKey, type WeightUnitKey } from "@/lib/calculator";
+
+/**
+ * Where the currency unit sits in a money input: `$` before the number in
+ * English, `دولار` after it in Arabic. From the locale registry, the same
+ * source as `formatUsd`, so an input and the figures beside it agree.
+ */
+export function useCurrencyAffix(): { prefix?: string; suffix?: string } {
+  const { unit, position } = requireLocale(useLocale()).currency;
+  return position === "prefix" ? { prefix: unit } : { suffix: unit };
+}
+
+/** "18K" in English, "عيار 18" in Arabic. The key itself stays "18K" in data and URLs. */
+export function useKaratLabel(): (key: PurityKey) => string {
+  const t = useTranslations("calc");
+  // Non-breaking: "عيار 18" must never wrap between the word and its number.
+  return (key) => t("karat", { n: key.replace(/K$/, "") }).replace(/ /g, "\u00a0");
+}
+
+/** Localized unit + purity dropdown options. `lib/calculator.ts` stays pure math. */
+export function useUnitOptions() {
+  const t = useTranslations("calc.units");
+  return WEIGHT_UNITS.map((u) => ({ key: u.key, label: t(`${u.key}.label`) }));
+}
+
+export function useUnitShort(): (key: WeightUnitKey) => string {
+  const t = useTranslations("calc.units");
+  return (key) => t(`${key}.short`);
+}
+
+export function usePurityOptions() {
+  const t = useTranslations("calc");
+  const karat = useKaratLabel();
+  return GOLD_PURITIES.map((p) => ({
+    key: p.key,
+    label: t("purityOption", { karat: karat(p.key), fineness: String(p.fineness) }),
+  }));
+}
 
 /** Shared control styling, kept identical to the flagship calculator. */
 export const inputClass =
@@ -111,7 +151,7 @@ export function NumberField({
           placeholder={placeholder}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className={cn(inputClass, prefix ? "ps-7" : "ps-3", suffix ? "pe-12" : "pe-3")}
+          className={cn(inputClass, prefix ? "ps-7" : "ps-3", suffix ? "pe-14" : "pe-3")}
         />
         {suffix ? (
           <span className="text-muted-foreground pointer-events-none absolute top-1/2 end-3 -translate-y-1/2 text-sm">
@@ -180,6 +220,7 @@ export function PercentSlider({
   hint,
 }: PercentSliderProps) {
   const id = useId();
+  const t = useTranslations("calc");
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
@@ -198,7 +239,7 @@ export function PercentSlider({
         step={step}
         value={value}
         onChange={(e) => onChange(parseFloat(e.target.value))}
-        aria-valuetext={`${value.toFixed(1)} percent`}
+        aria-valuetext={t("percentValue", { value: value.toFixed(1) })}
         className="w-full cursor-pointer accent-[var(--color-gold)]"
       />
       {hint ? <p className="text-muted-foreground text-xs">{hint}</p> : null}
@@ -224,23 +265,25 @@ export function SpotField({
   onReset,
   initialSpot,
   isStale,
-  label = "Spot price (XAU/USD)",
+  label,
 }: SpotFieldProps) {
+  const t = useTranslations("calc");
+  const affix = useCurrencyAffix();
   return (
     <NumberField
       label={
         <>
-          {label}
+          {label ?? t("spotLabel")}
           {isStale && !overridden ? (
             <Badge variant="outline" className="ms-1.5 h-4 text-[10px]">
-              stale
+              {t("stale")}
             </Badge>
           ) : null}
         </>
       }
       value={value}
       onChange={onChange}
-      prefix="$"
+      {...affix}
       min="1"
       step="1"
       action={
@@ -249,16 +292,16 @@ export function SpotField({
             type="button"
             onClick={onReset}
             className="text-gold-strong inline-flex items-center gap-1 text-xs hover:underline"
-            aria-label="Reset spot price to live price"
+            aria-label={t("resetLabel")}
           >
             <RotateCcw className="size-3" />
-            Reset to live
+            {t("reset")}
           </button>
         ) : null
       }
       hint={
         initialSpot == null
-          ? "Live price unavailable — enter the current spot price manually."
+          ? t("spotUnavailable")
           : undefined
       }
     />

@@ -189,6 +189,9 @@ function selfTestCatalog(): number {
     ["a renamed ICU argument", (c) => {
       (c.plural as Record<string, string>).read = "{count, plural, one {دقيقة واحدة} other {{دقائق} دقيقة للقراءة}}";
     }],
+    ["a tag and an argument sharing a name", (c) => {
+      (c.page as Record<string, string>).rich = "<strong>ليس</strong> توقعًا: راجع <trends>{trends}</trends>.";
+    }],
     ["a translated rich-text tag name", (c) => {
       (c.page as Record<string, string>).rich = "<strong>ليس</strong> توقعًا: راجع الرسم البياني في <اتجاهات>صفحة الاتجاهات</اتجاهات>.";
     }],

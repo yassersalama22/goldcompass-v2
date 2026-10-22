@@ -1,4 +1,7 @@
 import type { ReactNode } from "react";
+import { useLocale } from "next-intl";
+
+import { formatUsdParts } from "@/lib/format";
 
 import { cn } from "@/lib/utils";
 
@@ -38,5 +41,26 @@ export function Num({
     <bdi dir="ltr" className={cn("inline-block", className)}>
       {children}
     </bdi>
+  );
+}
+
+/**
+ * A money amount whose sign must stay attached — P/L figures, signed deltas.
+ *
+ * `<Num>` alone is not enough once the currency unit is a word: wrapping
+ * `+4,000.00 دولار` in one LTR isolate keeps the sign but puts `دولار` on the
+ * wrong side for an Arabic reader. So only the signed amount is isolated and a
+ * suffix unit follows it in the paragraph's own direction. For a prefix unit
+ * (`$`) the whole thing stays one isolate, so English renders exactly as
+ * `+$4,000.00` / `$-103.38`, as it always has.
+ */
+export function SignedUsd({ value, showPlus = true }: { value: number; showPlus?: boolean }) {
+  const { amount, unit, position } = formatUsdParts(value, useLocale());
+  const plus = showPlus && value >= 0 ? "+" : "";
+  if (position === "prefix") return <Num>{`${plus}${unit}${amount}`}</Num>;
+  return (
+    <>
+      <Num>{`${plus}${amount}`}</Num> {unit}
+    </>
   );
 }

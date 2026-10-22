@@ -121,6 +121,20 @@ function withUnit(formatted: string, locale: string): string {
   return position === "prefix" ? `${unit}${formatted}` : `${formatted} ${unit}`;
 }
 
+/**
+ * The amount and the currency unit, unjoined — for callers that must
+ * bidi-isolate the signed number WITHOUT the unit. In Arabic the unit is a
+ * word (`دولار`) after the number; isolating both together as LTR flips their
+ * order. See `SignedUsd`.
+ */
+export function formatUsdParts(
+  value: number,
+  locale: string = DEFAULT_LOCALE,
+): { amount: string; unit: string; position: "prefix" | "suffix" } {
+  const { unit, position } = requireLocale(locale).currency;
+  return { amount: usd(locale).format(value), unit, position };
+}
+
 export function formatUsd(value: number, locale: string = DEFAULT_LOCALE): string {
   return withUnit(usd(locale).format(value), locale);
 }

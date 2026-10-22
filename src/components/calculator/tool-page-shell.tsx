@@ -1,11 +1,13 @@
 import type { ReactNode } from "react";
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
+import { richTags } from "@/i18n/rich";
 import { ChevronRight, AlertTriangle } from "lucide-react";
 
 import { Container } from "@/components/layout/container";
 import { JsonLd } from "@/components/seo/json-ld";
 import { Card, CardContent } from "@/components/ui/card";
-import { FLAGSHIP_TOOL, siblingTools, type ToolDef } from "@/config/tools";
+import { FLAGSHIP_TOOL, siblingTools, toolCopy, type ToolDef } from "@/config/tools";
 import {
   breadcrumbSchema,
   faqSchema,
@@ -46,6 +48,8 @@ export function ToolPageShell({
   locale,
 }: Props) {
   const siblings = siblingTools(tool.slug);
+  const copy = toolCopy(tool, locale);
+  const t = useTranslations();
 
   return (
     <>
@@ -54,22 +58,22 @@ export function ToolPageShell({
           toolApplicationSchema(tool, locale),
           faqSchema(faqs, locale),
           breadcrumbSchema([
-            { name: "Home", path: "/" },
-            { name: "Gold Calculator", path: FLAGSHIP_TOOL.href },
-            { name: tool.name, path: tool.href },
+            { name: t("breadcrumb.home"), path: "/" },
+            { name: t("nav.calculator"), path: FLAGSHIP_TOOL.href },
+            { name: copy.name, path: tool.href },
           ], locale),
         ]}
       />
 
       <Container className="py-10 sm:py-14">
-        <Breadcrumbs current={tool.shortName} />
+        <Breadcrumbs current={copy.shortName} />
 
         <div className="mb-8 max-w-2xl">
-          <p className="text-gold-strong mb-2 text-sm font-medium">Gold tools</p>
-          <h1 className="text-3xl font-bold sm:text-4xl">{tool.name}</h1>
+          <p className="text-gold-strong mb-2 text-sm font-medium">{t("calc.shell.eyebrow")}</p>
+          <h1 className="text-3xl font-bold sm:text-4xl">{copy.name}</h1>
           <p className="text-muted-foreground mt-3">{intro}</p>
           <p className="mt-3 inline-block rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-300">
-            Educational purposes only — not financial advice.
+            {t("calc.shell.disclaimer")}
           </p>
         </div>
 
@@ -79,7 +83,7 @@ export function ToolPageShell({
 
             <section aria-labelledby="about-heading" className="space-y-4">
               <h2 id="about-heading" className="text-2xl font-bold">
-                How this calculator works
+                {t("calc.shell.aboutHeading")}
               </h2>
               <div className="text-foreground/90 space-y-4 leading-7">{about}</div>
             </section>
@@ -87,7 +91,7 @@ export function ToolPageShell({
             {mistakes.length > 0 ? (
               <section aria-labelledby="mistakes-heading" className="space-y-4">
                 <h2 id="mistakes-heading" className="text-2xl font-bold">
-                  Common mistakes
+                  {t("calc.shell.mistakesHeading")}
                 </h2>
                 <ul className="space-y-3">
                   {mistakes.map((mistake) => (
@@ -111,7 +115,7 @@ export function ToolPageShell({
 
             <section aria-labelledby="faq-heading" className="space-y-4">
               <h2 id="faq-heading" className="text-2xl font-bold">
-                Frequently asked questions
+                {t("page.faqHeading")}
               </h2>
               <dl className="divide-border divide-y border-t border-b">
                 {faqs.map((faq) => (
@@ -124,20 +128,11 @@ export function ToolPageShell({
             </section>
 
             <p className="text-muted-foreground border-t pt-6 text-sm">
-              Figures are estimates for educational use and exclude taxes, shipping, insurance,
-              and storage. Read our{" "}
-              <Link href="/methodology" className="text-gold-strong underline underline-offset-4">
-                methodology
-              </Link>{" "}
-              and{" "}
-              <Link href="/disclaimer" className="text-gold-strong underline underline-offset-4">
-                disclaimer
-              </Link>
-              .
+              {t.rich("calc.shell.footnote", richTags)}
             </p>
           </div>
 
-          <ToolSidebar siblings={siblings} />
+          <ToolSidebar siblings={siblings} locale={locale} />
         </div>
       </Container>
     </>
@@ -145,18 +140,19 @@ export function ToolPageShell({
 }
 
 function Breadcrumbs({ current }: { current: string }) {
+  const t = useTranslations();
   return (
-    <nav aria-label="Breadcrumb" className="mb-6">
+    <nav aria-label={t("calc.shell.breadcrumbLabel")} className="mb-6">
       <ol className="text-muted-foreground flex flex-wrap items-center gap-1 text-sm">
         <li>
           <Link href="/" className="hover:text-foreground">
-            Home
+            {t("breadcrumb.home")}
           </Link>
         </li>
         <ChevronRight className="rtl:rotate-180 size-3.5 shrink-0" aria-hidden="true" />
         <li>
           <Link href={FLAGSHIP_TOOL.href} className="hover:text-foreground">
-            Gold Calculator
+            {t("nav.calculator")}
           </Link>
         </li>
         <ChevronRight className="rtl:rotate-180 size-3.5 shrink-0" aria-hidden="true" />
@@ -168,23 +164,25 @@ function Breadcrumbs({ current }: { current: string }) {
   );
 }
 
-function ToolSidebar({ siblings }: { siblings: ToolDef[] }) {
+function ToolSidebar({ siblings, locale }: { siblings: ToolDef[]; locale: string }) {
+  const t = useTranslations("calc.shell");
+  const flagship = toolCopy(FLAGSHIP_TOOL, locale);
   return (
     <aside aria-labelledby="other-tools-heading" className="lg:sticky lg:top-20 lg:self-start">
       <Card>
         <CardContent>
           <h2 id="other-tools-heading" className="text-sm font-semibold">
-            Other gold tools
+            {t("otherTools")}
           </h2>
           <ul className="mt-3 space-y-3">
             {siblings.map((tool) => (
               <li key={tool.slug}>
                 <Link href={tool.href} className="group block">
                   <span className="group-hover:text-gold-strong text-sm font-medium underline-offset-4 group-hover:underline">
-                    {tool.shortName}
+                    {toolCopy(tool, locale).shortName}
                   </span>
                   <span className="text-muted-foreground mt-0.5 block text-xs leading-5">
-                    {tool.description}
+                    {toolCopy(tool, locale).description}
                   </span>
                 </Link>
               </li>
@@ -193,10 +191,10 @@ function ToolSidebar({ siblings }: { siblings: ToolDef[] }) {
           <div className="border-border mt-4 border-t pt-4">
             <Link href={FLAGSHIP_TOOL.href} className="group block">
               <span className="group-hover:text-gold-strong text-sm font-medium underline-offset-4 group-hover:underline">
-                {FLAGSHIP_TOOL.shortName}
+                {flagship.shortName}
               </span>
               <span className="text-muted-foreground mt-0.5 block text-xs leading-5">
-                {FLAGSHIP_TOOL.description}
+                {flagship.description}
               </span>
             </Link>
           </div>

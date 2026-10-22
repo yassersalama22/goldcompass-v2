@@ -1,9 +1,11 @@
 "use client";
 
 import * as React from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 
 import { Num } from "@/components/market/num";
+import { requireLocale } from "@/config/locales";
 import { useFormat } from "@/lib/use-format";
 import { cn } from "@/lib/utils";
 import type { PriceQuote } from "@/types/price";
@@ -16,18 +18,16 @@ const POLL_MS = 60_000;
 // zone, so a single formatter renders different text on each side and React bails
 // out of hydrating this subtree (error #418). Render UTC for the first paint —
 // which is what the server emitted — then switch to local time once mounted.
-const utcTimeFmt = new Intl.DateTimeFormat("en-US", {
-  hour: "numeric",
-  minute: "2-digit",
-  timeZoneName: "short",
-  timeZone: "UTC",
-});
-
-const localTimeFmt = new Intl.DateTimeFormat("en-US", {
-  hour: "numeric",
-  minute: "2-digit",
-  timeZoneName: "short",
-});
+//
+// Built from the registry's `intlLocale` (e.g. `ar-u-nu-latn`), never the bare
+// route locale, so Arabic keeps Latin digits like the rest of the site.
+function timeFormatters(intlLocale: string) {
+  const opts = { hour: "numeric", minute: "2-digit", timeZoneName: "short" } as const;
+  return {
+    utc: new Intl.DateTimeFormat(intlLocale, { ...opts, timeZone: "UTC" }),
+    local: new Intl.DateTimeFormat(intlLocale, opts),
+  };
+}
 
 // The "external store" here never changes; only the server/client snapshot split
 // matters, which is what makes this hydration-safe without a setState effect.
@@ -41,6 +41,9 @@ export function PriceTicker({
   initialStale: boolean;
 }) {
   const fmt = useFormat();
+  const t = useTranslations("trends.ticker");
+  const locale = useLocale();
+  const timeFmt = React.useMemo(() => timeFormatters(requireLocale(locale).intlLocale), [locale]);
   const [quote, setQuote] = React.useState<PriceQuote | null>(initialQuote);
   const [status, setStatus] = React.useState<Status>(
     initialQuote ? (initialStale ? "delayed" : "live") : "error",
@@ -88,10 +91,8 @@ export function PriceTicker({
   if (!quote) {
     return (
       <div className="space-y-1">
-        <p className="text-2xl font-bold">Price unavailable</p>
-        <p className="text-muted-foreground text-sm">
-          We couldn&apos;t load the live gold price. Please try again shortly.
-        </p>
+        <p className="text-2xl font-bold">{t("unavailable")}</p>
+        <p className="text-muted-foreground text-sm">{t("unavailableBody")}</p>
       </div>
     );
   }
@@ -110,7 +111,7 @@ export function PriceTicker({
           <Num>{fmt.usd(quote.price)}</Num>
         </span>
         <span className="text-muted-foreground text-sm font-medium">
-          XAU/USD · per oz
+          {t("unit")}
         </span>
       </div>
 
@@ -124,10 +125,10 @@ export function PriceTicker({
           >
             <ChangeIcon className="size-4" aria-hidden="true" />
             <span className="sr-only">
-              {up ? "Up" : "Down"} {""}
+              {t(up ? "up" : "down")} {""}
             </span>
             <Num>{fmt.signedPct(change)}</Num>
-            <span className="text-muted-foreground ms-1 font-normal">24h</span>
+            <span className="text-muted-foreground ms-1 font-normal">{t("window")}</span>
           </span>
         ) : null}
 
@@ -135,20 +136,30 @@ export function PriceTicker({
       </div>
 
       <p className="text-muted-foreground text-xs">
-        As of {(mounted ? localTimeFmt : utcTimeFmt).format(new Date(quote.asOf))} ·{" "}
-        {quote.source}
+        {t.rich("asOf", {
+          time: (mounted ? timeFmt.local : timeFmt.utc).format(new Date(quote.asOf)),
+          source: quote.source,
+          // Provider attribution is English; isolate it inside an RTL sentence.
+          attribution: (chunks) => (
+            <bdi dir="ltr" lang="en">
+              {chunks}
+            </bdi>
+          ),
+        })}
       </p>
     </div>
   );
 }
 
 function StatusPill({ status }: { status: Status }) {
+  const t = useTranslations("trends.ticker.status");
   const map = {
-    live: { dot: "bg-bull", label: "Live", pulse: true },
-    delayed: { dot: "bg-gold", label: "Delayed", pulse: false },
-    error: { dot: "bg-bear", label: "Offline", pulse: false },
+    live: { dot: "bg-bull", pulse: true },
+    delayed: { dot: "bg-gold", pulse: false },
+    error: { dot: "bg-bear", pulse: false },
   } as const;
-  const { dot, label, pulse } = map[status];
+  const { dot, pulse } = map[status];
+  const label = t(status);
   return (
     <span className="text-muted-foreground inline-flex items-center gap-1.5 text-xs font-medium">
       <span className="relative flex size-2">

@@ -151,7 +151,23 @@
           "body": "The quoted spot price is a wholesale benchmark. What a retail buy-back actually pays is a little below it, which is what the sell-side spread input is for."
         }
       },
-      "intro": "Buying physical gold starts you below water: you pay above spot and sell at or below it. This works out exactly how far the gold price has to move before you have your money back."
+      "intro": "Buying physical gold starts you below water: you pay above spot and sell at or below it. This works out exactly how far the gold price has to move before you have your money back.",
+      "name": "Gold Break-Even Calculator",
+      "shortName": "Break-even",
+      "description": "How far the gold price has to rise before a purchase at a given dealer premium returns your money.",
+      "meta": {
+        "title": "Gold Break-Even Calculator — How Far Must Gold Rise?",
+        "description": "Work out the gold price you need to get your money back after dealer premiums and buy-back spreads. See how break-even changes across bars, coins, and jewellery.",
+        "ogTitle": "Gold Break-Even Calculator",
+        "ogDescription": "Premiums mean you start underwater. Find the gold price that returns your money."
+      },
+      "about": {
+        "p1": "Break-even has two costs in it, one on each side of the trade:",
+        "formula": "break-even = spot × (1 + premium) ÷ (1 − sell spread)",
+        "p2": "<strong>Worked example.</strong> Buying at today's spot of <strong>{spot}</strong> with a 5% dealer premium means you effectively pay <strong>{cost}</strong> per troy ounce of pure gold. If you could sell at spot with no cost, gold would need to reach <strong>{spotOnly}</strong>. Allow a 2% buy-back spread and the target rises to <strong>{target}</strong> — a <strong><num>{rise}</num></strong> move before you make a cent.",
+        "p3": "Notice what is <em>not</em> in that formula: purity. Karat scales your cost and your proceeds identically, so it cancels out. Two buyers paying the same premium need the same percentage move whether they bought 10K or 24K. The lever that genuinely moves break-even is the premium, which is mostly a function of product size.",
+        "p4": "To see whether a given move is plausible from here, read the current <outlook>gold market outlook</outlook> and the <trends>30-day price trend</trends>. To turn a break-even into an actual profit figure, use the <profitLoss>profit and loss calculator</profitLoss>."
+      }
     },
     "goldKaratPrice": {
       "faqs": {
@@ -194,7 +210,23 @@
           "body": "Gemstones, clasps, and pins are usually not gold. Weighing the whole item inflates the result, sometimes substantially on stone-set jewellery."
         }
       },
-      "intro": "Gold is quoted as one price per troy ounce of pure metal, but almost nothing you own is pure. Enter a weight and a karat to see what the gold in it is actually worth."
+      "intro": "Gold is quoted as one price per troy ounce of pure metal, but almost nothing you own is pure. Enter a weight and a karat to see what the gold in it is actually worth.",
+      "name": "Gold Karat Price Calculator",
+      "shortName": "Karat price",
+      "description": "What 10K, 14K, 18K, 22K, and 24K gold is worth per gram and per troy ounce at today's spot price.",
+      "meta": {
+        "title": "Gold Karat Price Calculator — 10K to 24K Value per Gram",
+        "description": "Find what 10K, 14K, 18K, 22K, and 24K gold is worth per gram and per troy ounce at today's live gold price. Enter a weight to value a specific item.",
+        "ogTitle": "Gold Karat Price Calculator",
+        "ogDescription": "What is your gold worth? Price per gram and per troy ounce for every karat, at today's spot price."
+      },
+      "about": {
+        "p1": "The gold price you see quoted — currently <strong>{spot}</strong> per troy ounce — is the price of <em>pure</em> gold. Every karat below 24 is an alloy, so its value is the spot price scaled down by its purity:",
+        "formula": "price per gram = (spot ÷ 31.1035) × (karat ÷ 24)",
+        "p2": "<strong>Worked example.</strong> At {spot} per troy ounce, pure gold is worth <strong>{purePerGram}</strong> per gram. 18K gold is 18 parts in 24 — 75% — so it is worth <strong>{k18PerGram}</strong> per gram. A 10 g 18K chain therefore contains 7.5 g of pure gold and has a melt value of about <strong>{chainValue}</strong>.",
+        "p3": "That figure is the <em>melt value</em>: what the metal is worth, ignoring craftsmanship, brand, and collectability. It is the right number for scrap and bullion, and a floor rather than a valuation for jewellery you would sell as jewellery. To see what you would pay a dealer for gold — melt value plus their premium — use the <calculator>Smart Gold Calculator</calculator>.",
+        "p4": "The spot price is pulled live and refreshes every few minutes; you can overwrite it to price a past transaction. See <methodology>our methodology</methodology> for where the price comes from and its limitations."
+      }
     },
     "goldProfitLoss": {
       "faqs": {
@@ -237,7 +269,27 @@
           "body": "Vault storage and insurance accrue every year you hold. They do not appear here, and over a decade they can consume a meaningful slice of the gain."
         }
       },
-      "intro": "The gold price rising 10% does not mean you made 10%. Enter what you paid, what you would sell for, and how much you hold to see the return after the costs on both sides."
+      "intro": "The gold price rising 10% does not mean you made 10%. Enter what you paid, what you would sell for, and how much you hold to see the return after the costs on both sides.",
+      "name": "Gold Profit & Loss Calculator",
+      "shortName": "Profit & loss",
+      "description": "Entry price, exit price, and quantity in — profit or loss in dollars and percent, after buying and selling costs.",
+      "meta": {
+        "title": "Gold Profit & Loss Calculator — Work Out Your Real Return",
+        "description": "Enter your buy price, sell price, and quantity to see profit or loss in dollars and percent after dealer premiums and buy-back spreads — not just the headline price move.",
+        "ogTitle": "Gold Profit & Loss Calculator",
+        "ogDescription": "What did your gold actually return? Profit and loss after the costs of buying and selling."
+      },
+      "about": {
+        "p1": "The calculation converts your holding to pure gold content, then applies the costs of each side of the trade:",
+        "formula": {
+          "f1": "cost = pure oz × buy price × (1 + premium)",
+          "f2": "proceeds = pure oz × sell price × (1 − sell spread)",
+          "f3": "return = (proceeds − cost) ÷ cost"
+        },
+        "p2": "<strong>Worked example.</strong> Suppose you bought one troy ounce of 24K gold at <strong>{entry}</strong> with a 5% premium — an outlay of <strong>{cost}</strong> — and gold is now <strong>{exit}</strong>, a <strong><num>{move}</num></strong> move. Selling into a 2% buy-back spread returns <strong>{proceeds}</strong>, a profit of <strong>{pnl}</strong> — or <strong><num>{pnlPct}</num></strong>. The metal moved <num>{move}</num>; you kept <num>{pnlPct}</num>. The difference went to the round trip.",
+        "p3": "That is why gold rewards patience: the transaction cost is paid once, so its drag on annual return falls the longer the position is held. The price that erases the drag entirely is your <breakEven>break-even</breakEven> — here, {breakEvenPrice}.",
+        "p4": "Figures are pre-tax and exclude storage, insurance, and shipping. For a forward-looking view of the price rather than a backward-looking one, see the current <outlook>outlook</outlook>."
+      }
     },
     "goldUnitConverter": {
       "faqs": {
@@ -280,7 +332,33 @@
           "body": "The values here are pure metal content at spot. What you actually pay or receive includes a dealer premium or spread on top."
         }
       },
-      "intro": "Gold trades in troy ounces, is sold by the gram, and is bought by the tola or pennyweight depending where you are. Convert between all of them — and see what each is worth right now."
+      "intro": "Gold trades in troy ounces, is sold by the gram, and is bought by the tola or pennyweight depending where you are. Convert between all of them — and see what each is worth right now.",
+      "name": "Gold Unit Converter",
+      "shortName": "Unit converter",
+      "description": "Convert gold weights between grams, kilograms, troy ounces, ounces, pennyweight, and tola — with the value of each.",
+      "meta": {
+        "title": "Gold Unit Converter — Grams, Troy Ounces, Tola & Pennyweight",
+        "description": "Convert gold weights between grams, kilograms, troy ounces, ounces, pennyweight, and tola — and see what each unit is worth at today's live gold price.",
+        "ogTitle": "Gold Unit Converter",
+        "ogDescription": "Convert gold between grams, troy ounces, tola, and pennyweight, with the live value of each."
+      },
+      "about": {
+        "p1": "Every conversion here routes through grams as the base unit, so nothing is converted twice and no rounding compounds:",
+        "list": {
+          "l1": "1 troy ounce (ozt) = 31.1035 g",
+          "l2": "1 ounce, avoirdupois (oz) = 28.349523125 g",
+          "l3": "1 pennyweight (dwt) = 1.55517384 g = 1/20 troy oz",
+          "l4": "1 tola = 11.6638038 g",
+          "l5": "1 kilogram = 1,000 g = 32.1507 troy oz"
+        },
+        "p2": "<strong>Worked example.</strong> At a spot price of <strong>{spot}</strong> per troy ounce, pure gold is worth <strong>{perGram}</strong> per gram. A 1 kg bar therefore holds 32.15 troy ounces and is worth about <strong>{kgValue}</strong>, while a single pennyweight of pure gold is worth <strong>{dwtValue}</strong>.",
+        "p3": "Selecting a purity changes only the value columns, never the weights. Values shown are pure gold content at spot, with no dealer premium — for what a dealer would charge on top, use the <breakEven>break-even calculator</breakEven>, and for what a specific karat is worth per gram, use the <karatPrice>karat price calculator</karatPrice>."
+      }
+    },
+    "flagship": {
+      "name": "Smart Gold Calculator",
+      "shortName": "Smart Gold Calculator",
+      "description": "Budget, purity, and dealer premium in — quantity, break-even, and profit/loss scenarios out."
     }
   },
   "methodology": {
@@ -617,6 +695,230 @@
       "readingTime": "{count, plural, one {{minutes} min read} other {{minutes} min read}}",
       "sourcesHeading": "Sources",
       "disclaimer": "Educational information only — not financial advice. See our <disclaimer>disclaimer</disclaimer>."
+    }
+  },
+  "trends": {
+    "metaTitle": "Gold Price Trends",
+    "metaDescription": "Live XAU/USD gold spot price and an interactive 30-day price chart, updated throughout the day.",
+    "heading": "Gold Price Trends",
+    "lede": "The live gold spot price (XAU/USD) and how it has moved over the past 30 days.",
+    "last30": "Last 30 days",
+    "chartUnavailable": "The 30-day chart is temporarily unavailable. Please check back shortly.",
+    "footnote": "Price data is provided for educational purposes and may be delayed. Source: CoinGecko (PAX Gold proxy). Not financial advice — see our <disclaimer>disclaimer</disclaimer>.",
+    "ctaOutlook": "Read the outlook",
+    "ticker": {
+      "unavailable": "Price unavailable",
+      "unavailableBody": "We couldn't load the live gold price. Please try again shortly.",
+      "unit": "XAU/USD · per oz",
+      "up": "Up",
+      "down": "Down",
+      "window": "24h",
+      "asOf": "As of {time} · <attribution>{source}</attribution>",
+      "status": {
+        "live": "Live",
+        "delayed": "Delayed",
+        "error": "Offline"
+      }
+    },
+    "chart": {
+      "summary": "Gold price over the last 30 days: from {from} on {fromDate} to {to} on {toDate}. Range {min} to {max}.",
+      "caption": "Gold price (USD/oz), last 30 days",
+      "date": "Date",
+      "price": "Price"
+    }
+  },
+  "calculatorPage": {
+    "metaTitle": "Smart Gold Calculator — Budget, Quantity & Break-Even",
+    "metaDescription": "Calculate how much gold your budget buys at any purity and dealer premium. See break-even prices and profit/loss scenarios at different gold prices.",
+    "ogTitle": "Smart Gold Calculator",
+    "ogDescription": "How much gold can you buy? Enter your budget, purity, and dealer premium to find out.",
+    "eyebrow": "Smart Gold Calculator",
+    "heading": "How much gold can you buy?",
+    "lede": "Enter your budget, gold purity, and dealer premium to estimate quantity purchased, your break-even price, and profit/loss at different spot prices.",
+    "disclaimer": "Educational purposes only — not financial advice. Always consult a qualified advisor before investing.",
+    "toolsHeading": "More gold tools",
+    "toolsIntro": "The calculator above answers the whole question at once. These do one job each, with a worked example and the arithmetic explained.",
+    "openTool": "Open tool",
+    "howHeading": "How this calculator works",
+    "how": {
+      "quantity": "<strong>Quantity</strong>: budget ÷ (spot × purity × (1 + premium%)). Dealer price per item troy oz = spot × purity factor × (1 + premium).",
+      "breakEven": "<strong>Break-even</strong>: spot × (1 + premium%). The premium is the minimum price rise needed to recover your investment when selling at spot.",
+      "scenarios": "<strong>P/L scenarios</strong>: assumes you sell pure gold equivalent at the given spot price with no sell-side commission. Actual returns depend on market conditions, taxes, storage costs, and the dealer's buy-back spread.",
+      "units": "1 troy oz = 31.1035 grams. Spot price source: CoinGecko (PAX Gold proxy)."
+    }
+  },
+  "calc": {
+    "karat": "{n}K",
+    "purityOption": "{karat} ({fineness} fine)",
+    "units": {
+      "g": {
+        "label": "Gram",
+        "short": "g"
+      },
+      "kg": {
+        "label": "Kilogram",
+        "short": "kg"
+      },
+      "ozt": {
+        "label": "Troy ounce",
+        "short": "ozt"
+      },
+      "oz": {
+        "label": "Ounce (avoirdupois)",
+        "short": "oz"
+      },
+      "dwt": {
+        "label": "Pennyweight",
+        "short": "dwt"
+      },
+      "tola": {
+        "label": "Tola",
+        "short": "tola"
+      }
+    },
+    "percentValue": "{value} percent",
+    "spotLabel": "Spot price (XAU/USD)",
+    "stale": "stale",
+    "resetLabel": "Reset spot price to live price",
+    "reset": "Reset to live",
+    "spotUnavailable": "Live price unavailable — enter the current spot price manually.",
+    "emptyTitle": "Enter your details to see results",
+    "shell": {
+      "eyebrow": "Gold tools",
+      "disclaimer": "Educational purposes only — not financial advice.",
+      "aboutHeading": "How this calculator works",
+      "mistakesHeading": "Common mistakes",
+      "breadcrumbLabel": "Breadcrumb",
+      "otherTools": "Other gold tools",
+      "footnote": "Figures are estimates for educational use and exclude taxes, shipping, insurance, and storage. Read our <methodology>methodology</methodology> and <disclaimer>disclaimer</disclaimer>."
+    },
+    "breakEven": {
+      "inputsTitle": "Purchase terms",
+      "spotLabel": "Spot price when you buy",
+      "premium": "Dealer premium",
+      "premiumHint": "What you pay over spot. Bars/coins: 3–8% · Jewellery: 10–15%",
+      "sellFee": "Sell-side spread",
+      "sellFeeHint": "What a buy-back costs you. Set to 0 to see the spot-only break-even.",
+      "resultsLabel": "Break-even results",
+      "empty": "Enter the spot price you paid to see the price gold has to reach.",
+      "breakEven": "Break-even gold price",
+      "mustRise": "Gold must rise <strong>{rise}</strong> from {spot} before you are back to even.",
+      "costLabel": "Your effective cost per troy ounce of pure gold",
+      "costSub": "Spot {spot} plus a {premium}% premium. This is your real entry price, whatever karat you bought.",
+      "tableTitle": "Break-even by product type",
+      "colProduct": "Typical product",
+      "colPremium": "Premium",
+      "colBreakEven": "Break-even price",
+      "colRise": "Required rise",
+      "products": {
+        "largeBars": "Large bars (1 kg+)",
+        "smallBars": "Small bars (1 oz)",
+        "bullionCoins": "Bullion coins",
+        "collectibleCoins": "Collectible coins",
+        "jewellery": "Jewellery"
+      },
+      "tableNote": "All rows assume the same {sellFee}% sell-side spread. Premiums vary by dealer, product, and order size — treat these as illustrative ranges."
+    },
+    "karatPrice": {
+      "inputsTitle": "Your gold",
+      "weight": "Weight",
+      "weightUnit": "Weight unit",
+      "karat": "Karat / purity",
+      "karatHint": "Check the hallmark stamped on the item — 750 means 18K, 585 means 14K.",
+      "resultsLabel": "Karat price results",
+      "empty": "Enter a weight and confirm the spot price to see what your gold is worth.",
+      "meltValue": "Melt value of {weight} {unit} of {karat} gold",
+      "contains": "Contains <strong>{grams} g</strong> of pure gold ({fineness} parts per thousand).",
+      "enterWeight": "Enter a weight above to value a specific item.",
+      "perGram": "{karat} price per gram",
+      "perTroyOz": "{karat} price per troy ounce",
+      "tableTitle": "Every karat at this spot price",
+      "colKarat": "Karat",
+      "colFineness": "Fineness",
+      "colPerGram": "Per gram",
+      "colPerTroyOz": "Per troy oz",
+      "colYourWeight": "Your weight",
+      "tableNote": "Melt value only — the worth of the metal itself. A dealer buying scrap pays a percentage of this; a dealer selling coins or jewellery charges more than this."
+    },
+    "profitLoss": {
+      "inputsTitle": "Your trade",
+      "entry": "Gold price when you bought",
+      "exit": "Gold price when you sell",
+      "exitHint": "Pre-filled with today's spot price, {spot}. Change it to test a target.",
+      "quantity": "Quantity",
+      "quantityUnit": "Quantity unit",
+      "purity": "Purity",
+      "premium": "Premium paid on purchase",
+      "sellFee": "Sell-side spread",
+      "resultsLabel": "Profit and loss results",
+      "empty": "Enter your buy price, sell price, and quantity to see the result.",
+      "netLoss": "Net loss",
+      "netProfit": "Net profit",
+      "returnOn": "<strong>{pct}</strong> return on a {cost} outlay.",
+      "totalCost": "Total cost",
+      "totalCostSub": "{oz} troy oz of pure gold, including the {premium}% premium.",
+      "proceeds": "Sale proceeds",
+      "proceedsSub": "After a {sellFee}% sell-side spread.",
+      "whyTitle": "Why the result differs from the price move",
+      "priceMove": "Gold price move",
+      "breakEven": "Break-even price",
+      "actualReturn": "Your actual return",
+      "whyNote": "The gap between the two percentages is the cost of buying and selling. Gold had to reach {breakEven} just to return your money — everything above that is profit."
+    },
+    "unitConverter": {
+      "inputsTitle": "Convert",
+      "amount": "Amount",
+      "fromUnit": "From unit",
+      "purity": "Purity (for valuation)",
+      "purityHint": "Purity does not change the weight conversion — only the dollar value.",
+      "resultsLabel": "Conversion results",
+      "empty": "Enter an amount to convert it into every other gold weight unit.",
+      "inGrams": "In grams",
+      "inTroyOz": "In troy ounces",
+      "gramsValue": "{qty} g",
+      "troyOzValue": "{qty} ozt",
+      "amountOf": "{qty} {unit} of {karat} gold",
+      "worth": "Worth {value} at {karat}",
+      "tableTitle": "All units",
+      "colUnit": "Unit",
+      "colGramsEach": "Grams each",
+      "colAmount": "Amount",
+      "colValue": "Value per unit",
+      "tableNote": "Values assume {karat} gold at {spot} per troy ounce of pure gold, with no dealer premium.",
+      "theSpotPrice": "the spot price"
+    },
+    "flagship": {
+      "inputsTitle": "Purchase Details",
+      "budget": "Your budget (USD)",
+      "purity": "Gold purity",
+      "premium": "Dealer premium",
+      "premiumHint": "Markup over spot. Bars/coins: 3–8% · Jewelry: 10–15%",
+      "displayUnit": "Display unit",
+      "troyOz": "Troy oz",
+      "grams": "Grams",
+      "resultsLabel": "Calculation results",
+      "copied": "Copied!",
+      "share": "Share this calculation",
+      "copyPrompt": "Copy this link:",
+      "emptyTitle": "Enter your budget to see results",
+      "emptyBody": "Fill in the purchase details to calculate gold quantity, break-even price, and scenarios.",
+      "youCanBuy": "Gold you can buy",
+      "unitTroyOz": "troy oz",
+      "unitG": "g",
+      "pure": "{unit} pure",
+      "ofKarat": "{unit} of {karat} gold",
+      "pureEquivalent": "Pure gold equivalent:",
+      "quantityNote": "1 troy oz = 31.1035 g · Dealer price = spot × purity × (1 + premium%)",
+      "breakEven": "Break-even price",
+      "mustRise": "Gold must rise <strong>{rise}</strong> to break even",
+      "breakEvenNote": "Assumes selling at spot with no sell-side commission or storage costs.",
+      "scenarios": "Profit / Loss scenarios",
+      "colChange": "Spot change",
+      "colSpot": "XAU/USD",
+      "colValue": "Gold value",
+      "colPnl": "P/L",
+      "today": "Today's spot",
+      "scenariosNote": "Assumes selling pure gold equivalent at spot with no buy-back commission. Actual returns will vary."
     }
   }
 }

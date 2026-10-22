@@ -2,7 +2,7 @@ import "server-only";
 
 import { DEFAULT_LOCALE, localizePath } from "@/config/locales";
 import { INSIGHT_KINDS, getInsightKind, insightKindCopy } from "@/config/insight-kinds";
-import { FLAGSHIP_TOOL, TOOLS } from "@/config/tools";
+import { FLAGSHIP_TOOL, TOOLS, toolCopy } from "@/config/tools";
 import { siteConfig } from "@/config/site";
 import { messages } from "@/i18n/messages";
 import { formatSignedPct, formatUsd } from "@/lib/format";
@@ -461,8 +461,10 @@ function buildHome(locale: string): string {
   lines.push(
     "## Calculators",
     "",
-    `- [${FLAGSHIP_TOOL.name}](${page(FLAGSHIP_TOOL.href, locale)}) — ${FLAGSHIP_TOOL.description}`,
-    ...TOOLS.map((t) => `- [${t.name}](${page(t.href, locale)}) — ${t.description}`),
+    ...[FLAGSHIP_TOOL, ...TOOLS].map((t) => {
+      const copy = toolCopy(t, locale);
+      return `- [${copy.name}](${page(t.href, locale)}) — ${copy.description}`;
+    }),
     "",
     "## How this site works",
     "",

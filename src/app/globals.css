@@ -136,7 +136,10 @@
   --gold-strong: oklch(0.82 0.12 84);
   --bull: oklch(0.68 0.15 150);
   --bull-foreground: oklch(0.16 0.02 150);
-  --bear: oklch(0.64 0.2 25);
+  /* L0.68 (was 0.64): 0.64 measured 4.35:1 on the highlighted `bg-muted/50`
+     calculator row. 0.68 is 5.12:1 there, 5.58:1 on cards, and lifts the SELL
+     badge (dark text on this) from 5.17:1 to 6.09:1. */
+  --bear: oklch(0.68 0.19 25);
   --bear-foreground: oklch(0.16 0.02 25);
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
