@@ -16,7 +16,7 @@ export async function generateMetadata({
   params,
 }: LocaleParams): Promise<Metadata> {
   const { locale } = await params;
-  return withLocaleMetadata(insightKindMetadata(def), def.href, locale);
+  return withLocaleMetadata(insightKindMetadata(def, locale), def.href, locale);
 }
 
 export default async function ExplainersPage({ params }: LocaleParams) {

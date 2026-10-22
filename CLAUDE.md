@@ -1791,3 +1791,45 @@ Match the current site's look and feel:
   - Verified: `check:rtl` 24/24 (0 axe, 0 console errors), `check:markdown` 37/37, `i18n:check`
     0 errors (25 + 1 keys translated; the freshness gate correctly failed the footnote after its
     English changed, and it was re-run through the pipeline rather than hand-patched).
+- 2026-10-22: **i18n chrome batch 3 — `/insights` (list, both kind views, article page).**
+  - **Insight-kind copy moved out of `config/insight-kinds.ts` into the catalog**
+    (`insights.kinds.{explainers,marketUpdates}`); the config keeps structure only (`kind`, `slug`,
+    `href`, `messageKey`). Read it through **`insightKindCopy(def, locale)`** — sync, via
+    `messages()`, because the Markdown builder, `llms.txt` and metadata builders run outside a
+    render. Added `inlineLabel` because the old code did `label.toLowerCase()`, which means nothing
+    in Arabic. `breadcrumb.home` added; breadcrumb "Insights" reuses `nav.insights`.
+  - English verified **byte-identical** for all four Markdown representations, `llms.txt`,
+    `sitemap.xml` and `rss.xml`, and text-identical HTML on `/insights`, both kind views and an
+    article. ISR windows unchanged.
+  - **First ICU plural in the catalog** — `insights.article.readingTime`:
+    `{count, plural, one {{minutes} min read} other {{minutes} min read}}`.
+    **⚠ Pass the digits as a pre-formatted STRING (`minutes: String(n)`) and select with a numeric
+    `count`.** ICU formats number arguments with the page locale, and next-intl's locale is plain
+    `ar` — not the registry's `ar-u-nu-latn` — so a numeric argument renders Arabic-Indic digits
+    (٤), breaking the Latin-digits rule. Renders `4 دقائق قراءة` (CLDR `few`).
+  - **The gate now parses ICU** (`icuInfo` / `icuFindings` in `check.ts`, catalog strings only —
+    artifact Markdown can contain literal braces). A translation must parse, keep the same argument
+    names/types, use only plural categories valid for the target locale (from `Intl.PluralRules`,
+    or `=N`), always include `other`, and keep `select` keys exactly. For branched messages,
+    numerals and placeholders compare as **sets** over **literal text only** — Arabic has six
+    branches to English's two, and an `=1` selector is not a digit. 4 new self-test fixtures
+    (translated keyword, missing `other`, unbalanced brace, renamed argument) + a valid six-branch
+    Arabic fixture; self-test now **27**. Prompt rule 8 (`TRANSLATION_PROMPT_VERSION 2026-10-22.1`)
+    derives the category list from `Intl.PluralRules`, so Spanish (`one, many, other`) needs no code.
+  - New exact devDependency **`@formatjs/icu-messageformat-parser@3.5.16`** (was already in the tree
+    transitively via next-intl). Lock regenerated with **npm 10.9.4** per the deploy-trap recipe;
+    `npm ci` under npm 10 verified.
+  - **⚠ Pre-existing, unrelated: the weekly `security-audit` workflow has FAILED every run since at
+    least 2026-09-28.** All advisories (`@modelcontextprotocol/sdk` high ×5, `braces`, `brace-expansion`)
+    come through the **`shadcn` CLI, which sits in `dependencies`** although it is only a dev tool.
+    Fix in its own PR: move `shadcn` to `devDependencies` (+ `npm audit fix`), which takes it out of
+    the `--omit=dev` gate. Not done here.
+  - **Phase E TODOs collected so far** (all needed before enabling `ar`):
+    ① `insights/[slug]/page.tsx` still passes `ACTIVE_LOCALE_CODES` to `withLocaleMetadata` — must
+    pass only the locales the article is actually translated into (`isArticleTranslated`), or an
+    untranslated article advertises an Arabic hreflang. ② Same for article entries in `sitemap.ts`.
+    ③ Fallback English content on an `/ar` page must carry `lang="en" dir="ltr"` (renders garbled
+    otherwise: ".watch next", "year real yield-10").
+  - Verified: `check:rtl` 24/24 + 12/12 on the insights pages (0 axe, 0 console errors),
+    `check:faq` 96/96, `check:markdown` 37/37, `i18n:check` 0 errors (26 keys translated, 340
+    untouched). `/ar/insights*` chrome is clean; remaining chunks are article content + source titles.

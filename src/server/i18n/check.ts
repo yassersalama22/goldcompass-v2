@@ -1,3 +1,5 @@
+import { parse, TYPE, type MessageFormatElement } from "@formatjs/icu-messageformat-parser";
+
 import { isActiveLocale, requireLocale } from "@/config/locales";
 import {
   assertFieldMapCoverage,
@@ -65,6 +67,91 @@ function numerals(text: string): string[] {
  */
 function placeholders(text: string): string[] {
   return [...(text.match(/\{[a-zA-Z0-9_]+\}|%[sd]|<\/?[a-zA-Z][\w-]*>/g) ?? [])].sort();
+}
+
+/**
+ * The ICU structure of a catalog message: its arguments, its plural/select
+ * branches, and the literal text with all syntax removed.
+ *
+ * next-intl messages are ICU MessageFormat, so a catalog string can carry
+ * syntax a regex cannot validate — `{count, plural, one {…} other {…}}`. A
+ * translator that translates a keyword ("other" → "أخرى"), drops a branch's
+ * argument, or unbalances a brace produces a message that throws at render
+ * time on exactly the page and count that hits it. Parsing is the only honest
+ * check.
+ */
+type IcuInfo =
+  | { ok: true; args: Set<string>; branches: Map<string, { type: "plural" | "select"; keys: string[] }>; literal: string }
+  | { ok: false; error: string };
+
+function icuInfo(text: string): IcuInfo {
+  let ast: MessageFormatElement[];
+  try {
+    ast = parse(text);
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : String(e) };
+  }
+  const args = new Set<string>();
+  const branches = new Map<string, { type: "plural" | "select"; keys: string[] }>();
+  const literal: string[] = [];
+  const walk = (els: MessageFormatElement[]) => {
+    for (const el of els) {
+      if (el.type === TYPE.literal) literal.push(el.value);
+      else if (el.type === TYPE.argument) args.add(`${el.value}:argument`);
+      else if (el.type === TYPE.number) args.add(`${el.value}:number`);
+      else if (el.type === TYPE.date || el.type === TYPE.time) args.add(`${el.value}:date`);
+      else if (el.type === TYPE.tag) walk(el.children);
+      else if (el.type === TYPE.plural || el.type === TYPE.select) {
+        const type = el.type === TYPE.plural ? "plural" : "select";
+        args.add(`${el.value}:${type}`);
+        branches.set(el.value, { type, keys: Object.keys(el.options) });
+        for (const option of Object.values(el.options)) walk(option.value);
+      }
+    }
+  };
+  walk(ast);
+  return { ok: true, args, branches, literal: literal.join(" ") };
+}
+
+/**
+ * Validate a translated message's ICU structure against its English source.
+ * Plural branches may differ — that is the point of plurals (English has
+ * one/other, Arabic zero/one/two/few/many/other) — but only CLDR categories
+ * valid for the target locale, or exact `=N` matches, are allowed, and `other`
+ * is mandatory. Select branches must match exactly: their keys are data.
+ */
+function icuFindings(source: IcuInfo, target: IcuInfo, locale: string, at: string): Finding[] {
+  if (!source.ok) {
+    return [{ severity: "error", path: at, message: `English source is not valid ICU: ${source.error}` }];
+  }
+  if (!target.ok) {
+    return [{ severity: "error", path: at, message: `translation is not valid ICU (it would throw at render time): ${target.error}` }];
+  }
+  const findings: Finding[] = [];
+  const s = [...source.args].sort().join(", ");
+  const t = [...target.args].sort().join(", ");
+  if (s !== t) {
+    findings.push({ severity: "error", path: at, message: `ICU arguments changed: source has [${s || "none"}], translation has [${t || "none"}]` });
+  }
+  const categories = new Set(new Intl.PluralRules(locale).resolvedOptions().pluralCategories);
+  for (const [name, { type, keys }] of target.branches) {
+    const src = source.branches.get(name);
+    if (!src) continue; // already reported as an argument change
+    if (type === "select") {
+      if ([...keys].sort().join() !== [...src.keys].sort().join()) {
+        findings.push({ severity: "error", path: at, message: `select "${name}" branches changed: [${src.keys}] → [${keys}]` });
+      }
+      continue;
+    }
+    const invalid = keys.filter((k) => !categories.has(k as Intl.LDMLPluralRule) && !/^=\d+$/.test(k));
+    if (invalid.length > 0) {
+      findings.push({ severity: "error", path: at, message: `plural "${name}" uses categories that do not exist in ${locale}: [${invalid}] (valid: ${[...categories].join(", ")}, or =N)` });
+    }
+    if (!keys.includes("other")) {
+      findings.push({ severity: "error", path: at, message: `plural "${name}" has no "other" branch` });
+    }
+  }
+  return findings;
 }
 
 function urls(text: string): string[] {
@@ -219,6 +306,17 @@ export function checkCatalogParity(
     if (source === undefined) continue;
     const at = `ui/${locale}.json → ${field.path}`;
 
+    /* ICU structure first — a message that does not parse makes every other
+     * check below meaningless. */
+    const sIcu = icuInfo(source);
+    const tIcu = icuInfo(field.value);
+    findings.push(...icuFindings(sIcu, tIcu, locale, at));
+    // A plural repeats its text once per branch, and the two languages have
+    // different numbers of branches. Compare numbers and tokens as SETS there,
+    // and only over literal text, so an `=1` selector is not read as a digit.
+    const branched = sIcu.ok && tIcu.ok && (sIcu.branches.size > 0 || tIcu.branches.size > 0);
+    const numText = (raw: string, info: IcuInfo) => (branched && info.ok ? info.literal : raw);
+
     /*
      * Numeral parity, split by *precision* rather than by strict equality.
      *
@@ -243,9 +341,11 @@ export function checkCatalogParity(
         precise: /[.,٫٬]\d/.test(raw) || raw.replace(/[.,٫٬]/g, "").length >= 3,
       }));
 
-    const remaining = tokens(field.value);
+    const uniq = <T extends { norm: string }>(list: T[]) =>
+      branched ? list.filter((x, i) => list.findIndex((y) => y.norm === x.norm) === i) : list;
+    const remaining = uniq(tokens(numText(field.value, tIcu)));
     const dropped: { raw: string; precise: boolean }[] = [];
-    for (const t of tokens(source)) {
+    for (const t of uniq(tokens(numText(source, sIcu)))) {
       const i = remaining.findIndex((r) => r.norm === t.norm);
       if (i === -1) dropped.push(t);
       else remaining.splice(i, 1);
@@ -285,7 +385,8 @@ export function checkCatalogParity(
 
     const sp = placeholders(source);
     const tp = placeholders(field.value);
-    if (sp.join("|") !== tp.join("|")) {
+    const sig = (list: string[]) => (branched ? [...new Set(list)] : list).join("|");
+    if (sig(sp) !== sig(tp)) {
       findings.push({
         severity: "error",
         path: at,

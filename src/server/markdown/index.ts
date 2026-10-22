@@ -1,7 +1,7 @@
 import "server-only";
 
 import { DEFAULT_LOCALE, localizePath } from "@/config/locales";
-import { INSIGHT_KINDS, getInsightKind } from "@/config/insight-kinds";
+import { INSIGHT_KINDS, getInsightKind, insightKindCopy } from "@/config/insight-kinds";
 import { FLAGSHIP_TOOL, TOOLS } from "@/config/tools";
 import { siteConfig } from "@/config/site";
 import { messages } from "@/i18n/messages";
@@ -347,9 +347,10 @@ function buildArticleList(
     "",
     "## Related",
     "",
-    ...INSIGHT_KINDS.filter((k) => k.href !== canonicalPath).map(
-      (k) => `- [${k.heading}](${page(k.href, locale)}) — ${k.description}`,
-    ),
+    ...INSIGHT_KINDS.filter((k) => k.href !== canonicalPath).map((k) => {
+      const copy = insightKindCopy(k, locale);
+      return `- [${copy.heading}](${page(k.href, locale)}) — ${copy.description}`;
+    }),
     `- [RSS feed](${page("/insights/rss.xml", locale)})`,
     `- [All articles as JSON](${SITE}/api/v1/articles)`,
     "",
@@ -523,9 +524,10 @@ export async function buildMarkdown(
 
   const kind = getInsightKind(kindSlug);
   if (kind) {
+    const copy = insightKindCopy(kind, locale);
     return buildArticleList(
-      kind.heading,
-      kind.intro,
+      copy.heading,
+      copy.intro,
       getArticlesByKind(kind.kind, locale),
       kind.href,
       locale,

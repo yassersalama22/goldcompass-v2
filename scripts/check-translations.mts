@@ -135,12 +135,19 @@ function selfTestCatalog(): number {
     tools: { conv: { faq: "A troy ounce is 31.1035 grams, not 28.35." } },
     site: { titleTemplate: "%s | GoldCompass" },
     page: { rich: "See the chart on our <trends>trends page</trends>, <strong>not</strong> a forecast." },
+    plural: { read: "{count, plural, one {{minutes} min read} other {{minutes} min read}}" },
   };
   const good = {
     tools: { conv: { faq: "الأونصة التروية تساوي 31.1035 غرامًا، وليست 28.35." } },
     site: { titleTemplate: "%s | GoldCompass" },
     // The link moved within the sentence — legitimate, and must pass.
     page: { rich: "<strong>ليس</strong> توقعًا: راجع الرسم البياني في <trends>صفحة الاتجاهات</trends>." },
+    // Arabic's six CLDR categories against English's two, with `{minutes}`
+    // absent from the one/two branches (the word carries the number there) —
+    // legitimate, and must pass.
+    plural: {
+      read: "{count, plural, zero {{minutes} دقيقة قراءة} one {دقيقة واحدة للقراءة} two {دقيقتان للقراءة} few {{minutes} دقائق للقراءة} many {{minutes} دقيقة للقراءة} other {{minutes} دقيقة للقراءة}}",
+    },
   };
   // Hashes recorded from the current English, so nothing reads as stale.
   const meta = Object.fromEntries(
@@ -169,6 +176,18 @@ function selfTestCatalog(): number {
     }],
     ["a dropped rich-text tag pair", (c) => {
       (c.page as Record<string, string>).rich = "<strong>ليس</strong> توقعًا: راجع الرسم البياني في صفحة الاتجاهات.";
+    }],
+    ["a translated plural keyword", (c) => {
+      (c.plural as Record<string, string>).read = "{count, plural, one {دقيقة واحدة للقراءة} أخرى {{minutes} دقيقة للقراءة}}";
+    }],
+    ["a plural with no other branch", (c) => {
+      (c.plural as Record<string, string>).read = "{count, plural, one {دقيقة واحدة للقراءة} few {{minutes} دقائق للقراءة}}";
+    }],
+    ["an unbalanced ICU brace", (c) => {
+      (c.plural as Record<string, string>).read = "{count, plural, one {دقيقة واحدة} other {{minutes} دقيقة للقراءة}";
+    }],
+    ["a renamed ICU argument", (c) => {
+      (c.plural as Record<string, string>).read = "{count, plural, one {دقيقة واحدة} other {{دقائق} دقيقة للقراءة}}";
     }],
     ["a translated rich-text tag name", (c) => {
       (c.page as Record<string, string>).rich = "<strong>ليس</strong> توقعًا: راجع الرسم البياني في <اتجاهات>صفحة الاتجاهات</اتجاهات>.";

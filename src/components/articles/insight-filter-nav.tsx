@@ -1,3 +1,5 @@
+import { useTranslations } from "next-intl";
+
 import { Link } from "@/i18n/navigation";
 
 import { cn } from "@/lib/utils";
@@ -9,10 +11,18 @@ import { INSIGHT_KINDS } from "@/config/insight-kinds";
  * the whole point of the split.
  */
 export function InsightFilterNav({ current }: { current: "all" | string }) {
-  const items = [{ slug: "all", href: "/insights", label: "All insights" }, ...INSIGHT_KINDS];
+  const t = useTranslations("insights");
+  const items = [
+    { slug: "all", href: "/insights", label: t("all") },
+    ...INSIGHT_KINDS.map((k) => ({
+      slug: k.slug,
+      href: k.href,
+      label: t(`kinds.${k.messageKey}.label`),
+    })),
+  ];
 
   return (
-    <nav aria-label="Filter insights" className="mb-8">
+    <nav aria-label={t("filterLabel")} className="mb-8">
       <ul className="flex flex-wrap gap-2">
         {items.map((item) => {
           const isCurrent = item.slug === current;

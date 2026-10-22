@@ -580,5 +580,43 @@
       "pp": "pp",
       "footnote": "<attribution>{source}</attribution>. The dollar figure is the Federal Reserve’s trade-weighted broad dollar index, not the ICE “DXY”. Inflation breakeven is derived as the 10-year Treasury yield minus the 10-year real yield."
     }
+  },
+  "breadcrumb": {
+    "home": "Home"
+  },
+  "insights": {
+    "metaTitle": "Market Insights",
+    "metaDescription": "Gold-market insights — news summaries, analysis, and educational guides on prices, central banks, and the macro picture. Every claim cites a reputable source.",
+    "heading": "Market Insights",
+    "lede": "Everything we publish, newest first — market updates pegged to what just happened, and explainers built to stay true. Every claim is tied to a cited source.",
+    "empty": "No insights published yet. Check back soon.",
+    "all": "All insights",
+    "filterLabel": "Filter insights",
+    "kindEmpty": "Nothing published here yet. <insights>Browse all insights</insights>.",
+    "lookingFor": "Looking for {label} instead? <other>{heading}</other>.",
+    "kinds": {
+      "explainers": {
+        "label": "Explainers",
+        "inlineLabel": "explainers",
+        "heading": "Gold explainers",
+        "title": "Gold Explainers — How the Gold Market Actually Works",
+        "description": "Plain-English guides to what moves the gold price: interest rates, the dollar, central-bank demand, purity, and premiums. Written to stay true, and every claim cited.",
+        "intro": "The durable half of our writing: how the gold market works, explained for people who do not trade for a living. These pieces are about mechanisms rather than headlines, so they stay useful long after the week they were written."
+      },
+      "marketUpdates": {
+        "label": "Market updates",
+        "inlineLabel": "market updates",
+        "heading": "Gold market updates",
+        "title": "Gold Market Updates — What Moved the Price, and Why",
+        "description": "Timely coverage of the gold market: Fed decisions, inflation prints, geopolitics, and the moves they caused. Dated, cited, and written for everyday investors.",
+        "intro": "What happened, when, and why it mattered for gold. These are pegged to a moment — a rate decision, an inflation print, a geopolitical shock — so read the date first. For the mechanisms behind them, start with the explainers."
+      }
+    },
+    "article": {
+      "notFoundTitle": "Insight not found",
+      "readingTime": "{count, plural, one {{minutes} min read} other {{minutes} min read}}",
+      "sourcesHeading": "Sources",
+      "disclaimer": "Educational information only — not financial advice. See our <disclaimer>disclaimer</disclaimer>."
+    }
   }
 }
