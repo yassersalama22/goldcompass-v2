@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import Script from "next/script";
+import { useTranslations } from "next-intl";
 import { Check, Loader2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -42,6 +43,7 @@ export function SubscribeForm({
   source?: string;
   className?: string;
 }) {
+  const t = useTranslations("newsletter");
   const emailId = useId();
   const statusId = useId();
   const [email, setEmail] = useState("");
@@ -90,21 +92,26 @@ export function SubscribeForm({
       if (res.ok && data.ok) {
         setStatus("success");
         setMessage(
-          data.status === "already_subscribed"
-            ? "You're already on the list — thanks!"
-            : "You're subscribed! Check your inbox to confirm."
+          data.status === "already_subscribed" ? t("already") : t("success")
         );
         setEmail("");
       } else {
         setStatus("error");
-        setMessage(data.message ?? "Something went wrong. Please try again.");
+        // The API sends a stable `code`; the visible text is ours to localize.
+        // An unknown or missing code (older API, proxy error page) gets the
+        // generic message rather than whatever English the response carried.
+        setMessage(
+          typeof data.code === "string" && t.has(`errors.${data.code}`)
+            ? t(`errors.${data.code}`)
+            : t("errors.generic"),
+        );
         // One-time tokens are consumed on use — reset for a retry.
         window.turnstile?.reset(widgetId.current ?? undefined);
         setToken(null);
       }
     } catch {
       setStatus("error");
-      setMessage("Network error. Please try again.");
+      setMessage(t("errors.network"));
       window.turnstile?.reset(widgetId.current ?? undefined);
       setToken(null);
     }
@@ -134,7 +141,7 @@ export function SubscribeForm({
         />
       )}
       <label htmlFor={emailId} className="sr-only">
-        Email address
+        {t("emailLabel")}
       </label>
       <div className="flex flex-col gap-2 sm:flex-row">
         <input
@@ -154,7 +161,7 @@ export function SubscribeForm({
 
         {/* Honeypot — visually hidden, ignored by humans, off the a11y tree. */}
         <div aria-hidden="true" className="absolute start-[-9999px] h-0 w-0 overflow-hidden">
-          <label htmlFor={`${emailId}-company`}>Company (leave blank)</label>
+          <label htmlFor={`${emailId}-company`}>{t("honeypotLabel")}</label>
           <input
             id={`${emailId}-company`}
             type="text"
@@ -174,10 +181,10 @@ export function SubscribeForm({
           {status === "loading" ? (
             <>
               <Loader2 className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
-              Subscribing…
+              {t("submitting")}
             </>
           ) : (
-            "Subscribe"
+            t("submit")
           )}
         </Button>
       </div>

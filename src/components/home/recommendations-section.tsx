@@ -11,7 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { getLocale } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 
 import { getPublishedOutlook } from "@/server/outlook";
 
@@ -19,6 +19,7 @@ export async function RecommendationsSection() {
   // Single source of truth — same data the /outlook page and /api/v1 serve.
   const report = getPublishedOutlook(await getLocale());
   if (!report) return null;
+  const t = await getTranslations("home.recommendations");
 
   return (
     <section aria-labelledby="outlook-heading" className="py-16 sm:py-20">
@@ -26,17 +27,17 @@ export async function RecommendationsSection() {
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="space-y-2">
             <h2 id="outlook-heading" className="text-3xl font-bold">
-              Current recommendations
+              {t("heading")}
             </h2>
             <p className="text-muted-foreground max-w-prose">
-              Our latest read on the gold market across two time horizons.
+              {t("intro")}
             </p>
           </div>
           <Link
             href="/outlook"
             className="text-gold-strong inline-flex items-center gap-1 text-sm font-medium underline-offset-4 hover:underline"
           >
-            View full analysis
+            {t("viewAll")}
             <ArrowRight className="rtl:rotate-180 size-4" aria-hidden="true" />
           </Link>
         </div>

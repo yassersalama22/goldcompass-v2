@@ -1,23 +1,21 @@
+import { useLocale } from "next-intl";
+
 import { Link } from "@/i18n/navigation";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatMediumDate } from "@/lib/format";
 import type { ArticleSummary } from "@/types/article";
 
-const dateFormatter = new Intl.DateTimeFormat("en-US", {
-  year: "numeric",
-  month: "short",
-  day: "numeric",
-});
-
 export function ArticleCard({ article }: { article: ArticleSummary }) {
+  const locale = useLocale();
   return (
     <Card className="relative h-full transition-shadow hover:shadow-md">
       <CardHeader>
         <div className="flex items-center justify-between gap-2">
           <Badge variant="secondary">{article.category}</Badge>
           <time dateTime={article.date} className="text-muted-foreground text-xs">
-            {dateFormatter.format(new Date(article.date))}
+            {formatMediumDate(article.date, locale)}
           </time>
         </div>
         <CardTitle className="mt-2 text-lg leading-snug">

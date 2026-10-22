@@ -470,5 +470,84 @@
     },
     "callout": "<strong>Important:</strong> Everything on GoldCompass is educational information only — not financial, investment, tax, or legal advice. That an analysis was reviewed by a person does not make it advice, and does not make it right. Read our full <disclaimer>disclaimer</disclaimer>.",
     "lastUpdated": "Last updated <time>{date}</time>. We will revise this page if the model, the pipeline, or the review process changes."
+  },
+  "home": {
+    "hero": {
+      "badge": "Navigate the gold market with confidence",
+      "heading": "Smart, clear guidance for <accent>gold investors</accent>",
+      "lede": "Market outlooks, live price trends, and a smart calculator — everything everyday investors need to make informed decisions about gold.",
+      "ctaOutlook": "View the outlook",
+      "disclaimer": "Educational information only — not financial advice."
+    },
+    "recommendations": {
+      "heading": "Current recommendations",
+      "intro": "Our latest read on the gold market across two time horizons.",
+      "viewAll": "View full analysis"
+    },
+    "features": {
+      "heading": "Tools to guide your decisions",
+      "intro": "Practical, data-driven tools designed for everyday investors.",
+      "trends": {
+        "title": "Live gold price trends",
+        "description": "Track the XAU/USD spot price with an interactive 30-day chart, refreshed throughout the day.",
+        "cta": "View trends"
+      },
+      "calculator": {
+        "title": "Smart gold calculator",
+        "description": "Enter a budget and purity to estimate how much gold you can buy, your break-even price, and profit/loss scenarios.",
+        "cta": "Open calculator"
+      }
+    },
+    "insights": {
+      "heading": "Market insights",
+      "intro": "Analysis on price moves, central banks, and what they mean for investors.",
+      "viewAll": "All insights"
+    },
+    "cta": {
+      "heading": "Stay ahead of the gold market",
+      "body": "Check the latest outlook and run the numbers on your next move. A free weekly email digest is coming soon.",
+      "ctaOutlook": "See the latest outlook",
+      "ctaCalculator": "Try the calculator"
+    }
+  },
+  "market": {
+    "signal": {
+      "buy": {
+        "label": "BUY",
+        "sr": "Buy signal"
+      },
+      "sell": {
+        "label": "SELL",
+        "sr": "Sell signal"
+      },
+      "hold": {
+        "label": "HOLD",
+        "sr": "Hold signal"
+      }
+    },
+    "confidence": {
+      "low": "Low <muted>confidence</muted>",
+      "medium": "Moderate <muted>confidence</muted>",
+      "high": "High <muted>confidence</muted>"
+    }
+  },
+  "newsletter": {
+    "ctaHeading": "Get the weekly gold update",
+    "ctaBody": "The latest outlook and market insights in your inbox. Free, no spam — unsubscribe anytime.",
+    "emailLabel": "Email address",
+    "honeypotLabel": "Company (leave blank)",
+    "submit": "Subscribe",
+    "submitting": "Subscribing…",
+    "success": "You're subscribed! Check your inbox to confirm.",
+    "already": "You're already on the list — thanks!",
+    "errors": {
+      "rate_limited": "Too many requests. Please try again later.",
+      "invalid_request": "Invalid request.",
+      "invalid_email": "Please enter a valid email address.",
+      "verification_failed": "Verification failed. Please try again.",
+      "provider_error": "Something went wrong. Please try again later.",
+      "generic": "Something went wrong. Please try again.",
+      "network": "Network error. Please try again."
+    }
   }
 }

@@ -1731,3 +1731,34 @@ Match the current site's look and feel:
     that is Phase E backfill.
   - Next: extract that chrome (in batches by area, English verified unchanged per batch), one
     pipeline run, then Phase E.
+- 2026-10-22: **i18n chrome batch 1 — home page + shared components.** Also opened **PR #102**
+  (`fix/calculator-faq-visible`, off `main`): the `/calculator` visible-FAQ fix alone, so the live
+  English structured-data violation ships without waiting for Arabic. It carries the `ar` value +
+  meta hash for `page.faqHeading` because **on `main` a missing catalog key is still an error**
+  (the "warning while unrouted" rule exists only on the i18n branch) and `content-check.yml`
+  would otherwise fail it.
+  - Converted: the 5 home sections, plus shared `SignalBadge` (enum stays `BUY` in data, visible
+    word + sr label from `market.signal.*`), `ConfidenceMeter` (**one message per level** —
+    `"High <muted>confidence</muted>"` — because Arabic flips the order: `<muted>ثقة</muted> عالية`),
+    `ArticleCard` (hardcoded `en-US` formatter → new `formatMediumDate`, UTC-pinned),
+    `ThemeToggle`, `SubscribeForm`, `SubscribeCta`. These also fix `/outlook`, `/insights`,
+    articles, `/about` and the footer on every page.
+  - **`/api/subscribe` now returns a stable `code`** alongside `message` (additive); the form maps
+    `errors.<code>` and falls back to `errors.generic` for anything unknown — it no longer shows
+    whatever English the response carried. Verified in headless Chrome: `/ar` shows the Arabic
+    invalid-email message, `/` the original English.
+  - **New `npm run check:untranslated`** (`scripts/check-untranslated.mjs`): reports text chunks
+    (and aria-label/title/placeholder/alt) on `/ar` pages that contain Latin words and no Arabic.
+    The language counterpart to `check:rtl`. Reports by default; `STRICT=1` fails — use that once
+    Phase E lands. `/ar` went **42 → 12** chunks, and all 12 are artifact content (call horizons /
+    reasons, article category/title/description), i.e. Phase E.
+  - English verified **text-identical** (incl. sr-only + aria) on `/`, `/outlook`, `/insights`,
+    `/insights/explainers`, an article, `/about`. `check:rtl` 24/24 (0 axe, 0 console errors),
+    `check:faq` 96/96, `check:markdown` 37/37, `i18n:check` 0 errors, 47 keys translated with
+    268 untouched.
+  - **Local testing note**: `.env.local` sets the Turnstile site key, so the subscribe button stays
+    disabled in headless Chrome (no token). The API validates email *before* Turnstile, so a test
+    can strip `disabled` and submit to exercise the error path.
+  - Next batches: outlook page chrome (key levels, call card, macro panel, methodology box, page
+    metadata), insights (list/kind views/detail chrome), trends, calculator + `ToolPageShell` +
+    5 client calculators + `config/tools.ts`, `/subscribed`.

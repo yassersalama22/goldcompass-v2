@@ -1,3 +1,5 @@
+import { useTranslations } from "next-intl";
+
 import { cn } from "@/lib/utils";
 import type { Confidence } from "@/types/outlook";
 
@@ -9,11 +11,7 @@ import type { Confidence } from "@/types/outlook";
  * segments themselves are `aria-hidden`, since the label already states the
  * level for assistive tech.
  */
-const LEVELS: Record<Confidence, { filled: number; label: string }> = {
-  low: { filled: 1, label: "Low" },
-  medium: { filled: 2, label: "Moderate" },
-  high: { filled: 3, label: "High" },
-};
+const FILLED: Record<Confidence, number> = { low: 1, medium: 2, high: 3 };
 
 const TOTAL_SEGMENTS = 3;
 
@@ -26,7 +24,8 @@ export function ConfidenceMeter({
   size?: "default" | "sm";
   className?: string;
 }) {
-  const { filled, label } = LEVELS[confidence];
+  const t = useTranslations("market.confidence");
+  const filled = FILLED[confidence];
   const isSmall = size === "sm";
 
   return (
@@ -56,8 +55,13 @@ export function ConfidenceMeter({
           isSmall ? "text-xs" : "text-sm",
         )}
       >
-        {label}
-        <span className="text-muted-foreground font-normal"> confidence</span>
+        {/* One message per level ("High <muted>confidence</muted>") because
+            the word order flips in Arabic (ثقة عالية). */}
+        {t.rich(confidence, {
+          muted: (chunks) => (
+            <span className="text-muted-foreground font-normal">{chunks}</span>
+          ),
+        })}
       </span>
     </div>
   );

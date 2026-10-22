@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { Mail } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -15,6 +16,8 @@ export function SubscribeCta({
   source: string;
   className?: string;
 }) {
+  const t = useTranslations("newsletter");
+
   return (
     <section
       aria-labelledby={`subscribe-heading-${source}`}
@@ -25,11 +28,10 @@ export function SubscribeCta({
         className="flex items-center gap-2 text-lg font-semibold"
       >
         <Mail className="text-gold-strong size-5" aria-hidden="true" />
-        Get the weekly gold update
+        {t("ctaHeading")}
       </h2>
       <p className="text-muted-foreground text-sm">
-        The latest outlook and market insights in your inbox. Free, no spam —
-        unsubscribe anytime.
+        {t("ctaBody")}
       </p>
       <SubscribeForm source={source} className="max-w-md" />
     </section>

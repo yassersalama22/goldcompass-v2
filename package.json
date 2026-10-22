@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "check:markdown": "tsx scripts/check-markdown-negotiation.mts",
+    "check:untranslated": "node scripts/check-untranslated.mjs",
     "check:rtl": "node scripts/check-rtl.mjs",
     "i18n:translate": "tsx scripts/translate-content.mts",
     "i18n:check": "tsx scripts/check-translations.mts --self-test",

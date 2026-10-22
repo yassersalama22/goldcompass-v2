@@ -28,7 +28,7 @@ export async function POST(request: Request) {
   const limit = rateLimit(`subscribe:${getClientIp(request)}`, RATE_LIMIT);
   if (!limit.ok) {
     return NextResponse.json(
-      { ok: false, message: "Too many requests. Please try again later." },
+      { ok: false, code: "rate_limited", message: "Too many requests. Please try again later." },
       { status: 429, headers: { "Retry-After": String(limit.retryAfterSec) } },
     );
   }
@@ -37,13 +37,13 @@ export async function POST(request: Request) {
   try {
     payload = await request.json();
   } catch {
-    return NextResponse.json({ ok: false, message: "Invalid request." }, { status: 400 });
+    return NextResponse.json({ ok: false, code: "invalid_request", message: "Invalid request." }, { status: 400 });
   }
 
   const parsed = subscribeSchema.safeParse(payload);
   if (!parsed.success) {
     return NextResponse.json(
-      { ok: false, message: "Please enter a valid email address." },
+      { ok: false, code: "invalid_email", message: "Please enter a valid email address." },
       { status: 400 },
     );
   }
@@ -61,7 +61,7 @@ export async function POST(request: Request) {
   );
   if (!humanVerified) {
     return NextResponse.json(
-      { ok: false, message: "Verification failed. Please try again." },
+      { ok: false, code: "verification_failed", message: "Verification failed. Please try again." },
       { status: 403 },
     );
   }
@@ -74,7 +74,7 @@ export async function POST(request: Request) {
 
   if (!result.ok) {
     return NextResponse.json(
-      { ok: false, message: "Something went wrong. Please try again later." },
+      { ok: false, code: "provider_error", message: "Something went wrong. Please try again later." },
       { status: 502 },
     );
   }
