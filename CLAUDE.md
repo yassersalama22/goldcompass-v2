@@ -2025,5 +2025,9 @@ Match the current site's look and feel:
     ② **`/ar/*` is not edge-cached** (`cf-cache-status: DYNAMIC` on every Arabic page) — the "Cache
     public pages" rule evidently matches English paths only. Extend it to `/ar` and `/ar/*`, keeping
     the `rsc` header and `Accept: text/markdown` exclusions (2026-07-27 / 2026-08-07 lessons).
-  - **PR #104** (complete per-page Open Graph/Twitter cards) is still open; it will conflict in
-    `lib/seo.ts` with the launched `contentLocale` change — keep both.
+  - **PR #104 merged + deployed the same day** (complete per-page Open Graph/Twitter cards). Its
+    `lib/seo.ts` conflict with the launched `contentLocale` was resolved by keeping both: complete
+    blocks, with `og:url`/`og:locale` from `contentLocale()` so fallback pages still point at English.
+    Verified on production in both languages (own URL, image, site name, Twitter title per page).
+    ⚠ Cloudflare 403s Python's default `urllib` user agent — use `curl` (or set a UA) when probing
+    production from scripts; it is bot filtering, not an outage.
