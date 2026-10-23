@@ -113,9 +113,11 @@ export const LOCALES: readonly LocaleDef[] = [
     hreflang: "ar",
     ogLocale: "ar_AR",
     canonical: false,
-    // Enabled in Phase B, once RTL layout and the Arabic typeface are in place.
-    // Until then the contracts accept `ar` artifacts but nothing routes to them.
-    enabled: false,
+    // Enabled 2026-10-23 after owner review of the interface, the glossary, the
+    // outlook, all 17 articles and the disclaimer. Routed, sitemapped and
+    // hreflang-advertised from here — per content item only where a CURRENT
+    // translation exists (see server/i18n/availability.ts).
+    enabled: true,
     reviewPolicy: "native",
     lengthRatio: [0.75, 1.15],
     fontVariable: "--font-arabic",

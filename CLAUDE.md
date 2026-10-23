@@ -1988,3 +1988,22 @@ Match the current site's look and feel:
     agreement, `قديم`, `شروحات`, `{minutes} دقيقتان`); ⑥ add plural variants to the glossary.
   - **Then**: flip `ar` to `enabled: true` in its own reviewed PR. From that point the daily-outlook
     and articles workflows translate in the same PR as the English (scoped by `TRANSLATE_ONLY`).
+- 2026-10-23: **🚀 Arabic enabled** (`ar` → `enabled: true` in `src/config/locales.ts`) after owner
+  review of the interface, glossary, outlook, 17 articles and the disclaimer. No review edits were
+  made — content ships as generated and gated.
+  - Translations refreshed immediately before the flip (all current: catalog 620/620, outlook, 17
+    articles, disclaimer). No `NEXT_PUBLIC_LOCALES_ENABLED` repo variable exists, so the registry
+    flag alone controls production (an unset var arrives as `""` and is normalised away).
+  - Verified on a plain build (= what CI builds): 21 `/ar` routes, sitemap 64 URLs / 32 Arabic,
+    0 stale, `check:rtl` 36/36, `check:faq` 96/96 (en + ar), `check:markdown` 37/37,
+    `check:untranslated` = only the 5 deliberate English strings on `/ar/outlook`. English
+    canonicals unchanged; every page now carries en/ar/x-default hreflang; switcher renders.
+  - **⚠ Purge Cloudflare after the deploy.** Fully static English pages (`/about`, `/methodology`,
+    …) are edge-cached with `s-maxage=31536000`, so they keep serving pre-launch HTML (no language
+    switcher, no Arabic hreflang) until purged. `/ar/*` 404s and `sitemap.xml` were NOT cached
+    (`DYNAMIC`), so Arabic URLs work as soon as the deploy lands.
+  - From now on: the daily-outlook and articles workflows translate in the same PR as the English
+    (`TRANSLATE_ONLY` scoped); `content-check.yml` gates them; a stale translation falls back to
+    labelled English at runtime rather than contradicting the source.
+  - **PR #104** (social-card fix) is still open against `main`; it will conflict in `lib/seo.ts`
+    with this branch's `contentLocale` — resolve by keeping both.
