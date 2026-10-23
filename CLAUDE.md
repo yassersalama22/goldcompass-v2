@@ -2031,3 +2031,21 @@ Match the current site's look and feel:
     Verified on production in both languages (own URL, image, site name, Twitter title per page).
     ⚠ Cloudflare 403s Python's default `urllib` user agent — use `curl` (or set a UA) when probing
     production from scripts; it is bot filtering, not an outage.
+- 2026-10-23: **Post-launch cleanup.**
+  - **PR #108 — deploy workflow on Node 24**: `docker/setup-buildx-action` v3→v4, `login-action`
+    v3→v4, `build-push-action` v6→v7. Every deploy had warned they targeted the deprecated Node 20
+    runtime. The majors' breaking changes only remove deprecated envs/inputs this workflow does not
+    use. Verified by the merge's own deploy: success, no Node 20 warnings.
+  - **Dependency audit, final state**: production (`--omit=dev`) **0 vulnerabilities**; the weekly
+    gate is green. Dev-only: 9 highs, all from `braces@3.0.3` (GHSA-vfj7-8cjw-p6xm, stack-exhaustion
+    DoS on deeply nested brace patterns) via `micromatch`/`fast-glob` under the shadcn CLI and
+    `eslint-config-next`. **No patched `braces` release exists** (`first_patched_version: null`;
+    3.0.3 is the latest) and npm's suggested "fixes" are downgrades (`shadcn@1.0.0`,
+    `eslint-config-next@14`) — ignore them. Only reachable by dev tooling evaluating globs we author;
+    accepted. Re-check when `braces` ships a fix. (The older `brace-expansion` dev advisories noted on
+    2026-07-28 are gone.)
+  - **Owner-only items still open** (no Cloudflare/AWS credentials in-session): Cloudflare purge and
+    extending the cache rule to `/ar/*` (see the launch entry above); IAM
+    `ec2:DescribeSecurityGroupRules` for `deploy/whitelist-cloudflare-ips.sh`; field Core Web Vitals
+    review in Search Console (now worth doing per locale — submit the sitemap again so `/ar` URLs
+    are discovered).
