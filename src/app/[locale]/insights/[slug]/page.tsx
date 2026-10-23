@@ -57,6 +57,7 @@ export async function generateMetadata({
     `/insights/${article.slug}`,
     locale,
     ACTIVE_LOCALE_CODES,
+    { ownImage: true },
   );
 }
 
