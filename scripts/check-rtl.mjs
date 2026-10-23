@@ -34,9 +34,20 @@ const PAGES = process.env.PAGES
       "/ar/calculator/gold-profit-loss",
       "/ar/about",
       "/ar/methodology",
+      "/ar/ai-disclosure",
       "/",
       "/outlook",
       "/trends",
+      // Results state. The calculators render an empty state until they have
+      // inputs, and two bugs lived only with results on screen: tables forcing
+      // the page wider than a phone, and a low-contrast P/L percentage. Both
+      // passed every empty-state run.
+      "/ar/calculator?spot=4000&budget=10000&purity=18K",
+      "/calculator?spot=4000&budget=10000",
+      "/ar/calculator/gold-break-even?spot=4000",
+      "/ar/calculator/gold-karat-price?spot=4000&weight=10",
+      "/ar/calculator/gold-unit-converter?spot=4000",
+      "/ar/calculator/gold-profit-loss?entry=3800&exit=4200&qty=2",
     ];
 
 const chrome = spawn(CHROME, [

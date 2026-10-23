@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Moon, Sun } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -19,6 +20,8 @@ import { THEME_STORAGE_KEY } from "@/components/theme/theme-script";
  * would differ between server and client and reintroduce the mismatch.
  */
 export function ThemeToggle({ className }: { className?: string }) {
+  const label = useTranslations("theme")("toggle");
+
   function toggle() {
     const root = document.documentElement;
     const nextDark = !root.classList.contains("dark");
@@ -35,8 +38,8 @@ export function ThemeToggle({ className }: { className?: string }) {
     <button
       type="button"
       onClick={toggle}
-      aria-label="Toggle dark mode"
-      title="Toggle dark mode"
+      aria-label={label}
+      title={label}
       className={cn(
         "text-muted-foreground hover:text-foreground hover:bg-muted focus-visible:ring-ring/50 inline-flex size-9 shrink-0 items-center justify-center rounded-md transition-colors focus-visible:ring-2 focus-visible:outline-none",
         className,

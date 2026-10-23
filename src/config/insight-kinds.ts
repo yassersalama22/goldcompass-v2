@@ -1,9 +1,11 @@
+import { messages } from "@/i18n/messages";
 import type { ArticleKind } from "@/types/article";
 
 /**
- * Presentation metadata for the two `/insights` sub-views. The contract owns
- * the enum (`articleKindSchema`); this owns the copy and the URLs, so page
- * wording never leaks into the data contract.
+ * Structure of the two `/insights` sub-views. The contract owns the enum
+ * (`articleKindSchema`), this owns the URLs, and the UI catalog owns the copy
+ * (`insights.kinds.*`) so it is translatable — page wording never leaks into
+ * the data contract.
  *
  * `slug` values are reserved in `scripts/generate-article.mts` — they sit at
  * `/insights/<slug>`, the same level as article slugs, and a static route
@@ -13,8 +15,16 @@ export interface InsightKindDef {
   kind: ArticleKind;
   slug: string;
   href: string;
+  /** Key under `insights.kinds.*` in the UI catalog, where all the copy lives. */
+  messageKey: "explainers" | "marketUpdates";
+}
+
+/** The copy for a kind view, in one locale. */
+export interface InsightKindCopy {
   /** Nav/filter label. */
   label: string;
+  /** The label as it reads mid-sentence ("Looking for explainers instead?"). */
+  inlineLabel: string;
   /** Page <h1>. */
   heading: string;
   /** Meta title (before the site-name template). */
@@ -26,31 +36,23 @@ export interface InsightKindDef {
 }
 
 export const INSIGHT_KINDS: InsightKindDef[] = [
-  {
-    kind: "explainer",
-    slug: "explainers",
-    href: "/insights/explainers",
-    label: "Explainers",
-    heading: "Gold explainers",
-    title: "Gold Explainers — How the Gold Market Actually Works",
-    description:
-      "Plain-English guides to what moves the gold price: interest rates, the dollar, central-bank demand, purity, and premiums. Written to stay true, and every claim cited.",
-    intro:
-      "The durable half of our writing: how the gold market works, explained for people who do not trade for a living. These pieces are about mechanisms rather than headlines, so they stay useful long after the week they were written.",
-  },
+  { kind: "explainer", slug: "explainers", href: "/insights/explainers", messageKey: "explainers" },
   {
     kind: "market-update",
     slug: "market-updates",
     href: "/insights/market-updates",
-    label: "Market updates",
-    heading: "Gold market updates",
-    title: "Gold Market Updates — What Moved the Price, and Why",
-    description:
-      "Timely coverage of the gold market: Fed decisions, inflation prints, geopolitics, and the moves they caused. Dated, cited, and written for everyday investors.",
-    intro:
-      "What happened, when, and why it mattered for gold. These are pegged to a moment — a rate decision, an inflation print, a geopolitical shock — so read the date first. For the mechanisms behind them, start with the explainers.",
+    messageKey: "marketUpdates",
   },
 ];
+
+/**
+ * Copy for a kind view. Read through the sync `messages()` accessor rather than
+ * `getTranslations()` because three of its callers run outside a React render:
+ * the Markdown builder, `llms.txt`, and metadata builders.
+ */
+export function insightKindCopy(def: InsightKindDef, locale: string): InsightKindCopy {
+  return messages(locale).insights.kinds[def.messageKey];
+}
 
 export function getInsightKind(slug: string): InsightKindDef | undefined {
   return INSIGHT_KINDS.find((k) => k.slug === slug);

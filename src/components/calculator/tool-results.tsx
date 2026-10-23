@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useTranslations } from "next-intl";
 
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -42,12 +43,13 @@ export function ResultStat({
 }
 
 export function EmptyResults({ message }: { message: string }) {
+  const t = useTranslations("calc");
   return (
     <div className="border-border text-muted-foreground flex flex-col items-center justify-center rounded-xl border border-dashed py-16 text-center">
       <span className="mb-3 text-3xl" aria-hidden="true">
         🪙
       </span>
-      <p className="text-foreground font-medium">Enter your details to see results</p>
+      <p className="text-foreground font-medium">{t("emptyTitle")}</p>
       <p className="mt-1 max-w-xs text-sm">{message}</p>
     </div>
   );

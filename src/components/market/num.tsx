@@ -1,4 +1,8 @@
 import type { ReactNode } from "react";
+import { useLocale } from "next-intl";
+
+import { requireLocale } from "@/config/locales";
+import { formatUsdParts } from "@/lib/format";
 
 import { cn } from "@/lib/utils";
 
@@ -39,4 +43,54 @@ export function Num({
       {children}
     </bdi>
   );
+}
+
+/**
+ * A money amount whose sign must stay attached — P/L figures, signed deltas.
+ *
+ * `<Num>` alone is not enough once the currency unit is a word: wrapping
+ * `+4,000.00 دولار` in one LTR isolate keeps the sign but puts `دولار` on the
+ * wrong side for an Arabic reader. So only the signed amount is isolated and a
+ * suffix unit follows it in the paragraph's own direction. For a prefix unit
+ * (`$`) the whole thing stays one isolate, so English renders exactly as
+ * `+$4,000.00` / `$-103.38`, as it always has.
+ */
+export function SignedUsd({ value, showPlus = true }: { value: number; showPlus?: boolean }) {
+  const { amount, unit, position } = formatUsdParts(value, useLocale());
+  const plus = showPlus && value >= 0 ? "+" : "";
+  if (position === "prefix") return <Num>{`${plus}${unit}${amount}`}</Num>;
+  return (
+    <>
+      <Num>{`${plus}${amount}`}</Num> {unit}
+    </>
+  );
+}
+
+/**
+ * An unsigned money amount from a number. Same isolation rule as `SignedUsd`:
+ * ⚠ never write `<Num>{formatUsd(x)}</Num>` — with a suffix unit the whole
+ * `4,078.59 دولار` becomes one LTR run and an Arabic reader meets the unit
+ * first ("dollars 4,078.59"). Measured on /ar/outlook before this existed.
+ */
+export function Usd({ value }: { value: number }) {
+  return <SignedUsd value={value} showPlus={false} />;
+}
+
+/**
+ * A money amount that arrives as a formatted STRING (artifact fields such as
+ * key levels: `"$4,000–$4,070"`, `"4,000–4,070 دولار"`). Isolates the amount
+ * and leaves a suffix unit outside the isolate; anything without the locale's
+ * suffix unit is isolated whole, exactly as before.
+ */
+export function MoneyText({ text }: { text: string }) {
+  const { unit, position } = requireLocale(useLocale()).currency;
+  const suffix = ` ${unit}`;
+  if (position === "suffix" && text.endsWith(suffix)) {
+    return (
+      <>
+        <Num>{text.slice(0, -suffix.length)}</Num> {unit}
+      </>
+    );
+  }
+  return <Num>{text}</Num>;
 }

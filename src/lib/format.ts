@@ -76,6 +76,18 @@ const usd0 = memo((tag) => new Intl.NumberFormat(tag, { maximumFractionDigits: 0
 // Pinned to UTC on purpose: these label daily price points (which upstream keys
 // by UTC day), and the chart is server-rendered, so an unpinned zone would make
 // the server and the browser disagree near midnight and break hydration.
+// Card dates ("Oct 18, 2026"). UTC for the same reason as the long date below:
+// an article dated `2026-10-18` parses as UTC midnight.
+const mediumDate = memo(
+  (tag) =>
+    new Intl.DateTimeFormat(tag, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      timeZone: "UTC",
+    }),
+);
+
 const shortDate = memo(
   (tag) =>
     new Intl.DateTimeFormat(tag, {
@@ -109,6 +121,20 @@ function withUnit(formatted: string, locale: string): string {
   return position === "prefix" ? `${unit}${formatted}` : `${formatted} ${unit}`;
 }
 
+/**
+ * The amount and the currency unit, unjoined — for callers that must
+ * bidi-isolate the signed number WITHOUT the unit. In Arabic the unit is a
+ * word (`دولار`) after the number; isolating both together as LTR flips their
+ * order. See `SignedUsd`.
+ */
+export function formatUsdParts(
+  value: number,
+  locale: string = DEFAULT_LOCALE,
+): { amount: string; unit: string; position: "prefix" | "suffix" } {
+  const { unit, position } = requireLocale(locale).currency;
+  return { amount: usd(locale).format(value), unit, position };
+}
+
 export function formatUsd(value: number, locale: string = DEFAULT_LOCALE): string {
   return withUnit(usd(locale).format(value), locale);
 }
@@ -131,6 +157,13 @@ export function formatUsdCompact(
  */
 export function formatSignedPct(value: number, digits = 2): string {
   return `${value > 0 ? "+" : ""}${value.toFixed(digits)}%`;
+}
+
+export function formatMediumDate(
+  value: Date | string | number,
+  locale: string = DEFAULT_LOCALE,
+): string {
+  return mediumDate(locale).format(new Date(value));
 }
 
 export function formatShortDate(ms: number, locale: string = DEFAULT_LOCALE): string {

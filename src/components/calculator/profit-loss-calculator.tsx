@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { TrendingDown, TrendingUp } from "lucide-react";
 
-import { Num } from "@/components/market/num";
+import { Num, SignedUsd } from "@/components/market/num";
 import { useFormat } from "@/lib/use-format";
 import {
   GOLD_PURITIES,
@@ -19,6 +20,9 @@ import {
   NumberField,
   PercentSlider,
   SelectField,
+  useCurrencyAffix,
+  usePurityOptions,
+  useUnitOptions,
   useUrlState,
 } from "@/components/calculator/tool-fields";
 import {
@@ -33,9 +37,6 @@ interface Props {
   initialSpot: number | null;
 }
 
-const unitOptions = WEIGHT_UNITS.map((u) => ({ key: u.key, label: u.label }));
-const purityOptions = GOLD_PURITIES.map((p) => ({ key: p.key, label: p.label }));
-
 function clampPct(raw: string | null, fallback: number, max: number): number {
   const value = parseFloat(raw ?? "");
   return !isNaN(value) && value >= 0 && value <= max ? value : fallback;
@@ -43,6 +44,10 @@ function clampPct(raw: string | null, fallback: number, max: number): number {
 
 export function ProfitLossCalculator({ initialSpot }: Props) {
   const fmt = useFormat();
+  const t = useTranslations("calc.profitLoss");
+  const unitOptions = useUnitOptions();
+  const purityOptions = usePurityOptions();
+  const affix = useCurrencyAffix();
   const searchParams = useSearchParams();
 
   const [entry, setEntry] = useState(() => searchParams.get("entry") ?? "");
@@ -90,63 +95,63 @@ export function ProfitLossCalculator({ initialSpot }: Props) {
 
   return (
     <ToolGrid>
-      <InputsCard title="Your trade">
+      <InputsCard title={t("inputsTitle")}>
         <NumberField
-          label="Gold price when you bought"
+          label={t("entry")}
           value={entry}
           onChange={setEntry}
-          prefix="$"
+          {...affix}
           min="1"
           step="1"
           placeholder="3,800"
         />
         <NumberField
-          label="Gold price when you sell"
+          label={t("exit")}
           value={exit}
           onChange={setExit}
-          prefix="$"
+          {...affix}
           min="1"
           step="1"
           placeholder="4,200"
           hint={
             initialSpot != null
-              ? `Pre-filled with today's spot price, ${fmt.usd(initialSpot)}. Change it to test a target.`
+              ? t("exitHint", { spot: fmt.usd(initialSpot) })
               : undefined
           }
         />
         <NumberField
-          label="Quantity"
+          label={t("quantity")}
           value={quantity}
           onChange={setQuantity}
           min="0"
           step="0.1"
           placeholder="2"
         />
-        <SelectField label="Quantity unit" value={unit} onChange={setUnit} options={unitOptions} />
-        <SelectField label="Purity" value={karat} onChange={setKarat} options={purityOptions} />
+        <SelectField label={t("quantityUnit")} value={unit} onChange={setUnit} options={unitOptions} />
+        <SelectField label={t("purity")} value={karat} onChange={setKarat} options={purityOptions} />
         <PercentSlider
-          label="Premium paid on purchase"
+          label={t("premium")}
           value={premiumPct}
           onChange={setPremiumPct}
           max={20}
         />
         <PercentSlider
-          label="Sell-side spread"
+          label={t("sellFee")}
           value={sellFeePct}
           onChange={setSellFeePct}
           max={20}
         />
       </InputsCard>
 
-      <div aria-live="polite" aria-label="Profit and loss results">
+      <div aria-live="polite" aria-label={t("resultsLabel")}>
         {!result ? (
-          <EmptyResults message="Enter your buy price, sell price, and quantity to see the result." />
+          <EmptyResults message={t("empty")} />
         ) : (
           <div className="space-y-4">
             <ResultStat
-              label={isLoss ? "Net loss" : "Net profit"}
+              label={isLoss ? t("netLoss") : t("netProfit")}
               tone={isProfit ? "bull" : isLoss ? "bear" : "default"}
-              value={`${result.pnlUsd >= 0 ? "+" : ""}${fmt.usd(result.pnlUsd)}`}
+              value={<SignedUsd value={result.pnlUsd} />}
               sub={
                 <span className="flex items-center gap-1.5">
                   {isProfit ? (
@@ -154,58 +159,63 @@ export function ProfitLossCalculator({ initialSpot }: Props) {
                   ) : isLoss ? (
                     <TrendingDown className="text-bear size-4" aria-hidden="true" />
                   ) : null}
-                  <strong className="text-foreground">
-                    <Num>{fmt.signedPct(result.pnlPct, 1)}</Num>
-                  </strong>{" "}
-                  return on a {fmt.usd(result.costBasis)} outlay.
+                  <span>
+                    {t.rich("returnOn", {
+                      pct: fmt.signedPct(result.pnlPct, 1),
+                      cost: fmt.usd(result.costBasis),
+                      strong: (chunks) => (
+                        <strong className="text-foreground">
+                          <Num>{chunks}</Num>
+                        </strong>
+                      ),
+                    })}
+                  </span>
                 </span>
               }
             />
 
             <div className="grid gap-4 sm:grid-cols-2">
               <ResultStat
-                label="Total cost"
+                label={t("totalCost")}
                 value={fmt.usd(result.costBasis)}
-                sub={`${result.pureTroyOz.toFixed(4)} troy oz of pure gold, including the ${premiumPct.toFixed(1)}% premium.`}
+                sub={t("totalCostSub", { oz: result.pureTroyOz.toFixed(4), premium: premiumPct.toFixed(1) })}
               />
               <ResultStat
-                label="Sale proceeds"
+                label={t("proceeds")}
                 value={fmt.usd(result.proceeds)}
-                sub={`After a ${sellFeePct.toFixed(1)}% sell-side spread.`}
+                sub={t("proceedsSub", { sellFee: sellFeePct.toFixed(1) })}
               />
             </div>
 
             <Card>
               <CardHeader>
                 <CardTitle className="text-muted-foreground text-sm font-normal">
-                  Why the result differs from the price move
+                  {t("whyTitle")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <dl className="divide-border divide-y text-sm">
                   <div className="flex items-baseline justify-between gap-4 pb-2">
-                    <dt className="text-muted-foreground">Gold price move</dt>
+                    <dt className="text-muted-foreground">{t("priceMove")}</dt>
                     <dd className="font-semibold tabular-nums">
                       <Num>{fmt.signedPct(result.spotMovePct, 1)}</Num>
                     </dd>
                   </div>
                   <div className="flex items-baseline justify-between gap-4 py-2">
-                    <dt className="text-muted-foreground">Break-even price</dt>
+                    <dt className="text-muted-foreground">{t("breakEven")}</dt>
                     <dd className="font-semibold tabular-nums">
                       {fmt.usd(result.breakEvenSpot)}
                     </dd>
                   </div>
                   <div className="flex items-baseline justify-between gap-4 pt-2">
-                    <dt className="text-muted-foreground">Your actual return</dt>
+                    <dt className="text-muted-foreground">{t("actualReturn")}</dt>
                     <dd className="font-semibold tabular-nums">
                       <Num>{fmt.signedPct(result.pnlPct, 1)}</Num>
                     </dd>
                   </div>
                 </dl>
                 <p className="text-muted-foreground mt-3 text-xs">
-                  The gap between the two percentages is the cost of buying and selling. Gold had
-                  to reach {fmt.usd(result.breakEvenSpot)} just to return your money — everything
-                  above that is profit.
+                  {t("whyNote", { breakEven: fmt.usd(result.breakEvenSpot) })}
                 </p>
               </CardContent>
             </Card>

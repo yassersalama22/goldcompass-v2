@@ -3,7 +3,6 @@
   "note": "Approved Arabic renderings for the financial terminology this site uses. Injected into the translation prompt as non-negotiable, and enforced by `npm run i18n:check`: if an English term appears in the source, an approved Arabic form must appear in the translation. Reviewed once by a native speaker so per-article terminology risk stays low — this file is where terminology is decided, not the individual translations.",
   "doNotTranslate": [
     "GoldCompass",
-    "Fed",
     "FOMC",
     "PAXG",
     "XAU/USD",
@@ -66,6 +65,7 @@
     { "en": "all-time high", "ar": "أعلى مستوى تاريخي" },
 
     { "en": "Federal Reserve", "ar": "الاحتياطي الفيدرالي" },
+    { "en": "Fed", "ar": "الاحتياطي الفيدرالي", "variants": ["الفيدرالي"] },
     { "en": "central bank", "ar": "البنك المركزي", "variants": ["البنوك المركزية"] },
     { "en": "interest rate", "ar": "سعر الفائدة", "variants": ["أسعار الفائدة"] },
     { "en": "rate cut", "ar": "خفض أسعار الفائدة", "variants": ["خفض الفائدة"] },

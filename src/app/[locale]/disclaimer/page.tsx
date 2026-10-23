@@ -3,7 +3,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { ProsePage } from "@/components/pages/prose-page";
 import { getPage, isPageTranslated } from "@/server/pages";
-import { DEFAULT_LOCALE } from "@/config/locales";
+import { pageLocales } from "@/server/i18n/availability";
 import { withLocaleMetadata, type LocaleParams } from "@/lib/seo";
 
 const SLUG = "disclaimer";
@@ -12,18 +12,13 @@ export async function generateMetadata({ params }: LocaleParams): Promise<Metada
   const { locale } = await params;
   const page = getPage(SLUG, locale);
 
-  // hreflang advertises this locale only when it actually has a translation —
-  // a dangling alternate is worse than none, because it invites the wrong
-  // language into results for the wrong audience.
-  const available = isPageTranslated(SLUG, locale)
-    ? undefined
-    : [DEFAULT_LOCALE];
-
+  // Every locale that has a translation — computed across all of them, so the
+  // English page does not advertise an Arabic sibling that does not exist.
   return withLocaleMetadata(
     { title: page.title, description: page.description },
     `/${SLUG}`,
     locale,
-    available,
+    pageLocales(SLUG),
   );
 }
 
@@ -36,6 +31,7 @@ export default async function DisclaimerPage({ params }: LocaleParams) {
     <ProsePage
       page={getPage(SLUG, locale)}
       locale={locale}
+      translated={isPageTranslated(SLUG, locale)}
       updatedLabel={t("lastUpdated")}
     />
   );

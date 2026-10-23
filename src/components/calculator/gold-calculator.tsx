@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useId } from "react";
 import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { TrendingUp, TrendingDown, Link2, Check, RotateCcw } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -15,6 +16,12 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Num, SignedUsd } from "@/components/market/num";
+import {
+  useCurrencyAffix,
+  useKaratLabel,
+  usePurityOptions,
+} from "@/components/calculator/tool-fields";
 
 type Unit = "oz" | "g";
 
@@ -28,6 +35,10 @@ const inputClass =
 
 export function GoldCalculator({ initialSpot, isStale }: Props) {
   const searchParams = useSearchParams();
+  const t = useTranslations("calc");
+  const tf = useTranslations("calc.flagship");
+  const purityOptions = usePurityOptions();
+  const affix = useCurrencyAffix();
 
   const budgetId = useId();
   const purityId = useId();
@@ -89,7 +100,7 @@ export function GoldCalculator({ initialSpot, isStale }: Props) {
     try {
       await navigator.clipboard.writeText(window.location.href);
     } catch {
-      window.prompt("Copy this link:", window.location.href);
+      window.prompt(tf("copyPrompt"), window.location.href);
     }
     setCopied(true);
     setTimeout(() => setCopied(false), 2500);
@@ -102,18 +113,16 @@ export function GoldCalculator({ initialSpot, isStale }: Props) {
       <div className="lg:sticky lg:top-20 lg:self-start">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Purchase Details</CardTitle>
+            <CardTitle className="text-base">{tf("inputsTitle")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-5">
             {/* Budget */}
             <div className="space-y-1.5">
               <label htmlFor={budgetId} className="text-sm font-medium">
-                Your budget (USD)
+                {tf("budget")}
               </label>
               <div className="relative">
-                <span className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
-                  $
-                </span>
+                <CurrencyAffix affix={affix} />
                 <input
                   id={budgetId}
                   type="number"
@@ -123,7 +132,7 @@ export function GoldCalculator({ initialSpot, isStale }: Props) {
                   placeholder="10,000"
                   value={budget}
                   onChange={(e) => setBudget(e.target.value)}
-                  className={cn(inputClass, "ps-7 pe-3")}
+                  className={cn(inputClass, affixPadding(affix))}
                 />
               </div>
             </div>
@@ -131,7 +140,7 @@ export function GoldCalculator({ initialSpot, isStale }: Props) {
             {/* Purity */}
             <div className="space-y-1.5">
               <label htmlFor={purityId} className="text-sm font-medium">
-                Gold purity
+                {tf("purity")}
               </label>
               <select
                 id={purityId}
@@ -139,7 +148,7 @@ export function GoldCalculator({ initialSpot, isStale }: Props) {
                 onChange={(e) => setPurityKey(e.target.value as PurityKey)}
                 className={cn(inputClass, "px-3 cursor-pointer")}
               >
-                {GOLD_PURITIES.map((p) => (
+                {purityOptions.map((p) => (
                   <option key={p.key} value={p.key}>
                     {p.label}
                   </option>
@@ -151,7 +160,7 @@ export function GoldCalculator({ initialSpot, isStale }: Props) {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <label htmlFor={premiumId} className="text-sm font-medium">
-                  Dealer premium
+                  {tf("premium")}
                 </label>
                 <span className="text-sm font-semibold tabular-nums text-gold-strong">
                   {premiumPct.toFixed(1)}%
@@ -165,11 +174,11 @@ export function GoldCalculator({ initialSpot, isStale }: Props) {
                 step="0.5"
                 value={premiumPct}
                 onChange={(e) => setPremiumPct(parseFloat(e.target.value))}
-                aria-valuetext={`${premiumPct.toFixed(1)} percent`}
+                aria-valuetext={t("percentValue", { value: premiumPct.toFixed(1) })}
                 className="w-full cursor-pointer accent-[var(--color-gold)]"
               />
               <p className="text-xs text-muted-foreground">
-                Markup over spot. Bars/coins: 3–8% · Jewelry: 10–15%
+                {tf("premiumHint")}
               </p>
             </div>
 
@@ -177,10 +186,10 @@ export function GoldCalculator({ initialSpot, isStale }: Props) {
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
                 <label htmlFor={spotId} className="text-sm font-medium">
-                  Spot price (XAU/USD)
+                  {t("spotLabel")}
                   {isStale && !spotOverridden && (
                     <Badge variant="outline" className="ms-1.5 h-4 text-[10px]">
-                      stale
+                      {t("stale")}
                     </Badge>
                   )}
                 </label>
@@ -188,17 +197,15 @@ export function GoldCalculator({ initialSpot, isStale }: Props) {
                   <button
                     onClick={resetSpot}
                     className="inline-flex items-center gap-1 text-xs text-gold-strong hover:underline"
-                    aria-label="Reset spot price to live price"
+                    aria-label={t("resetLabel")}
                   >
                     <RotateCcw className="size-3" />
-                    Reset to live
+                    {t("reset")}
                   </button>
                 )}
               </div>
               <div className="relative">
-                <span className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
-                  $
-                </span>
+                <CurrencyAffix affix={affix} />
                 <input
                   id={spotId}
                   type="number"
@@ -210,20 +217,20 @@ export function GoldCalculator({ initialSpot, isStale }: Props) {
                     setSpotStr(e.target.value);
                     setSpotOverridden(true);
                   }}
-                  className={cn(inputClass, "ps-7 pe-3")}
+                  className={cn(inputClass, affixPadding(affix))}
                 />
               </div>
               {initialSpot == null && (
                 <p className="text-xs text-muted-foreground">
-                  Live price unavailable — enter the current spot price manually.
+                  {t("spotUnavailable")}
                 </p>
               )}
             </div>
 
             {/* Unit toggle */}
             <div className="space-y-1.5">
-              <p className="text-sm font-medium">Display unit</p>
-              <div role="group" aria-label="Display unit" className="grid grid-cols-2 gap-2">
+              <p className="text-sm font-medium">{tf("displayUnit")}</p>
+              <div role="group" aria-label={tf("displayUnit")} className="grid grid-cols-2 gap-2">
                 {(["oz", "g"] as Unit[]).map((u) => (
                   <button
                     key={u}
@@ -237,7 +244,7 @@ export function GoldCalculator({ initialSpot, isStale }: Props) {
                         : "border-border bg-background hover:bg-muted"
                     )}
                   >
-                    {u === "oz" ? "Troy oz" : "Grams"}
+                    {u === "oz" ? tf("troyOz") : tf("grams")}
                   </button>
                 ))}
               </div>
@@ -247,7 +254,7 @@ export function GoldCalculator({ initialSpot, isStale }: Props) {
       </div>
 
       {/* ── Results ── */}
-      <div aria-live="polite" aria-label="Calculation results">
+      <div aria-live="polite" aria-label={tf("resultsLabel")}>
         {!results ? (
           <EmptyState />
         ) : (
@@ -260,12 +267,12 @@ export function GoldCalculator({ initialSpot, isStale }: Props) {
                 {copied ? (
                   <>
                     <Check className="size-3.5 text-bull" />
-                    Copied!
+                    {tf("copied")}
                   </>
                 ) : (
                   <>
                     <Link2 className="size-3.5" />
-                    Share this calculation
+                    {tf("share")}
                   </>
                 )}
               </Button>
@@ -277,15 +284,36 @@ export function GoldCalculator({ initialSpot, isStale }: Props) {
   );
 }
 
+/** Currency unit inside a money input: `$` before the number, or `دولار` after it. */
+function CurrencyAffix({ affix }: { affix: { prefix?: string; suffix?: string } }) {
+  const text = affix.prefix ?? affix.suffix;
+  if (!text) return null;
+  return (
+    <span
+      className={cn(
+        "pointer-events-none absolute top-1/2 -translate-y-1/2 text-muted-foreground text-sm",
+        affix.prefix ? "start-3" : "end-3",
+      )}
+    >
+      {text}
+    </span>
+  );
+}
+
+function affixPadding(affix: { prefix?: string; suffix?: string }) {
+  return affix.prefix ? "ps-7 pe-3" : "ps-3 pe-14";
+}
+
 function EmptyState() {
+  const t = useTranslations("calc.flagship");
   return (
     <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-16 text-center text-muted-foreground">
       <span className="mb-3 text-3xl" aria-hidden="true">
         🪙
       </span>
-      <p className="font-medium text-foreground">Enter your budget to see results</p>
+      <p className="font-medium text-foreground">{t("emptyTitle")}</p>
       <p className="mt-1 max-w-xs text-sm">
-        Fill in the purchase details to calculate gold quantity, break-even price, and scenarios.
+        {t("emptyBody")}
       </p>
     </div>
   );
@@ -300,36 +328,40 @@ function QuantityCard({
   unit: Unit;
   purityKey: PurityKey;
 }) {
+  const t = useTranslations("calc.flagship");
+  const karatLabel = useKaratLabel();
   const isOz = unit === "oz";
   const itemQty = isOz ? results.itemTroyOz : results.itemGrams;
   const pureQty = isOz ? results.pureTroyOz : results.pureGrams;
-  const unitLabel = isOz ? "troy oz" : "g";
+  const unitLabel = isOz ? t("unitTroyOz") : t("unitG");
   const is24k = purityKey === "24K";
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-sm font-normal text-muted-foreground">
-          Gold you can buy
+          {t("youCanBuy")}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         <p className="text-4xl font-bold tabular-nums">
           {itemQty.toFixed(isOz ? 4 : 2)}
           <span className="ms-1.5 text-lg font-medium text-muted-foreground">
-            {unitLabel} {is24k ? "pure" : `of ${purityKey} gold`}
+            {is24k
+              ? t("pure", { unit: unitLabel })
+              : t("ofKarat", { unit: unitLabel, karat: karatLabel(purityKey) })}
           </span>
         </p>
         {!is24k && (
           <div className="rounded-lg bg-muted px-3 py-2 text-sm">
-            <span className="text-muted-foreground">Pure gold equivalent: </span>
+            <span className="text-muted-foreground">{t("pureEquivalent")} </span>
             <span className="font-semibold tabular-nums">
               {pureQty.toFixed(isOz ? 4 : 2)} {unitLabel}
             </span>
           </div>
         )}
         <p className="text-xs text-muted-foreground">
-          1 troy oz = 31.1035 g · Dealer price = spot × purity × (1 + premium%)
+          {t("quantityNote")}
         </p>
       </CardContent>
     </Card>
@@ -338,11 +370,12 @@ function QuantityCard({
 
 function BreakEvenCard({ results }: { results: CalcResults }) {
   const fmt = useFormat();
+  const t = useTranslations("calc.flagship");
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-sm font-normal text-muted-foreground">
-          Break-even price
+          {t("breakEven")}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-2">
@@ -352,13 +385,20 @@ function BreakEvenCard({ results }: { results: CalcResults }) {
           </p>
           <p className="mb-1 flex items-center gap-1 text-sm text-muted-foreground">
             <TrendingUp className="size-4 text-bull" aria-hidden="true" />
-            Gold must rise{" "}
-            <strong className="text-foreground">+{results.breakEvenPct.toFixed(1)}%</strong>{" "}
-            to break even
+            <span>
+              {t.rich("mustRise", {
+                rise: `+${results.breakEvenPct.toFixed(1)}%`,
+                strong: (chunks) => (
+                  <strong className="text-foreground">
+                    <Num>{chunks}</Num>
+                  </strong>
+                ),
+              })}
+            </span>
           </p>
         </div>
         <p className="text-xs text-muted-foreground">
-          Assumes selling at spot with no sell-side commission or storage costs.
+          {t("breakEvenNote")}
         </p>
       </CardContent>
     </Card>
@@ -367,11 +407,12 @@ function BreakEvenCard({ results }: { results: CalcResults }) {
 
 function ScenariosCard({ results }: { results: CalcResults }) {
   const fmt = useFormat();
+  const t = useTranslations("calc.flagship");
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-sm font-normal text-muted-foreground">
-          Profit / Loss scenarios
+          {t("scenarios")}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -380,16 +421,16 @@ function ScenariosCard({ results }: { results: CalcResults }) {
             <thead>
               <tr className="border-b border-border text-xs text-muted-foreground">
                 <th scope="col" className="pb-2 pe-3 text-start font-medium">
-                  Spot change
+                  {t("colChange")}
                 </th>
                 <th scope="col" className="pb-2 pe-3 text-end font-medium">
-                  XAU/USD
+                  {t("colSpot")}
                 </th>
                 <th scope="col" className="pb-2 pe-3 text-end font-medium">
-                  Gold value
+                  {t("colValue")}
                 </th>
                 <th scope="col" className="pb-2 text-end font-medium">
-                  P/L
+                  {t("colPnl")}
                 </th>
               </tr>
             </thead>
@@ -419,9 +460,11 @@ function ScenariosCard({ results }: { results: CalcResults }) {
                         ) : s.spotPct < 0 ? (
                           <TrendingDown className="size-3.5" aria-hidden="true" />
                         ) : null}
-                        {s.spotPct === 0
-                          ? "Today's spot"
-                          : `${s.spotPct > 0 ? "+" : ""}${s.spotPct}%`}
+                        {s.spotPct === 0 ? (
+                          t("today")
+                        ) : (
+                          <Num>{`${s.spotPct > 0 ? "+" : ""}${s.spotPct}%`}</Num>
+                        )}
                       </span>
                     </td>
                     <td className="py-2 pe-3 text-end tabular-nums text-muted-foreground">
@@ -438,11 +481,9 @@ function ScenariosCard({ results }: { results: CalcResults }) {
                         !isProfit && !isLoss && "text-muted-foreground"
                       )}
                     >
-                      {s.pnlUsd >= 0 ? "+" : ""}
-                      {fmt.usd(s.pnlUsd)}
+                      <SignedUsd value={s.pnlUsd} />
                       <span className="ms-1 text-xs font-normal">
-                        ({s.pnlPct >= 0 ? "+" : ""}
-                        {s.pnlPct.toFixed(1)}%)
+                        (<Num>{`${s.pnlPct >= 0 ? "+" : ""}${s.pnlPct.toFixed(1)}%`}</Num>)
                       </span>
                     </td>
                   </tr>
@@ -452,8 +493,7 @@ function ScenariosCard({ results }: { results: CalcResults }) {
           </table>
         </div>
         <p className="mt-3 text-xs text-muted-foreground">
-          Assumes selling pure gold equivalent at spot with no buy-back commission.
-          Actual returns will vary.
+          {t("scenariosNote")}
         </p>
       </CardContent>
     </Card>

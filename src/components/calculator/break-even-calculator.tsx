@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { TrendingUp } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { Num } from "@/components/market/num";
 import { useFormat } from "@/lib/use-format";
 import { breakEven } from "@/lib/calculator";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,12 +30,12 @@ interface Props {
 
 /** Typical premiums, so the table shows how product choice moves break-even. */
 const PREMIUM_BENCHMARKS = [
-  { pct: 2, label: "Large bars (1 kg+)" },
-  { pct: 4, label: "Small bars (1 oz)" },
-  { pct: 6, label: "Bullion coins" },
-  { pct: 10, label: "Collectible coins" },
-  { pct: 15, label: "Jewellery" },
-];
+  { pct: 2, key: "largeBars" },
+  { pct: 4, key: "smallBars" },
+  { pct: 6, key: "bullionCoins" },
+  { pct: 10, key: "collectibleCoins" },
+  { pct: 15, key: "jewellery" },
+] as const;
 
 function clampPct(raw: string | null, fallback: number, max: number): number {
   const value = parseFloat(raw ?? "");
@@ -42,6 +44,7 @@ function clampPct(raw: string | null, fallback: number, max: number): number {
 
 export function BreakEvenCalculator({ initialSpot, isStale }: Props) {
   const fmt = useFormat();
+  const t = useTranslations("calc.breakEven");
   const searchParams = useSearchParams();
   const spotState = useSpotState(initialSpot);
 
@@ -63,7 +66,7 @@ export function BreakEvenCalculator({ initialSpot, isStale }: Props) {
 
   return (
     <ToolGrid>
-      <InputsCard title="Purchase terms">
+      <InputsCard title={t("inputsTitle")}>
         <SpotField
           value={spotState.spot}
           onChange={spotState.setSpot}
@@ -71,54 +74,60 @@ export function BreakEvenCalculator({ initialSpot, isStale }: Props) {
           onReset={spotState.reset}
           initialSpot={initialSpot}
           isStale={isStale}
-          label="Spot price when you buy"
+          label={t("spotLabel")}
         />
         <PercentSlider
-          label="Dealer premium"
+          label={t("premium")}
           value={premiumPct}
           onChange={setPremiumPct}
           max={20}
-          hint="What you pay over spot. Bars/coins: 3–8% · Jewellery: 10–15%"
+          hint={t("premiumHint")}
         />
         <PercentSlider
-          label="Sell-side spread"
+          label={t("sellFee")}
           value={sellFeePct}
           onChange={setSellFeePct}
           max={20}
-          hint="What a buy-back costs you. Set to 0 to see the spot-only break-even."
+          hint={t("sellFeeHint")}
         />
       </InputsCard>
 
-      <div aria-live="polite" aria-label="Break-even results">
+      <div aria-live="polite" aria-label={t("resultsLabel")}>
         {!result ? (
-          <EmptyResults message="Enter the spot price you paid to see the price gold has to reach." />
+          <EmptyResults message={t("empty")} />
         ) : (
           <div className="space-y-4">
             <ResultStat
-              label="Break-even gold price"
+              label={t("breakEven")}
               value={fmt.usd(result.breakEvenSpot)}
               sub={
                 <span className="flex items-center gap-1.5">
                   <TrendingUp className="text-bull size-4" aria-hidden="true" />
-                  Gold must rise{" "}
-                  <strong className="text-foreground">
-                    +{result.requiredRisePct.toFixed(1)}%
-                  </strong>{" "}
-                  from {fmt.usd(spotNum)} before you are back to even.
+                  <span>
+                    {t.rich("mustRise", {
+                      rise: `+${result.requiredRisePct.toFixed(1)}%`,
+                      spot: fmt.usd(spotNum),
+                      strong: (chunks) => (
+                        <strong className="text-foreground">
+                          <Num>{chunks}</Num>
+                        </strong>
+                      ),
+                    })}
+                  </span>
                 </span>
               }
             />
 
             <ResultStat
-              label="Your effective cost per troy ounce of pure gold"
+              label={t("costLabel")}
               value={fmt.usd(result.costPerPureTroyOz)}
-              sub={`Spot ${fmt.usd(spotNum)} plus a ${premiumPct.toFixed(1)}% premium. This is your real entry price, whatever karat you bought.`}
+              sub={t("costSub", { spot: fmt.usd(spotNum), premium: premiumPct.toFixed(1) })}
             />
 
             <Card>
               <CardHeader>
                 <CardTitle className="text-muted-foreground text-sm font-normal">
-                  Break-even by product type
+                  {t("tableTitle")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -127,16 +136,16 @@ export function BreakEvenCalculator({ initialSpot, isStale }: Props) {
                     <thead>
                       <tr className="border-border text-muted-foreground border-b text-xs">
                         <th scope="col" className="pe-3 pb-2 text-start font-medium">
-                          Typical product
+                          {t("colProduct")}
                         </th>
                         <th scope="col" className="pe-3 pb-2 text-end font-medium">
-                          Premium
+                          {t("colPremium")}
                         </th>
                         <th scope="col" className="pe-3 pb-2 text-end font-medium">
-                          Break-even price
+                          {t("colBreakEven")}
                         </th>
                         <th scope="col" className="pb-2 text-end font-medium">
-                          Required rise
+                          {t("colRise")}
                         </th>
                       </tr>
                     </thead>
@@ -157,7 +166,7 @@ export function BreakEvenCalculator({ initialSpot, isStale }: Props) {
                             )}
                           >
                             <th scope="row" className="py-2 pe-3 text-start font-medium">
-                              {benchmark.label}
+                              {t(`products.${benchmark.key}`)}
                             </th>
                             <td className="text-muted-foreground py-2 pe-3 text-end tabular-nums">
                               {benchmark.pct}%
@@ -166,7 +175,7 @@ export function BreakEvenCalculator({ initialSpot, isStale }: Props) {
                               {fmt.usd(row.breakEvenSpot)}
                             </td>
                             <td className="py-2 text-end font-semibold tabular-nums">
-                              +{row.requiredRisePct.toFixed(1)}%
+                              <Num>{`+${row.requiredRisePct.toFixed(1)}%`}</Num>
                             </td>
                           </tr>
                         );
@@ -175,8 +184,7 @@ export function BreakEvenCalculator({ initialSpot, isStale }: Props) {
                   </table>
                 </div>
                 <p className="text-muted-foreground mt-3 text-xs">
-                  All rows assume the same {sellFeePct.toFixed(1)}% sell-side spread. Premiums vary
-                  by dealer, product, and order size — treat these as illustrative ranges.
+                  {t("tableNote", { sellFee: sellFeePct.toFixed(1) })}
                 </p>
               </CardContent>
             </Card>
