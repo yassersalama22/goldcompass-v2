@@ -4,7 +4,7 @@ import * as React from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 
-import { Num } from "@/components/market/num";
+import { Num, Usd } from "@/components/market/num";
 import { requireLocale } from "@/config/locales";
 import { useFormat } from "@/lib/use-format";
 import { cn } from "@/lib/utils";
@@ -108,7 +108,7 @@ export function PriceTicker({
           className="text-4xl font-bold tabular-nums sm:text-5xl"
           aria-live="polite"
         >
-          <Num>{fmt.usd(quote.price)}</Num>
+          <Usd value={quote.price} />
         </span>
         <span className="text-muted-foreground text-sm font-medium">
           {t("unit")}

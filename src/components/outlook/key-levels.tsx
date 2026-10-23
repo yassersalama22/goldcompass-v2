@@ -1,4 +1,4 @@
-import { Num } from "@/components/market/num";
+import { MoneyText } from "@/components/market/num";
 import { cn } from "@/lib/utils";
 import type { ContentLang } from "@/server/i18n/availability";
 import type { KeyLevel } from "@/types/outlook";
@@ -21,7 +21,7 @@ export function KeyLevels({ levels, content = {} }: { levels: KeyLevel[]; conten
             {/* Artifact values are free text — "$4,160", "$4,000–$4,070" — made
                 entirely of digits and bidi-neutral characters, which reorder
                 against an RTL paragraph. */}
-            <Num>{level.value}</Num>
+            <MoneyText text={level.value} />
           </dd>
         </div>
       ))}

@@ -5,7 +5,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { linkTag, richTags } from "@/i18n/rich";
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 
-import { Num } from "@/components/market/num";
+import { Num, Usd } from "@/components/market/num";
 import { Container } from "@/components/layout/container";
 import { Analysis } from "@/components/outlook/analysis";
 import { KeyLevels } from "@/components/outlook/key-levels";
@@ -13,7 +13,7 @@ import { MacroPanel } from "@/components/outlook/macro-panel";
 import { OutlookCallCard } from "@/components/outlook/outlook-call-card";
 import { JsonLd } from "@/components/seo/json-ld";
 import { SubscribeCta } from "@/components/newsletter/subscribe-cta";
-import { formatLongDateTime, formatSignedPct, formatUsd } from "@/lib/format";
+import { formatLongDateTime, formatSignedPct } from "@/lib/format";
 import { withLocaleMetadata, type LocaleParams } from "@/lib/seo";
 import { outlookArticleSchema } from "@/lib/structured-data";
 import { cn } from "@/lib/utils";
@@ -76,7 +76,7 @@ export default async function OutlookPage({ params }: LocaleParams) {
             <h1 className="text-3xl font-bold sm:text-4xl">{t("heading")}</h1>
             <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
               <span className="text-2xl font-bold tabular-nums">
-                <Num>{formatUsd(report.spot.price, locale)}</Num>
+                <Usd value={report.spot.price} />
               </span>
               <span className="text-muted-foreground text-sm">XAU/USD</span>
               {change != null ? (

@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { useLocale } from "next-intl";
 
+import { requireLocale } from "@/config/locales";
 import { formatUsdParts } from "@/lib/format";
 
 import { cn } from "@/lib/utils";
@@ -63,4 +64,33 @@ export function SignedUsd({ value, showPlus = true }: { value: number; showPlus?
       <Num>{`${plus}${amount}`}</Num> {unit}
     </>
   );
+}
+
+/**
+ * An unsigned money amount from a number. Same isolation rule as `SignedUsd`:
+ * ⚠ never write `<Num>{formatUsd(x)}</Num>` — with a suffix unit the whole
+ * `4,078.59 دولار` becomes one LTR run and an Arabic reader meets the unit
+ * first ("dollars 4,078.59"). Measured on /ar/outlook before this existed.
+ */
+export function Usd({ value }: { value: number }) {
+  return <SignedUsd value={value} showPlus={false} />;
+}
+
+/**
+ * A money amount that arrives as a formatted STRING (artifact fields such as
+ * key levels: `"$4,000–$4,070"`, `"4,000–4,070 دولار"`). Isolates the amount
+ * and leaves a suffix unit outside the isolate; anything without the locale's
+ * suffix unit is isolated whole, exactly as before.
+ */
+export function MoneyText({ text }: { text: string }) {
+  const { unit, position } = requireLocale(useLocale()).currency;
+  const suffix = ` ${unit}`;
+  if (position === "suffix" && text.endsWith(suffix)) {
+    return (
+      <>
+        <Num>{text.slice(0, -suffix.length)}</Num> {unit}
+      </>
+    );
+  }
+  return <Num>{text}</Num>;
 }

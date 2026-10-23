@@ -920,5 +920,33 @@
       "today": "Today's spot",
       "scenariosNote": "Assumes selling pure gold equivalent at spot with no buy-back commission. Actual returns will vary."
     }
+  },
+  "subscribed": {
+    "metaTitle": "You're subscribed",
+    "metaDescription": "Your subscription to the {name} weekly gold update is confirmed.",
+    "heading": "You’re subscribed",
+    "lede": "Your email is confirmed. You’ll get the {name} weekly gold update — the latest outlook, notable price moves, and the key levels worth watching.",
+    "noSpam": "No spam, and you can unsubscribe from any email in one click.",
+    "startHere": "Start here",
+    "steps": {
+      "outlook": {
+        "title": "Market Outlook",
+        "body": "Today's short- and long-term gold signals, with the reasoning and key levels behind them."
+      },
+      "trends": {
+        "title": "Live Price & Trends",
+        "body": "The current spot price and an interactive 30-day chart of where gold has been."
+      },
+      "calculator": {
+        "title": "Smart Gold Calculator",
+        "body": "Turn a budget into real numbers — quantity, break-even after premiums, and P/L scenarios."
+      },
+      "insights": {
+        "title": "Market Insights",
+        "body": "Educational guides and news analysis on prices, central banks, and the macro picture."
+      }
+    },
+    "cta": "Read the latest outlook",
+    "callout": "<strong>Important:</strong> {name} provides educational information only — not financial, investment, tax, or legal advice. Always do your own research before investing. Read our full <disclaimer>disclaimer</disclaimer>."
   }
 }
