@@ -4,7 +4,9 @@ import fs from "node:fs";
 import path from "node:path";
 
 import { DEFAULT_LOCALE } from "@/config/locales";
-import { PAGE_CONTRACT_VERSION, pageSchema, type PageDoc } from "@/types/page";
+import { parsePageMarkdown } from "@/lib/page-markdown";
+import { hashFields, pageFields } from "@/server/i18n/field-map";
+import type { PageDoc } from "@/types/page";
 
 /**
  * Static prose page data-access layer (headless core).
@@ -17,43 +19,6 @@ import { PAGE_CONTRACT_VERSION, pageSchema, type PageDoc } from "@/types/page";
 
 const PAGES_DIR = path.join(process.cwd(), "src", "content", "pages");
 
-/**
- * Minimal frontmatter parser.
- *
- * Deliberately not a YAML library. The frontmatter here is a fixed set of
- * flat `key: value` strings — no nesting, no lists, no anchors — so a real YAML
- * parser would be a dependency (and a parsing surface) bought for nothing. The
- * one thing it must handle is values containing colons, which is why the split
- * is on the *first* colon only.
- *
- * Values may be quoted to protect leading/trailing whitespace or a leading `#`;
- * quotes are stripped. Anything more elaborate than that belongs in the body.
- */
-function parseFrontmatter(raw: string): { data: Record<string, string>; body: string } {
-  const match = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/.exec(raw);
-  if (!match) {
-    throw new Error("Page artifact is missing its frontmatter block.");
-  }
-  const [, head, body] = match;
-
-  const data: Record<string, string> = {};
-  for (const line of head.split(/\r?\n/)) {
-    if (!line.trim() || line.trimStart().startsWith("#")) continue;
-    const colon = line.indexOf(":");
-    if (colon === -1) continue;
-    const key = line.slice(0, colon).trim();
-    let value = line.slice(colon + 1).trim();
-    if (
-      (value.startsWith('"') && value.endsWith('"')) ||
-      (value.startsWith("'") && value.endsWith("'"))
-    ) {
-      value = value.slice(1, -1);
-    }
-    data[key] = value;
-  }
-  return { data, body: body.trim() };
-}
-
 function readPage(dir: string, slug: string): PageDoc | null {
   let raw: string;
   try {
@@ -61,14 +26,25 @@ function readPage(dir: string, slug: string): PageDoc | null {
   } catch {
     return null;
   }
-  const { data, body } = parseFrontmatter(raw);
-  return pageSchema.parse({
-    contractVersion: PAGE_CONTRACT_VERSION,
-    slug,
-    ...data,
-    bodyMarkdown: body,
-  });
+  return parsePageMarkdown(raw, slug);
 }
+
+/**
+ * The translation of `slug` in `locale`, only if it was made from the English
+ * text as it stands now — the same rule as the outlook and articles. A stale
+ * legal page in particular must not keep asserting terms the English has since
+ * changed.
+ */
+const freshTranslation = cache((slug: string, locale: string): PageDoc | null => {
+  const translated = readPage(path.join(PAGES_DIR, locale), slug);
+  const canonical = readPage(PAGES_DIR, slug);
+  if (!translated || !canonical) return null;
+  if (translated.translation?.sourceHash !== hashFields(pageFields(canonical))) {
+    console.warn(`[pages] ${locale}/${slug} is stale; falling back to English`);
+    return null;
+  }
+  return translated;
+});
 
 /**
  * The page in `locale`, falling back to the canonical text when there is no
@@ -81,7 +57,7 @@ function readPage(dir: string, slug: string): PageDoc | null {
 export const getPage = cache(
   (slug: string, locale: string = DEFAULT_LOCALE): PageDoc => {
     if (locale !== DEFAULT_LOCALE) {
-      const translated = readPage(path.join(PAGES_DIR, locale), slug);
+      const translated = freshTranslation(slug, locale);
       if (translated) return translated;
     }
     const canonical = readPage(PAGES_DIR, slug);
@@ -97,7 +73,7 @@ export const getPage = cache(
 /** Does `locale` have its own translation of this page? */
 export const isPageTranslated = cache((slug: string, locale: string): boolean => {
   if (locale === DEFAULT_LOCALE) return true;
-  return readPage(path.join(PAGES_DIR, locale), slug) !== null;
+  return freshTranslation(slug, locale) !== null;
 });
 
 /** Every canonical page slug — used by the Markdown-representation map. */

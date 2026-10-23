@@ -1925,3 +1925,31 @@ Match the current site's look and feel:
   - **Remaining Phase E**: ① pipeline page support; ② real content run (outlook + 17 articles +
     disclaimer — API spend) and owner review; ③ native review of glossary + catalog (flagged items
     across the batch entries above); ④ enable `ar` in a reviewed PR.
+- 2026-10-23: **Phase E step 2 — page translation in the pipeline** (+ PR #104 opened off `main`).
+  - **PR #104 (`fix/og-url-per-page`)**: Next replaces a parent's `openGraph`/`twitter` object
+    wholesale. Live audit: `/trends`, `/insights`, `/disclaimer` previewed as the HOMEPAGE (og:url,
+    title, description); the calculators, `/about`, `/methodology`, `/ai-disclosure` and both insight
+    views had **no og:image** and no `og:site_name`; **every** page sent the homepage's
+    `twitter:title`. `withLocaleMetadata` now always emits complete `openGraph` + `twitter` blocks
+    with the brand card as default image. **⚠ Config `images` OUTRANK a segment's `opengraph-image`
+    file** (verified — `/outlook` lost its dynamic card), so routes with their own image pass
+    `{ ownImage: true }`. When #104 merges, `lib/seo.ts` will conflict with this branch's
+    `contentLocale` change — keep both.
+  - **Pages are now translatable**: `translatePages()` in `translate-content.mts`
+    (`TRANSLATE_ONLY=pages`), `checkPages()` in `i18n:check`, runtime freshness in
+    `server/pages` (`freshTranslation` — stale → English fallback, like articles/outlook).
+    Parser + new serializer live in **`src/lib/page-markdown.ts`** (shared: the pipeline runs under
+    tsx and cannot import `server-only`). Translation metadata is stored as dotted frontmatter keys
+    (`translation.sourceHash: "…"`) and regrouped on read; values are always double-quoted; a value
+    with a newline is rejected. Round-trip verified exact.
+  - **🐛 Fixed in the same change: `TRANSLATE_ONLY` dispatch.** Inserting `pages` exposed that the
+    old guards were negative (`only !== "articles"` ran the outlook for any other value). Now each
+    kind runs only when selected or when nothing is; unknown values throw.
+  - **🐛 Would have cost money daily once `ar` is on**: both workflows ran the FULL
+    `i18n:translate` but commit only their own directory (`add-paths`), so the daily outlook run would
+    have translated — and discarded — any stale articles/pages/catalog keys every day. Now
+    `TRANSLATE_ONLY: outlook` / `articles`.
+  - Verified with the mock translator (all output deleted): write → skip on rerun → `i18n:check`
+    pairs it → `/ar/disclaimer` self-canonical + hreflang both ways + sitemap + Markdown twin →
+    English edited → gate errors "stale", page falls back (canonical → English, no hreflang, out of
+    the sitemap).

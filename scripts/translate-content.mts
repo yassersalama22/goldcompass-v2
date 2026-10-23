@@ -3,7 +3,7 @@
  *
  *   npm run i18n:translate              # all locales, all artifacts
  *   TRANSLATE_LOCALE=ar npm run i18n:translate
- *   TRANSLATE_ONLY=outlook npm run i18n:translate     # outlook | articles | catalog
+ *   TRANSLATE_ONLY=outlook npm run i18n:translate     # outlook | articles | pages | catalog
  *
  * Writes siblings under `src/content/<type>/<locale>/`. Artifacts whose source
  * has not changed since the last run are skipped — the stored `sourceHash`
@@ -23,7 +23,9 @@ import {
   assertFieldMapCoverage,
   hashFields,
   outlookFields,
+  pageFields,
 } from "@/server/i18n/field-map";
+import { parsePageMarkdown, serializePageMarkdown } from "@/lib/page-markdown";
 import {
   buildMeta,
   planCatalog,
@@ -40,6 +42,7 @@ import type { TranslatableField } from "@/server/i18n/field-map";
 import type { TranslationProvider } from "@/server/i18n/translate";
 import { articleSchema, type Article } from "@/types/article";
 import { outlookReportSchema, type OutlookReport } from "@/types/outlook";
+import type { PageDoc } from "@/types/page";
 import type { TranslationMeta } from "@/types/translation";
 
 const CONTENT = path.join(process.cwd(), "src", "content");
@@ -171,6 +174,61 @@ async function translateArticles(locale: LocaleDef): Promise<{ written: number; 
 }
 
 /**
+ * Translate the static prose pages (`src/content/pages/*.md`, e.g. the
+ * disclaimer) into `src/content/pages/<locale>/`.
+ *
+ * Same contract as articles — field map, `sourceHash`, skip when current — but
+ * Markdown with frontmatter on disk, via the shared `lib/page-markdown`, so what
+ * is written here is exactly what `server/pages` reads. These are legal and
+ * trust pages: they land in the same PR as everything else and need a human
+ * read before merge, not just a green `i18n:check`.
+ */
+async function translatePages(locale: LocaleDef): Promise<{ written: number; skipped: number }> {
+  const sourceDir = path.join(CONTENT, "pages");
+  const outDir = path.join(sourceDir, locale.code);
+  const files = (await readdir(sourceDir)).filter((f) => f.endsWith(".md"));
+
+  let written = 0;
+  let skipped = 0;
+  let provider: Awaited<ReturnType<typeof getTranslationProvider>> | null = null;
+
+  for (const file of files) {
+    const slug = file.replace(/\.md$/, "");
+    const page: PageDoc = parsePageMarkdown(await readFile(path.join(sourceDir, file), "utf8"), slug);
+
+    const fields = pageFields(page);
+    assertFieldMapCoverage(page, fields, file);
+    const sourceHash = hashFields(fields);
+
+    const outPath = path.join(outDir, file);
+    try {
+      const existing = parsePageMarkdown(await readFile(outPath, "utf8"), slug);
+      if (existing.translation?.sourceHash === sourceHash) {
+        skipped++;
+        continue;
+      }
+    } catch {
+      // no translation yet, or unreadable — translate it
+    }
+
+    provider ??= await getTranslationProvider();
+    const { values, model, promptVersion } = await translateFields(provider, locale, fields);
+
+    const translated: PageDoc = {
+      ...applyTranslations(page, values),
+      locale: locale.code,
+      translation: meta(sourceHash, model, promptVersion, locale),
+    };
+
+    await mkdir(outDir, { recursive: true });
+    await writeFile(outPath, serializePageMarkdown(translated), "utf8");
+    written++;
+    console.log(`[i18n]   ${locale.code}/pages/${file}`);
+  }
+  return { written, skipped };
+}
+
+/**
  * Translate the UI catalog, per key.
  *
  * Only missing or source-changed keys are sent; everything else — including
@@ -237,20 +295,31 @@ async function main() {
   const provider = await getTranslationProvider();
   console.log(`[i18n] provider=${provider.name} targets=${targets.map((t) => t.code).join(",")}`);
 
+  // Each content type runs when it is selected, or when nothing is.
+  const KINDS = ["catalog", "outlook", "pages", "articles"] as const;
+  if (only !== undefined && !(KINDS as readonly string[]).includes(only)) {
+    throw new Error(`TRANSLATE_ONLY must be one of ${KINDS.join(" | ")}, got "${only}".`);
+  }
+  const run = (kind: (typeof KINDS)[number]) => only === undefined || only === kind;
+
   for (const locale of targets) {
-    if (only === undefined || only === "catalog") {
+    if (run("catalog")) {
       console.log(`[i18n] ${locale.code} catalog: ${await translateCatalog(locale)}`);
     }
-    if (only === "catalog") continue;
-    if (only !== "articles") {
+    if (run("outlook")) {
       const r = await translateOutlook(locale);
       console.log(`[i18n] ${locale.code} outlook: ${r}`);
     }
-    if (only !== "outlook") {
+    if (run("pages")) {
+      const { written, skipped } = await translatePages(locale);
+      console.log(`[i18n] ${locale.code} pages: ${written} written, ${skipped} up to date`);
+    }
+    if (run("articles")) {
       const { written, skipped } = await translateArticles(locale);
       console.log(`[i18n] ${locale.code} articles: ${written} written, ${skipped} up to date`);
     }
   }
+
 }
 
 main().catch((err) => {

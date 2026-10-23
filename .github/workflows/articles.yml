@@ -44,6 +44,10 @@ jobs:
       - name: Translate + verify
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Only what this PR commits (see add-paths). Unscoped, the run would
+          # also translate any stale articles/pages/catalog keys, pay for them,
+          # and discard the output — every run, until a full pass landed.
+          TRANSLATE_ONLY: articles
         run: |
           npm run i18n:translate
           npm run i18n:check

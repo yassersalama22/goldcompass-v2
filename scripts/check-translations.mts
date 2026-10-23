@@ -25,7 +25,9 @@ import {
   hashFields,
   hashValue,
   outlookFields,
+  pageFields,
 } from "@/server/i18n/field-map";
+import { parsePageMarkdown } from "@/lib/page-markdown";
 import { articleSchema, type Article } from "@/types/article";
 import { outlookReportSchema, type OutlookReport } from "@/types/outlook";
 
@@ -79,6 +81,44 @@ async function checkOutlook(locale: LocaleDef) {
       storedHash: translated.translation?.sourceHash,
     }),
   );
+}
+
+/** Page translations, paired with their English source by filename. */
+async function checkPages(locale: LocaleDef) {
+  const dir = path.join(CONTENT, "pages", locale.code);
+  let files: string[];
+  try {
+    files = (await readdir(dir)).filter((f) => f.endsWith(".md"));
+  } catch {
+    return;
+  }
+  for (const file of files) {
+    const slug = file.replace(/\.md$/, "");
+    let sourceRaw: string;
+    try {
+      sourceRaw = await readFile(path.join(CONTENT, "pages", file), "utf8");
+    } catch {
+      console.log(`  FAIL  ${locale.code}/pages/${file}`);
+      console.log(`          ✗ <artifact>: no English source with this filename`);
+      errors++;
+      checked++;
+      continue;
+    }
+    const source = parsePageMarkdown(sourceRaw, slug);
+    const translated = parsePageMarkdown(await readFile(path.join(dir, file), "utf8"), slug);
+    report(
+      `${locale.code}/pages/${file}`,
+      checkTranslation({
+        label: `${file} (${locale.code})`,
+        locale: locale.code,
+        sourceFields: pageFields(source),
+        translatedFields: pageFields(translated),
+        source: source as unknown as Record<string, unknown>,
+        translated: translated as unknown as Record<string, unknown>,
+        storedHash: translated.translation?.sourceHash,
+      }),
+    );
+  }
 }
 
 async function checkArticles(locale: LocaleDef) {
@@ -352,6 +392,7 @@ async function main() {
   for (const locale of NON_CANONICAL) {
     await checkOutlook(locale);
     await checkArticles(locale);
+    await checkPages(locale);
   }
   if (checked === 0) console.log("  (none yet)");
 
