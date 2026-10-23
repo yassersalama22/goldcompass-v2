@@ -2007,3 +2007,23 @@ Match the current site's look and feel:
     labelled English at runtime rather than contradicting the source.
   - **PR #104** (social-card fix) is still open against `main`; it will conflict in `lib/seo.ts`
     with this branch's `contentLocale` — resolve by keeping both.
+- 2026-10-23: **🚀 Arabic is live at `/ar/*`** (PR #105, deploy 39943132837). Preceded by
+  **PR #106 — Next.js 16.2.12 → 16.4.2** (security), deployed first by decision: the merge check of
+  #105 surfaced critical Next advisories affecting this site directly — RCE in `next/og` (every social
+  card), RCE in Image Optimization and `use cache`, and SSG/ISR cache poisoning for self-hosted
+  apps. Also: `sharp` override → `^0.35.5`, `shadcn` moved to `devDependencies` (CLI only; its CSS
+  is resolved by Tailwind at build time, and the Docker deps stage installs dev deps). **The weekly
+  `security-audit` job is green again** — it had failed every run since 2026-09-28. Production
+  confirmed on `next 16.4.2` (`window.next.version`).
+  - Next 16.4 prints the route table in a new grouped layout (per-locale child rows); compare
+    Revalidate values, not lines, when diffing builds.
+  - Production verified after deploy: 8 sampled `/ar` pages 200 with `lang="ar" dir="rtl"`, sitemap
+    64 URLs / 32 Arabic, `check:untranslated` against prod = only the 5 deliberate English strings.
+  - **⚠ Cloudflare follow-ups (owner, dashboard):** ① purge after this deploy — cached English pages
+    (`/`, `/about`, `/outlook`, `/insights`, `/disclaimer`) were still serving pre-launch HTML with no
+    language switcher or Arabic hreflang (`/about` and `/disclaimer` are cached for a year).
+    ② **`/ar/*` is not edge-cached** (`cf-cache-status: DYNAMIC` on every Arabic page) — the "Cache
+    public pages" rule evidently matches English paths only. Extend it to `/ar` and `/ar/*`, keeping
+    the `rsc` header and `Accept: text/markdown` exclusions (2026-07-27 / 2026-08-07 lessons).
+  - **PR #104** (complete per-page Open Graph/Twitter cards) is still open; it will conflict in
+    `lib/seo.ts` with the launched `contentLocale` change — keep both.
