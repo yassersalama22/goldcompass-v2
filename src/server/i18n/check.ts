@@ -1,4 +1,6 @@
-import { requireLocale } from "@/config/locales";
+import { parse, TYPE, type MessageFormatElement } from "@formatjs/icu-messageformat-parser";
+
+import { isActiveLocale, requireLocale } from "@/config/locales";
 import {
   assertFieldMapCoverage,
   catalogFields,
@@ -56,9 +58,121 @@ function numerals(text: string): string[] {
  * template). Dropping one is silent and total: a translated `titleTemplate`
  * without its `%s` gives every page on the site the same title, and a lost
  * `{name}` renders the literal word rather than the brand.
+ *
+ * Also covers next-intl rich-text tags (`<trends>…</trends>`, `<strong>…`).
+ * A dropped tag pair is silent too — the link simply vanishes from the
+ * translated page — and a renamed one throws at render time because no render
+ * function exists for it. The translator may move a tag pair within the
+ * sentence (word order requires it), so only the multiset is compared.
  */
 function placeholders(text: string): string[] {
-  return [...(text.match(/\{[a-zA-Z0-9_]+\}|%[sd]/g) ?? [])].sort();
+  return [...(text.match(/\{[a-zA-Z0-9_]+\}|%[sd]|<\/?[a-zA-Z][\w-]*>/g) ?? [])].sort();
+}
+
+/**
+ * The ICU structure of a catalog message: its arguments, its plural/select
+ * branches, and the literal text with all syntax removed.
+ *
+ * next-intl messages are ICU MessageFormat, so a catalog string can carry
+ * syntax a regex cannot validate — `{count, plural, one {…} other {…}}`. A
+ * translator that translates a keyword ("other" → "أخرى"), drops a branch's
+ * argument, or unbalances a brace produces a message that throws at render
+ * time on exactly the page and count that hits it. Parsing is the only honest
+ * check.
+ */
+type IcuInfo =
+  | {
+      ok: true;
+      args: Set<string>;
+      tags: Set<string>;
+      branches: Map<string, { type: "plural" | "select"; keys: string[] }>;
+      literal: string;
+    }
+  | { ok: false; error: string };
+
+function icuInfo(text: string): IcuInfo {
+  let ast: MessageFormatElement[];
+  try {
+    ast = parse(text);
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : String(e) };
+  }
+  const args = new Set<string>();
+  const tags = new Set<string>();
+  const branches = new Map<string, { type: "plural" | "select"; keys: string[] }>();
+  const literal: string[] = [];
+  const walk = (els: MessageFormatElement[]) => {
+    for (const el of els) {
+      if (el.type === TYPE.literal) literal.push(el.value);
+      else if (el.type === TYPE.argument) args.add(`${el.value}:argument`);
+      else if (el.type === TYPE.number) args.add(`${el.value}:number`);
+      else if (el.type === TYPE.date || el.type === TYPE.time) args.add(`${el.value}:date`);
+      else if (el.type === TYPE.tag) {
+        tags.add(el.value);
+        walk(el.children);
+      }
+      else if (el.type === TYPE.plural || el.type === TYPE.select) {
+        const type = el.type === TYPE.plural ? "plural" : "select";
+        args.add(`${el.value}:${type}`);
+        branches.set(el.value, { type, keys: Object.keys(el.options) });
+        for (const option of Object.values(el.options)) walk(option.value);
+      }
+    }
+  };
+  walk(ast);
+  return { ok: true, args, tags, branches, literal: literal.join(" ") };
+}
+
+/**
+ * Validate a translated message's ICU structure against its English source.
+ * Plural branches may differ — that is the point of plurals (English has
+ * one/other, Arabic zero/one/two/few/many/other) — but only CLDR categories
+ * valid for the target locale, or exact `=N` matches, are allowed, and `other`
+ * is mandatory. Select branches must match exactly: their keys are data.
+ */
+function icuFindings(source: IcuInfo, target: IcuInfo, locale: string, at: string): Finding[] {
+  if (!source.ok) {
+    return [{ severity: "error", path: at, message: `English source is not valid ICU: ${source.error}` }];
+  }
+  if (!target.ok) {
+    return [{ severity: "error", path: at, message: `translation is not valid ICU (it would throw at render time): ${target.error}` }];
+  }
+  const findings: Finding[] = [];
+  /* next-intl resolves tags and arguments from ONE values object, so a tag and
+   * an argument with the same name (`<breakEven>…</breakEven> — {breakEven}`)
+   * hands the tag a string instead of a render function and the page throws.
+   * Checked on both sides: an English collision is an authoring bug. */
+  for (const [side, info] of [["English source", source], ["translation", target]] as const) {
+    const names = new Set([...info.args].map((a) => a.split(":")[0]!));
+    const clash = [...info.tags].filter((tag) => names.has(tag));
+    if (clash.length > 0) {
+      findings.push({ severity: "error", path: at, message: `${side} uses the same name for a tag and an argument (throws at render time): ${clash.join(", ")}` });
+    }
+  }
+  const s = [...source.args].sort().join(", ");
+  const t = [...target.args].sort().join(", ");
+  if (s !== t) {
+    findings.push({ severity: "error", path: at, message: `ICU arguments changed: source has [${s || "none"}], translation has [${t || "none"}]` });
+  }
+  const categories = new Set(new Intl.PluralRules(locale).resolvedOptions().pluralCategories);
+  for (const [name, { type, keys }] of target.branches) {
+    const src = source.branches.get(name);
+    if (!src) continue; // already reported as an argument change
+    if (type === "select") {
+      if ([...keys].sort().join() !== [...src.keys].sort().join()) {
+        findings.push({ severity: "error", path: at, message: `select "${name}" branches changed: [${src.keys}] → [${keys}]` });
+      }
+      continue;
+    }
+    const invalid = keys.filter((k) => !categories.has(k as Intl.LDMLPluralRule) && !/^=\d+$/.test(k));
+    if (invalid.length > 0) {
+      findings.push({ severity: "error", path: at, message: `plural "${name}" uses categories that do not exist in ${locale}: [${invalid}] (valid: ${[...categories].join(", ")}, or =N)` });
+    }
+    if (!keys.includes("other")) {
+      findings.push({ severity: "error", path: at, message: `plural "${name}" has no "other" branch` });
+    }
+  }
+  return findings;
 }
 
 function urls(text: string): string[] {
@@ -151,8 +265,18 @@ export function checkCatalogParity(
   const extra = [...tr].filter((k) => !en.has(k));
 
   if (missing.length > 0) {
+    /*
+     * Severity depends on whether the locale is actually routed.
+     *
+     * A missing key in a locale nobody can reach cannot affect a visitor — it is
+     * work-in-progress, and failing CI over it would mean English extraction and
+     * its translation had to land in one commit, which is exactly the coupling
+     * the per-key model exists to avoid. The moment the locale is enabled in the
+     * registry it becomes an error, which is precisely when a silent fallback to
+     * English would start reaching readers.
+     */
     findings.push({
-      severity: "error",
+      severity: isActiveLocale(locale) ? "error" : "warning",
       path: `ui/${locale}.json`,
       message: `${missing.length} key(s) missing, so these fall back to English: ${missing.slice(0, 8).join(", ")}${missing.length > 8 ? ", …" : ""}`,
     });
@@ -186,6 +310,148 @@ export function checkCatalogParity(
       path: `ui/${locale}.json`,
       message: `${stale.length} key(s) translated from an older English source; re-run i18n:translate: ${stale.slice(0, 8).join(", ")}${stale.length > 8 ? ", …" : ""}`,
     });
+  }
+
+  /*
+   * Per-string content checks — the same rules the artifacts get.
+   *
+   * These used to apply only to artifacts, on the assumption that a catalog
+   * holds short UI labels. That stopped being true when the tool-page copy moved
+   * in: the catalog now carries FAQ answers stating that a troy ounce is
+   * 31.1035 grams and a 1 kg bar is 32.15 ozt. A corrupted constant there is the
+   * same financial error it would be in an article, and it was passing clean.
+   */
+  const englishByPath = new Map(catalogFields(canonical).map((f) => [f.path, f.value]));
+  for (const field of catalogFields(target)) {
+    const source = englishByPath.get(field.path);
+    if (source === undefined) continue;
+    const at = `ui/${locale}.json → ${field.path}`;
+
+    /* ICU structure first — a message that does not parse makes every other
+     * check below meaningless. */
+    const sIcu = icuInfo(source);
+    const tIcu = icuInfo(field.value);
+    findings.push(...icuFindings(sIcu, tIcu, locale, at));
+    // A plural repeats its text once per branch, and the two languages have
+    // different numbers of branches. Compare numbers and tokens as SETS there,
+    // and only over literal text, so an `=1` selector is not read as a digit.
+    const branched = sIcu.ok && tIcu.ok && (sIcu.branches.size > 0 || tIcu.branches.size > 0);
+    const numText = (raw: string, info: IcuInfo) => (branched && info.ok ? info.literal : raw);
+
+    /*
+     * Numeral parity, split by *precision* rather than by strict equality.
+     *
+     * A number that changed or was invented is always an error — that is the
+     * 99.9999-grams case, and there is no benign reading of it.
+     *
+     * A number present in English and absent from the translation is judged on
+     * what kind of number it is, because prose genuinely spells small round
+     * numbers as words: "a 30-day chart" → "رسم بياني لثلاثين يومًا", "a 1 kg
+     * bar" → "سبيكة الكيلوغرام الواحد". Both are correct translations, and both
+     * appear in this catalog today. But a value carrying a decimal — 31.1035
+     * grams, 32.15 ozt, 4,283.61 — is a precise constant nobody spells out, so
+     * its disappearance is an omission. Three or more digits counts as precise
+     * for the same reason.
+     */
+    const tokens = (text: string) =>
+      (text.match(/\d[\d.,٫٬]*/g) ?? []).map((raw) => ({
+        raw,
+        norm: raw.replace(/[.,٫٬]/g, ""),
+        // A decimal separator, or enough digits that it is not a spoken round
+        // number, means the exact value carries meaning.
+        precise: /[.,٫٬]\d/.test(raw) || raw.replace(/[.,٫٬]/g, "").length >= 3,
+      }));
+
+    const uniq = <T extends { norm: string }>(list: T[]) =>
+      branched ? list.filter((x, i) => list.findIndex((y) => y.norm === x.norm) === i) : list;
+    const remaining = uniq(tokens(numText(field.value, tIcu)));
+    const dropped: { raw: string; precise: boolean }[] = [];
+    for (const t of uniq(tokens(numText(source, sIcu)))) {
+      const i = remaining.findIndex((r) => r.norm === t.norm);
+      if (i === -1) dropped.push(t);
+      else remaining.splice(i, 1);
+    }
+
+    if (remaining.length > 0) {
+      findings.push({
+        severity: "error",
+        path: at,
+        message: `numbers not in the English source: [${remaining.map((r) => r.raw).join(", ")}]`,
+      });
+    }
+    const lostPrecise = dropped.filter((d) => d.precise);
+    const lostRound = dropped.filter((d) => !d.precise);
+    if (lostPrecise.length > 0) {
+      findings.push({
+        severity: "error",
+        path: at,
+        message: `precise value(s) dropped from the translation: [${lostPrecise.map((d) => d.raw).join(", ")}]`,
+      });
+    }
+    if (lostRound.length > 0) {
+      findings.push({
+        severity: "warning",
+        path: at,
+        message: `[${lostRound.map((d) => d.raw).join(", ")}] not written as digits — fine if spelled as a word, check it is not an omission`,
+      });
+    }
+
+    if (ARABIC_INDIC.test(field.value)) {
+      findings.push({
+        severity: "error",
+        path: at,
+        message: "contains Arabic-Indic digits; the site renders Latin digits everywhere",
+      });
+    }
+
+    const sp = placeholders(source);
+    const tp = placeholders(field.value);
+    const sig = (list: string[]) => (branched ? [...new Set(list)] : list).join("|");
+    if (sig(sp) !== sig(tp)) {
+      findings.push({
+        severity: "error",
+        path: at,
+        message: `placeholders changed: source has [${sp.join(", ") || "none"}], translation has [${tp.join(", ") || "none"}]`,
+      });
+    }
+  }
+
+  /*
+   * Glossary compliance, corpus-wide and aggregated — the same shape as the
+   * artifact rule, for the same reasons. Corpus-wide because a term may move
+   * between strings; aggregated because reported per term an untranslated
+   * catalog buries every other finding under sixty warnings.
+   */
+  const glossary = loadGlossary(locale);
+  if (glossary) {
+    const sourceCorpus = catalogFields(canonical)
+      .map((f) => f.value)
+      .join("\n")
+      .toLowerCase();
+    const targetCorpus = catalogFields(target)
+      .map((f) => f.value)
+      .join("\n");
+    const missed: string[] = [];
+    let applicable = 0;
+    for (const entry of glossaryEntries(glossary)) {
+      if (!sourceCorpus.includes(entry.en.toLowerCase())) continue;
+      applicable++;
+      if (!entry.accepted.some((form) => targetCorpus.includes(form))) {
+        missed.push(`${entry.en} → ${entry.accepted.join(" / ")}`);
+      }
+    }
+    if (missed.length > 0) {
+      const shown = missed.slice(0, 5);
+      const rest = missed.length - shown.length;
+      findings.push({
+        severity: "warning",
+        path: `ui/${locale}.json → <glossary>`,
+        message:
+          `${missed.length}/${applicable} glossary terms have no approved rendering anywhere in the catalog: ` +
+          shown.join("; ") +
+          (rest > 0 ? `; …and ${rest} more` : ""),
+      });
+    }
   }
 
   return findings;

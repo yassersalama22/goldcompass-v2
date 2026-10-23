@@ -3,7 +3,7 @@ import type { GlossaryEntry } from "@/server/i18n/glossary";
 import type { TranslatableField } from "@/server/i18n/field-map";
 
 /** Bump on any change to the wording below; recorded on every artifact. */
-export const TRANSLATION_PROMPT_VERSION = "2026-08-27.1";
+export const TRANSLATION_PROMPT_VERSION = "2026-10-22.1";
 
 const KIND_RULES: Record<TranslatableField["kind"], string> = {
   title:
@@ -41,6 +41,8 @@ export function buildSystemPrompt(locale: LocaleDef): string {
     "4. NEVER remove information. Every claim, caveat and disclaimer in the source must appear in the translation.",
     "5. NEVER translate a URL, and never change one.",
     "6. Preserve Markdown structure exactly: heading levels, list items, tables, emphasis, and link targets.",
+    "7. Preserve interpolation tokens and inline tags exactly. `{name}` and `%s` are filled in by the site and must appear verbatim. Tags such as `<trends>…</trends>` or `<strong>…</strong>` mark a link or emphasis: keep every tag pair, never rename or translate a tag name, and translate only the words between the tags. You may move a tag pair within the sentence when word order requires it, as long as it still wraps the words with the same meaning.",
+    `8. Some strings are ICU plural messages: \`{count, plural, one {…} other {…}}\`. Keep the \`{count, plural,\` wrapper and the argument names exactly; never translate the keywords "plural", "select" or the branch names. Write one branch per plural category the target language uses — for ${locale.englishLabel}: ${new Intl.PluralRules(locale.code).resolvedOptions().pluralCategories.join(", ")} (always including "other"), translating only the text inside each branch. Keep every \`{argument}\` from the source in the branches where the number is shown; a branch may omit it only when the word itself states the number (e.g. "one minute").`,
     "",
     "## Numerals and currency",
     "",

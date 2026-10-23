@@ -108,5 +108,845 @@
     "subscribeHeading": "Get the weekly gold update",
     "subscribeBody": "The latest outlook and market insights in your inbox. Free, and no spam — unsubscribe anytime.",
     "subscribeCta": "Or explore the latest outlook"
+  },
+  "tools": {
+    "goldBreakEven": {
+      "faqs": {
+        "q1": {
+          "question": "How do you calculate the break-even price for gold?",
+          "answer": "Break-even is the purchase spot price multiplied by one plus the dealer premium, divided by one minus the sell-side spread. Buying at $4,000 with a 5% premium and no selling cost means gold must reach $4,200 before you are level. Add a 2% buy-back spread and break-even rises to about $4,286."
+        },
+        "q2": {
+          "question": "Why am I losing money the moment I buy gold?",
+          "answer": "Because you paid above spot and would sell at or below it. The dealer premium covers minting, distribution, and margin, and it is not part of the metal's market value. Until the spot price climbs past your premium, selling would return less than you paid — this is normal for physical gold and is the reason it suits long holding periods."
+        },
+        "q3": {
+          "question": "Does buying a higher karat lower my break-even?",
+          "answer": "No. Purity scales what you paid and what you would receive by exactly the same factor, so it cancels out of the calculation. A 10K buyer and a 24K buyer paying the same percentage premium both need the same percentage rise in the gold price. What lowers break-even is a smaller premium, which usually means larger bars rather than higher karats."
+        },
+        "q4": {
+          "question": "What is a typical dealer premium on gold?",
+          "answer": "Premiums fall roughly as product size rises. Kilogram bars often trade near 1–3% over spot, one-ounce bars around 3–5%, popular bullion coins around 4–8%, and jewellery commonly 10–15% or more because it prices in craftsmanship. Collectible and limited-mintage coins can carry far higher premiums that have little to do with metal content."
+        },
+        "q5": {
+          "question": "Should I include storage and insurance in break-even?",
+          "answer": "If you pay for them, yes — but they behave differently from premiums. A premium is a one-off cost fixed at purchase, whereas storage and insurance accrue each year, so your break-even price rises the longer you hold. This calculator covers the transaction costs; add roughly 0.5–1% per year of holding costs if you use a paid vault."
+        }
+      },
+      "mistakes": {
+        "m1": {
+          "title": "Forgetting the sell side",
+          "body": "Most people budget for the premium they pay and ignore the spread they lose on the way out. Both sit between you and break-even, and a buy-back discount can be as large as the original premium."
+        },
+        "m2": {
+          "title": "Chasing high-premium products for the wrong reason",
+          "body": "Fractional coins and small bars carry the steepest premiums per ounce. They are convenient and easy to sell in pieces, but the gold price has to travel considerably further before you are even."
+        },
+        "m3": {
+          "title": "Thinking a higher karat gets you there faster",
+          "body": "Purity cancels out of break-even entirely. The percentage move required is set by your costs, not by the alloy you chose."
+        },
+        "m4": {
+          "title": "Comparing break-even against a headline price you cannot get",
+          "body": "The quoted spot price is a wholesale benchmark. What a retail buy-back actually pays is a little below it, which is what the sell-side spread input is for."
+        }
+      },
+      "intro": "Buying physical gold starts you below water: you pay above spot and sell at or below it. This works out exactly how far the gold price has to move before you have your money back.",
+      "name": "Gold Break-Even Calculator",
+      "shortName": "Break-even",
+      "description": "How far the gold price has to rise before a purchase at a given dealer premium returns your money.",
+      "meta": {
+        "title": "Gold Break-Even Calculator — How Far Must Gold Rise?",
+        "description": "Work out the gold price you need to get your money back after dealer premiums and buy-back spreads. See how break-even changes across bars, coins, and jewellery.",
+        "ogTitle": "Gold Break-Even Calculator",
+        "ogDescription": "Premiums mean you start underwater. Find the gold price that returns your money."
+      },
+      "about": {
+        "p1": "Break-even has two costs in it, one on each side of the trade:",
+        "formula": "break-even = spot × (1 + premium) ÷ (1 − sell spread)",
+        "p2": "<strong>Worked example.</strong> Buying at today's spot of <strong>{spot}</strong> with a 5% dealer premium means you effectively pay <strong>{cost}</strong> per troy ounce of pure gold. If you could sell at spot with no cost, gold would need to reach <strong>{spotOnly}</strong>. Allow a 2% buy-back spread and the target rises to <strong>{target}</strong> — a <strong><num>{rise}</num></strong> move before you make a cent.",
+        "p3": "Notice what is <em>not</em> in that formula: purity. Karat scales your cost and your proceeds identically, so it cancels out. Two buyers paying the same premium need the same percentage move whether they bought 10K or 24K. The lever that genuinely moves break-even is the premium, which is mostly a function of product size.",
+        "p4": "To see whether a given move is plausible from here, read the current <outlook>gold market outlook</outlook> and the <trends>30-day price trend</trends>. To turn a break-even into an actual profit figure, use the <profitLoss>profit and loss calculator</profitLoss>."
+      }
+    },
+    "goldKaratPrice": {
+      "faqs": {
+        "q1": {
+          "question": "How much is 18K gold worth per gram?",
+          "answer": "18K gold is 75% pure (750 fine), so a gram of it is worth 75% of a gram of pure gold. Divide the spot price per troy ounce by 31.1035 to get the price per gram of pure gold, then multiply by 0.75. This calculator does that for every karat at the current live gold price."
+        },
+        "q2": {
+          "question": "What does the karat number actually mean?",
+          "answer": "Karat measures how many parts out of 24 are gold. 24K is pure gold, 18K is 18 parts gold and 6 parts other metals (75%), 14K is 58.3%, and 10K is 41.7%. The remaining metal is usually copper, silver, or zinc, added for hardness and colour. Karat describes purity, not weight or quality of workmanship."
+        },
+        "q3": {
+          "question": "What is the difference between karat and fineness?",
+          "answer": "They express the same thing on different scales. Fineness is parts per thousand, so 18K (75% gold) is stamped 750, 14K is 585 or 583, and 24K is 999 or 999.9. European and modern jewellery is usually stamped with fineness; the karat mark is more common in the United States."
+        },
+        "q4": {
+          "question": "Will a dealer pay me the melt value of my gold?",
+          "answer": "No. Melt value is what the metal in an item is worth, and it is the ceiling, not the offer. Scrap buyers typically pay somewhere between 70% and 90% of melt, keeping the difference to cover refining, assay, and margin. Getting quotes from more than one buyer is the practical way to see where you sit in that range."
+        },
+        "q5": {
+          "question": "Does the calculator account for gemstones or non-gold parts?",
+          "answer": "It does not. It values the weight you enter as if all of it were gold alloy of the karat you select. For a ring with stones, or a piece with a steel clasp or spring, weigh only the gold portion or expect the true value to be lower than the figure shown."
+        }
+      },
+      "mistakes": {
+        "m1": {
+          "title": "Weighing in the wrong ounce",
+          "body": "Gold is priced in troy ounces (31.1035 g), not the kitchen-scale ounce (28.35 g). A troy ounce is about 10% heavier, so using the wrong one understates your gold by roughly a tenth."
+        },
+        "m2": {
+          "title": "Treating melt value as the price a dealer will pay",
+          "body": "Melt value is the metal content only. A scrap buyer pays below it, and a retailer selling you the same gold charges above it. The gap on both sides is the dealer's margin."
+        },
+        "m3": {
+          "title": "Trusting an unclear hallmark",
+          "body": "A worn or missing stamp is not proof of purity, and plated items can carry marks that look convincing. If the value matters, have the piece tested before you rely on any number here."
+        },
+        "m4": {
+          "title": "Including stones and findings in the weight",
+          "body": "Gemstones, clasps, and pins are usually not gold. Weighing the whole item inflates the result, sometimes substantially on stone-set jewellery."
+        }
+      },
+      "intro": "Gold is quoted as one price per troy ounce of pure metal, but almost nothing you own is pure. Enter a weight and a karat to see what the gold in it is actually worth.",
+      "name": "Gold Karat Price Calculator",
+      "shortName": "Karat price",
+      "description": "What 10K, 14K, 18K, 22K, and 24K gold is worth per gram and per troy ounce at today's spot price.",
+      "meta": {
+        "title": "Gold Karat Price Calculator — 10K to 24K Value per Gram",
+        "description": "Find what 10K, 14K, 18K, 22K, and 24K gold is worth per gram and per troy ounce at today's live gold price. Enter a weight to value a specific item.",
+        "ogTitle": "Gold Karat Price Calculator",
+        "ogDescription": "What is your gold worth? Price per gram and per troy ounce for every karat, at today's spot price."
+      },
+      "about": {
+        "p1": "The gold price you see quoted — currently <strong>{spot}</strong> per troy ounce — is the price of <em>pure</em> gold. Every karat below 24 is an alloy, so its value is the spot price scaled down by its purity:",
+        "formula": "price per gram = (spot ÷ 31.1035) × (karat ÷ 24)",
+        "p2": "<strong>Worked example.</strong> At {spot} per troy ounce, pure gold is worth <strong>{purePerGram}</strong> per gram. 18K gold is 18 parts in 24 — 75% — so it is worth <strong>{k18PerGram}</strong> per gram. A 10 g 18K chain therefore contains 7.5 g of pure gold and has a melt value of about <strong>{chainValue}</strong>.",
+        "p3": "That figure is the <em>melt value</em>: what the metal is worth, ignoring craftsmanship, brand, and collectability. It is the right number for scrap and bullion, and a floor rather than a valuation for jewellery you would sell as jewellery. To see what you would pay a dealer for gold — melt value plus their premium — use the <calculator>Smart Gold Calculator</calculator>.",
+        "p4": "The spot price is pulled live and refreshes every few minutes; you can overwrite it to price a past transaction. See <methodology>our methodology</methodology> for where the price comes from and its limitations."
+      }
+    },
+    "goldProfitLoss": {
+      "faqs": {
+        "q1": {
+          "question": "How do I calculate profit on physical gold?",
+          "answer": "Work out the pure gold content of your holding in troy ounces, multiply by your purchase price plus the premium you paid to get your cost, then multiply the same content by the selling price minus any buy-back spread to get your proceeds. Profit is proceeds minus cost. The percentage return is that profit divided by what you originally paid, not by the metal's market value."
+        },
+        "q2": {
+          "question": "Why is my return lower than the gold price rise?",
+          "answer": "Because you bought above spot and sold below it. If gold rose 10% but you paid a 5% premium and lost 2% on the buy-back, roughly 7 points of that move went to covering transaction costs, leaving about 3%. The gap between the headline move and your return is the round-trip cost, and it shrinks in importance the longer you hold."
+        },
+        "q3": {
+          "question": "Does this calculator include tax?",
+          "answer": "No. Tax treatment of gold varies widely — many jurisdictions treat physical bullion as a collectible or as a capital asset with its own rate, and some exempt certain legal-tender coins entirely. The figures here are pre-tax, and the after-tax outcome depends on your jurisdiction and holding period. Speak to a qualified tax adviser."
+        },
+        "q4": {
+          "question": "How should I account for a purchase made in several lots?",
+          "answer": "Use your weighted average purchase price as the buy price and the total quantity as the amount. If the lots carried very different premiums, running them separately and adding the results is more accurate, since the premium is applied to each lot's own cost."
+        },
+        "q5": {
+          "question": "Should I use spot price or the price I actually paid?",
+          "answer": "Enter the spot price at the time of each transaction and let the premium and spread inputs handle the costs — that way the calculator can show you the break-even and separate the market move from the friction. If you only remember the total you handed over, set the premium to zero and enter that all-in price per ounce instead."
+        }
+      },
+      "mistakes": {
+        "m1": {
+          "title": "Measuring return against the metal's value instead of what you paid",
+          "body": "Dividing profit by the current market value flatters the result. Your return is profit divided by your actual outlay, premium included."
+        },
+        "m2": {
+          "title": "Ignoring the premium on the way in",
+          "body": "Comparing your buy price to today's spot and calling the difference profit skips the cost that made you unprofitable on day one."
+        },
+        "m3": {
+          "title": "Using item weight instead of pure gold content",
+          "body": "A 100 g 14K bracelet contains 58.3 g of gold. Valuing all 100 g at the gold price overstates the position by roughly 70%."
+        },
+        "m4": {
+          "title": "Forgetting holding costs on long positions",
+          "body": "Vault storage and insurance accrue every year you hold. They do not appear here, and over a decade they can consume a meaningful slice of the gain."
+        }
+      },
+      "intro": "The gold price rising 10% does not mean you made 10%. Enter what you paid, what you would sell for, and how much you hold to see the return after the costs on both sides.",
+      "name": "Gold Profit & Loss Calculator",
+      "shortName": "Profit & loss",
+      "description": "Entry price, exit price, and quantity in — profit or loss in dollars and percent, after buying and selling costs.",
+      "meta": {
+        "title": "Gold Profit & Loss Calculator — Work Out Your Real Return",
+        "description": "Enter your buy price, sell price, and quantity to see profit or loss in dollars and percent after dealer premiums and buy-back spreads — not just the headline price move.",
+        "ogTitle": "Gold Profit & Loss Calculator",
+        "ogDescription": "What did your gold actually return? Profit and loss after the costs of buying and selling."
+      },
+      "about": {
+        "p1": "The calculation converts your holding to pure gold content, then applies the costs of each side of the trade:",
+        "formula": {
+          "f1": "cost = pure oz × buy price × (1 + premium)",
+          "f2": "proceeds = pure oz × sell price × (1 − sell spread)",
+          "f3": "return = (proceeds − cost) ÷ cost"
+        },
+        "p2": "<strong>Worked example.</strong> Suppose you bought one troy ounce of 24K gold at <strong>{entry}</strong> with a 5% premium — an outlay of <strong>{cost}</strong> — and gold is now <strong>{exit}</strong>, a <strong><num>{move}</num></strong> move. Selling into a 2% buy-back spread returns <strong>{proceeds}</strong>, a profit of <strong>{pnl}</strong> — or <strong><num>{pnlPct}</num></strong>. The metal moved <num>{move}</num>; you kept <num>{pnlPct}</num>. The difference went to the round trip.",
+        "p3": "That is why gold rewards patience: the transaction cost is paid once, so its drag on annual return falls the longer the position is held. The price that erases the drag entirely is your <breakEven>break-even</breakEven> — here, {breakEvenPrice}.",
+        "p4": "Figures are pre-tax and exclude storage, insurance, and shipping. For a forward-looking view of the price rather than a backward-looking one, see the current <outlook>outlook</outlook>."
+      }
+    },
+    "goldUnitConverter": {
+      "faqs": {
+        "q1": {
+          "question": "How many grams are in a troy ounce of gold?",
+          "answer": "One troy ounce is 31.1035 grams. This is the unit gold is priced in worldwide, and it is heavier than the everyday avoirdupois ounce used for food and post, which is 28.3495 grams."
+        },
+        "q2": {
+          "question": "Why is gold weighed in troy ounces instead of normal ounces?",
+          "answer": "The troy system is a medieval standard for precious metals that survived the switch to avoirdupois for general goods. Because bullion markets, refiners, and futures contracts all standardised on it, gold quotes stayed in troy ounces. The practical consequence is that a troy ounce of gold is about 10% heavier than an ounce of anything else."
+        },
+        "q3": {
+          "question": "What is a tola and where is it used?",
+          "answer": "A tola is 11.6638 grams, a traditional South Asian unit still in everyday use for gold in India, Pakistan, Bangladesh, and the Gulf. Bars are commonly cast in 10-tola sizes, which is why a 116.64 g bar is a standard product rather than an odd one."
+        },
+        "q4": {
+          "question": "What is a pennyweight?",
+          "answer": "A pennyweight (dwt) is 1.55517 grams, or one twentieth of a troy ounce. North American scrap-gold buyers and some jewellers quote in pennyweight, so an offer 'per dwt' is per 1.56 g — a smaller unit than a gram buyer might assume."
+        },
+        "q5": {
+          "question": "Does purity change the weight conversion?",
+          "answer": "No. Ten grams is ten grams whether the item is 10K or 24K, so the weight columns do not move when you change purity. What purity changes is value: a gram of 14K gold contains 0.583 g of pure gold, so it is worth 58.3% of what a gram of pure gold is worth."
+        }
+      },
+      "mistakes": {
+        "m1": {
+          "title": "Confusing troy ounces with ordinary ounces",
+          "body": "The two differ by about 10%. Selling 10 'ounces' priced as avoirdupois when you actually hold troy ounces gives away roughly a full ounce of gold."
+        },
+        "m2": {
+          "title": "Comparing a per-gram quote to a per-pennyweight quote",
+          "body": "A dealer quoting per dwt is quoting per 1.555 g. A price that looks higher per unit can be the lower offer once both are converted to the same basis."
+        },
+        "m3": {
+          "title": "Assuming a kilo bar is 32 troy ounces",
+          "body": "A 1 kg bar is 32.15 troy ounces. Rounding it to 32 quietly loses about half an ounce of gold, which is not a rounding error at bullion prices."
+        },
+        "m4": {
+          "title": "Reading a converted value as an offer price",
+          "body": "The values here are pure metal content at spot. What you actually pay or receive includes a dealer premium or spread on top."
+        }
+      },
+      "intro": "Gold trades in troy ounces, is sold by the gram, and is bought by the tola or pennyweight depending where you are. Convert between all of them — and see what each is worth right now.",
+      "name": "Gold Unit Converter",
+      "shortName": "Unit converter",
+      "description": "Convert gold weights between grams, kilograms, troy ounces, ounces, pennyweight, and tola — with the value of each.",
+      "meta": {
+        "title": "Gold Unit Converter — Grams, Troy Ounces, Tola & Pennyweight",
+        "description": "Convert gold weights between grams, kilograms, troy ounces, ounces, pennyweight, and tola — and see what each unit is worth at today's live gold price.",
+        "ogTitle": "Gold Unit Converter",
+        "ogDescription": "Convert gold between grams, troy ounces, tola, and pennyweight, with the live value of each."
+      },
+      "about": {
+        "p1": "Every conversion here routes through grams as the base unit, so nothing is converted twice and no rounding compounds:",
+        "list": {
+          "l1": "1 troy ounce (ozt) = 31.1035 g",
+          "l2": "1 ounce, avoirdupois (oz) = 28.349523125 g",
+          "l3": "1 pennyweight (dwt) = 1.55517384 g = 1/20 troy oz",
+          "l4": "1 tola = 11.6638038 g",
+          "l5": "1 kilogram = 1,000 g = 32.1507 troy oz"
+        },
+        "p2": "<strong>Worked example.</strong> At a spot price of <strong>{spot}</strong> per troy ounce, pure gold is worth <strong>{perGram}</strong> per gram. A 1 kg bar therefore holds 32.15 troy ounces and is worth about <strong>{kgValue}</strong>, while a single pennyweight of pure gold is worth <strong>{dwtValue}</strong>.",
+        "p3": "Selecting a purity changes only the value columns, never the weights. Values shown are pure gold content at spot, with no dealer premium — for what a dealer would charge on top, use the <breakEven>break-even calculator</breakEven>, and for what a specific karat is worth per gram, use the <karatPrice>karat price calculator</karatPrice>."
+      }
+    },
+    "flagship": {
+      "name": "Smart Gold Calculator",
+      "shortName": "Smart Gold Calculator",
+      "description": "Budget, purity, and dealer premium in — quantity, break-even, and profit/loss scenarios out."
+    }
+  },
+  "methodology": {
+    "metaTitle": "Methodology",
+    "metaDescription": "How GoldCompass produces its gold-market outlook: where the price data comes from, how the analysis is drafted and human-reviewed before publishing, what the signals mean, and the limitations you should know about.",
+    "ogTitle": "Methodology — how {name} works",
+    "ogDescription": "Our data sources, our generation and review process, what the signals mean, and where our limits are.",
+    "eyebrow": "Methodology",
+    "heading": "How we produce our gold outlook",
+    "lede": "We publish directional calls on the gold market, so you are entitled to know exactly how they are made — what data goes in, what role automation plays, who checks the output, and where the whole thing falls short. This page is the honest answer to all four.",
+    "data": {
+      "heading": "Where the numbers come from",
+      "p1": "Every hard number we display — the spot price, the daily change, the 30-day chart on our <trends>trends page</trends> — is fetched from a market data source. None of it is produced by a language model. This separation is deliberate and is the single most important thing on this page: models are useful for explaining a market and unreliable for quoting it, so we never ask one to supply a price.",
+      "p2": "Our current price source is the CoinGecko public API, which we read via <strong>PAX Gold (PAXG)</strong> — a token backed one-to-one by physical gold — as our proxy for the XAU/USD spot price. You should know what that implies: <strong>PAXG tracks the gold price closely but is not the London benchmark fix</strong>, and it can deviate modestly, particularly during thin trading. Our figures are appropriate for orientation and education; they are not suitable as a settlement or valuation price, and you should confirm against your dealer’s own quote before transacting.",
+      "p3": "The spot quote refreshes roughly every 5 minutes and the 30-day series roughly hourly. Each page shows when its data was last updated. If the upstream source is unavailable we show the last known good reading and label it, rather than displaying a blank or a stale number silently.",
+      "p4": "The macro figures behind the “macro pressure” panel — the broad dollar index, the 10-year real yield, and the 10-year Treasury yield — come from <strong>FRED, the Federal Reserve Bank of St. Louis</strong>, using only public-domain series. Two details worth stating: the dollar figure is the Federal Reserve’s trade-weighted <em>broad</em> dollar index, not the ICE “DXY” that headlines usually quote — they move together but are not the same index — and the inflation breakeven is derived by subtracting the real yield from the nominal yield rather than taken from a published series. These are daily readings, not live ones, and the panel shows the observation date for each.",
+      "p5": "That panel is a snapshot stored alongside each outlook rather than a live lookup, which is deliberate: it means the macro numbers you see are the ones the analysis was actually written against, not whatever the market has done since."
+    },
+    "generation": {
+      "heading": "How the analysis is written",
+      "intro": "<strong>The written analysis is drafted by an AI system and reviewed by a human before it is published.</strong> We state this plainly because you should be able to weigh it. Concretely, each outlook goes through these steps:",
+      "steps": {
+        "s1": "Market data is fetched first, from the source described above, and passed into the drafting step as fixed ground truth the model is not permitted to alter.",
+        "s2": "A large language model drafts the analysis on top of that data. It has web search available so it can take account of recent, relevant market news, and it is required to cite the sources it relies on.",
+        "s3": "The draft is validated against a strict schema. Anything missing a required field — a signal, a rationale, a source — is rejected outright rather than published in part.",
+        "s4": "The result is opened as a change for review. A human reads it and decides whether it publishes. Nothing reaches the site automatically."
+      },
+      "p1": "Every published outlook lists the sources behind it. We encourage you to follow them — an analysis you can check is worth more than one you have to trust.",
+      "p2": "Our <aiDisclosure>AI disclosure</aiDisclosure> goes further: what the drafting system is, exactly which parts of the site it writes and which it never touches, what happens to its output before publication, and the failure modes that survive all of it.",
+      "p3": "Our <insights>insights articles</insights> are produced the same way, with one difference: they are not on a schedule. Each topic is chosen deliberately by a person in response to what is actually happening in the market, then drafted, cited, reviewed, and published through the same pipeline."
+    },
+    "review": {
+      "heading": "What the human review actually checks",
+      "p1": "“Human reviewed” is a claim worth being specific about, because it is often used loosely. In our case the reviewer checks that the quoted figures match the fetched market data, that the cited sources exist and genuinely support the claims made, that the reasoning is internally consistent with the signal, and that the tone stays educational rather than promotional or alarmist. Anything that fails is corrected or discarded.",
+      "p2": "What that review is <strong>not</strong> is a guarantee of accuracy. It is a competent editorial check on a piece of market commentary, not a professional audit, and it cannot make an uncertain forecast certain."
+    },
+    "signals": {
+      "heading": "What the signals mean",
+      "intro": "Each outlook carries two calls — a short-term and a long-term view — because they frequently disagree, and that disagreement is information rather than a contradiction. A market can be stretched over weeks while remaining well supported over years.",
+      "buy": {
+        "term": "BUY",
+        "body": "Conditions over the stated horizon look more supportive than not for gold. It is not an instruction to buy, and it says nothing about your circumstances, timing, or risk tolerance."
+      },
+      "hold": {
+        "term": "HOLD",
+        "body": "No clear directional edge over the horizon — drivers are mixed or offsetting. Often the most honest reading of a market, and the least interesting to report."
+      },
+      "sell": {
+        "term": "SELL",
+        "body": "Conditions over the stated horizon look more challenging than supportive for gold. Again, a description of the setup, not a recommendation to sell anything you own."
+      },
+      "confidenceHeading": "Confidence",
+      "confidenceIntro": "Every call carries a confidence level, which describes how strong the supporting evidence is — not how likely the outcome is.",
+      "high": {
+        "term": "High",
+        "body": "The main drivers point the same way and the supporting data is consistent."
+      },
+      "medium": {
+        "term": "Medium",
+        "body": "The view is reasonably supported, but at least one significant driver cuts the other way."
+      },
+      "low": {
+        "term": "Low",
+        "body": "The balance of evidence is genuinely unclear, or the situation is moving quickly. Treat these as weakly held."
+      },
+      "invalidationHeading": "Invalidation",
+      "invalidationBody": "Where we can state one, we publish the condition that would break the view — a price level or event that, if it occurs, means the reasoning was wrong. We consider this the most useful part of any market call, and the part most commentary omits. A view that cannot be wrong cannot be assessed."
+    },
+    "cadence": {
+      "heading": "How often it updates",
+      "p1": "The outlook is regenerated daily, and both the short- and long-term calls are reconsidered each time. In practice the long-term view changes far less often than the short-term one — that is expected, and a stable long-term call is a feature rather than a stale page.",
+      "p2": "The publication date on <outlook>the outlook</outlook> always reflects the view actually shown. If a day’s draft fails validation or review, we keep the previous published outlook and its original date rather than publishing something unchecked."
+    },
+    "calculator": {
+      "heading": "The calculator’s math",
+      "p1": "Our <calculator>gold calculator</calculator> is deterministic arithmetic that runs in your browser — no model is involved and nothing you enter is sent to us. Quantity is your budget divided by the dealer price per ounce, where that price is the spot price multiplied by the metal’s purity and then by one plus your dealer premium.",
+      "p2": "Break-even is the spot price multiplied by one plus the premium. Purity cancels out of that calculation, which is why the percentage rise you need to break even is the same for 24K and 14K: you pay the premium either way. The figures exclude storage, insurance, taxes, shipping, and any sell-side commission, all of which are real costs that will worsen your actual outcome."
+    },
+    "limits": {
+      "heading": "Limitations, and what we don’t do",
+      "p1": "Nobody can forecast the gold price, and we are not claiming to. What we publish is a reasoned reading of current conditions, which will sometimes be wrong. Beyond that general caveat, these specific limits apply: our spot price is a proxy rather than the benchmark fix; AI-drafted analysis can misread a situation in ways review does not always catch; our sources are public reporting, so we inherit their errors and lag; and market conditions can change materially between our last update and the moment you read it.",
+      "p2": "We are independent. We do not sell gold, we take no commissions or dealer referrals, and no third party pays for or influences a call. We also do not provide personalized advice — we cannot see your finances, your tax position, or your goals, and nothing here is tailored to them.",
+      "p3": "Every outlook and article carries the date it was last updated, so you can always judge how current a view is before you rely on it."
+    },
+    "callout": "<strong>Important:</strong> Everything on GoldCompass is educational information only — not financial, investment, tax, or legal advice. Gold can lose value, and past performance tells you nothing reliable about future results. Always do your own research and consult a qualified professional before investing. Read our full <disclaimer>disclaimer</disclaimer>."
+  },
+  "aiDisclosure": {
+    "metaTitle": "AI Disclosure",
+    "metaDescription": "Exactly where AI is used on GoldCompass and where it is not: how our analysis is drafted, what data the system is given, what it is never allowed to produce, how drafts are checked, and the failure modes we know about.",
+    "ogTitle": "AI Disclosure — {name}",
+    "ogDescription": "What our AI system writes, what it never touches, who checks it, and the limitations we know about.",
+    "eyebrow": "AI disclosure",
+    "heading": "Where we use AI, and where we deliberately don’t",
+    "lede": "The market analysis on this site is drafted by an AI system and reviewed by a person before it is published. We put that at the top rather than in a footnote, because on a site about money the reader should get to decide how much that matters. This page sets out exactly which parts are AI-written, which parts a model never touches, and what can go wrong anyway.",
+    "split": {
+      "heading": "The dividing line",
+      "intro": "The single most important design decision we made is that the model explains the market but never reports it. Retrieval and reasoning are kept apart: the numbers are fetched deterministically and handed to the model as ground truth, and the model writes analysis on top of them. A language model asked to recall a gold price will sometimes produce a plausible one, and a plausible price is worse than no price.",
+      "writesHeading": "AI drafts this",
+      "writes": {
+        "w1": "The written analysis on the outlook page — the market narrative, the reasoning behind each call, and the risks section.",
+        "w2": "The BUY / HOLD / SELL signals themselves, their confidence levels, and the invalidation conditions attached to them.",
+        "w3": "The insight articles: the topic is chosen by a person, the draft is written by the model.",
+        "w4": "The key-level labels that summarise support, resistance, and notable prices."
+      },
+      "neverHeading": "AI never touches this",
+      "never": {
+        "n1": "The spot price, the daily change, every point on the 30-day chart, and the macro figures — the dollar index and Treasury yields. These come from market data feeds and are passed to the model as fixed inputs it is told not to contradict.",
+        "n2": "Every figure the calculators produce. That is deterministic arithmetic running in your browser — no model is involved at any point.",
+        "n3": "The source list under each piece. Those are the URLs the model reported using, published unedited so you can check them yourself.",
+        "n4": "This page, the methodology page, the disclaimer, and the rest of the site's editorial copy."
+      }
+    },
+    "system": {
+      "heading": "What the drafting system is",
+      "p1": "The drafting is done by a general-purpose large language model from a commercial AI provider, accessed over its API. It is given a web-search tool so it can take account of recent market news, capped at a small number of searches per run, and it is required to return the sources it actually used.",
+      "p2": "We describe it that way rather than naming a version deliberately. Which model we use is a configuration value we revisit as better ones become available, and a disclosure page naming last quarter’s model would be less accurate than one describing what the system actually does. No other AI system is involved in producing what you read here, and we do not use AI-generated images.",
+      "p3": "What does not change is the constraint around it. Whichever model is in use, it is handed the numbers rather than asked for them, it must cite the sources it relied on, its output must satisfy a strict schema, and a person approves the result before it publishes. Those guarantees belong to our process, not to any vendor’s."
+    },
+    "pipeline": {
+      "heading": "What happens between the model and the page",
+      "intro": "Model output is not published as it arrives. Five things happen to it first, and any of them can stop it.",
+      "steps": {
+        "s1": "Market data is fetched first and injected into the prompt as authoritative ground truth, with an instruction not to contradict or re-estimate it.",
+        "s2": "The model researches and drafts, then must return a single structured object — not free-form prose — containing the analysis, the calls, the key levels, and its sources.",
+        "s3": "That object is validated against a strict schema. A missing signal, a missing rationale, or an article with no sources is rejected. One corrective attempt is allowed; after that the draft is discarded and the previously published version stays live.",
+        "s4": "HTML is stripped from the text before storage. We keep Markdown and render it through our own components, so nothing retrieved from the web can inject markup into a page.",
+        "s5": "The result is opened as a proposed change for review. A person reads it and decides whether it publishes. Nothing reaches the site on its own."
+      }
+    },
+    "review": {
+      "heading": "What “human reviewed” means here",
+      "p1": "The reviewer checks that the quoted figures match the fetched market data, that the cited sources exist and support the claims made, that the reasoning is consistent with the signal, and that the tone stays educational rather than promotional. Anything that fails is corrected or discarded.",
+      "p2": "It is worth being equally clear about the limits of that. Review is a competent editorial check on market commentary — not a professional audit, not a verification of every underlying fact, and not something that can make an uncertain forecast certain. Our <methodology>methodology page</methodology> covers the surrounding process in more detail: data sources, signal definitions, and update cadence."
+    },
+    "privacy": {
+      "heading": "Nothing you type goes to a model",
+      "p1": "Content generation happens on a schedule, away from the site, and it takes no input from visitors. There is no chatbot here and no feature that forwards what you enter to an AI provider.",
+      "p2": "The <calculator>calculators</calculator> run entirely in your browser — your budget, your holdings, and the figures you enter are never sent to us at all, which is also why a shared calculator link carries its inputs in the URL rather than on a server. The only thing you can submit is a newsletter email address, which goes to our email provider and nowhere near a language model."
+    },
+    "limits": {
+      "heading": "What can still go wrong",
+      "intro": "Every mitigation below leaves something behind. Listing only the safeguards would be the dishonest version of this page, so each row states what remains after ours have done their work.",
+      "whatWeDo": "What we do:",
+      "whatRemains": "What remains:",
+      "modes": {
+        "f1": {
+          "risk": "The model states something confidently that is wrong",
+          "mitigation": "Hard numbers are supplied to it rather than requested from it, and a reviewer checks the claims against the sources before anything publishes.",
+          "residual": "Review is an editorial check, not an audit. A plausible-sounding misreading of a genuine source can survive it."
+        },
+        "f2": {
+          "risk": "A source is cited that does not support the claim",
+          "mitigation": "At least one source is required or the draft is rejected, and the reviewer follows the citations.",
+          "residual": "A source that is real and roughly on-topic but does not actually support the specific sentence is the hardest case to catch."
+        },
+        "f3": {
+          "risk": "Web search returns low-quality or manipulated content",
+          "mitigation": "The prompt requires reputable sources, and any HTML is stripped from what the model returns before it is stored, so retrieved content cannot inject markup into our pages.",
+          "residual": "We cannot rule out a well-dressed but poor source shaping the framing of a piece."
+        },
+        "f4": {
+          "risk": "The analysis reads as more certain than the evidence justifies",
+          "mitigation": "Every call carries an explicit confidence level and a stated condition that would invalidate it.",
+          "residual": "Fluent prose is persuasive regardless of whether it is right. Treat confidence as a description of the evidence, not a probability."
+        },
+        "f5": {
+          "risk": "The market moves after publication",
+          "mitigation": "The outlook regenerates daily and every page shows when it was last updated.",
+          "residual": "Anything you read is a view as of its timestamp, not as of now."
+        },
+        "f6": {
+          "risk": "The model produces a broken or incomplete draft",
+          "mitigation": "Drafts are validated against a strict schema. A draft missing a required field is rejected, retried once, and otherwise discarded — the previously published version stays up.",
+          "residual": "This one fails safe: the visible outcome is an older outlook, not a corrupted one."
+        }
+      }
+    },
+    "never": {
+      "heading": "Things we will not do",
+      "items": {
+        "n1": "Publish AI-drafted analysis without a person approving it.",
+        "n2": "Let a model supply a price, a percentage, or any other hard number we display.",
+        "n3": "Present AI-written text under a fabricated human byline or persona.",
+        "n4": "Use AI to generate personalized advice — we cannot see your circumstances and do not try to.",
+        "n5": "Send anything you type into this site to a language model."
+      }
+    },
+    "callout": "<strong>Important:</strong> Everything on GoldCompass is educational information only — not financial, investment, tax, or legal advice. That an analysis was reviewed by a person does not make it advice, and does not make it right. Read our full <disclaimer>disclaimer</disclaimer>.",
+    "lastUpdated": "Last updated <time>{date}</time>. We will revise this page if the model, the pipeline, or the review process changes."
+  },
+  "home": {
+    "hero": {
+      "badge": "Navigate the gold market with confidence",
+      "heading": "Smart, clear guidance for <accent>gold investors</accent>",
+      "lede": "Market outlooks, live price trends, and a smart calculator — everything everyday investors need to make informed decisions about gold.",
+      "ctaOutlook": "View the outlook",
+      "disclaimer": "Educational information only — not financial advice."
+    },
+    "recommendations": {
+      "heading": "Current recommendations",
+      "intro": "Our latest read on the gold market across two time horizons.",
+      "viewAll": "View full analysis"
+    },
+    "features": {
+      "heading": "Tools to guide your decisions",
+      "intro": "Practical, data-driven tools designed for everyday investors.",
+      "trends": {
+        "title": "Live gold price trends",
+        "description": "Track the XAU/USD spot price with an interactive 30-day chart, refreshed throughout the day.",
+        "cta": "View trends"
+      },
+      "calculator": {
+        "title": "Smart gold calculator",
+        "description": "Enter a budget and purity to estimate how much gold you can buy, your break-even price, and profit/loss scenarios.",
+        "cta": "Open calculator"
+      }
+    },
+    "insights": {
+      "heading": "Market insights",
+      "intro": "Analysis on price moves, central banks, and what they mean for investors.",
+      "viewAll": "All insights"
+    },
+    "cta": {
+      "heading": "Stay ahead of the gold market",
+      "body": "Check the latest outlook and run the numbers on your next move. A free weekly email digest is coming soon.",
+      "ctaOutlook": "See the latest outlook",
+      "ctaCalculator": "Try the calculator"
+    }
+  },
+  "market": {
+    "signal": {
+      "buy": {
+        "label": "BUY",
+        "sr": "Buy signal"
+      },
+      "sell": {
+        "label": "SELL",
+        "sr": "Sell signal"
+      },
+      "hold": {
+        "label": "HOLD",
+        "sr": "Hold signal"
+      }
+    },
+    "confidence": {
+      "low": "Low <muted>confidence</muted>",
+      "medium": "Moderate <muted>confidence</muted>",
+      "high": "High <muted>confidence</muted>"
+    }
+  },
+  "newsletter": {
+    "ctaHeading": "Get the weekly gold update",
+    "ctaBody": "The latest outlook and market insights in your inbox. Free, no spam — unsubscribe anytime.",
+    "emailLabel": "Email address",
+    "honeypotLabel": "Company (leave blank)",
+    "submit": "Subscribe",
+    "submitting": "Subscribing…",
+    "success": "You're subscribed! Check your inbox to confirm.",
+    "already": "You're already on the list — thanks!",
+    "errors": {
+      "rate_limited": "Too many requests. Please try again later.",
+      "invalid_request": "Invalid request.",
+      "invalid_email": "Please enter a valid email address.",
+      "verification_failed": "Verification failed. Please try again.",
+      "provider_error": "Something went wrong. Please try again later.",
+      "generic": "Something went wrong. Please try again.",
+      "network": "Network error. Please try again."
+    }
+  },
+  "outlook": {
+    "metaTitle": "Gold Market Outlook",
+    "metaDescriptionFallback": "Short-term and long-term gold market outlooks with supporting analysis.",
+    "ogTitle": "Gold Market Outlook · {name}",
+    "updated": "Updated {date} UTC",
+    "heading": "Gold Market Outlook",
+    "keyLevelsHeading": "Key price levels",
+    "callsHeading": "Our recommendations",
+    "convictionNote": "Conviction describes how strongly the evidence supports the call — not how likely the outcome is. <confidence>How we set it</confidence>.",
+    "analysisHeading": "Full analysis",
+    "sourcesHeading": "Sources",
+    "methodologyHeading": "How we form this view",
+    "methodologyBody": "Our outlook combines live market data (spot price and momentum) with analysis of the key macro drivers — the US dollar, real yields, central-bank demand, and positioning. The analysis is AI-drafted on top of that data and reviewed by a human before it publishes; the price figures are fetched from a market data source, never generated. Read our <methodology>full methodology</methodology> for the sources, the review process, and the limitations.",
+    "disclaimer": "This is educational information only and <strong>not financial advice</strong>. See our <disclaimer>full disclaimer</disclaimer>.",
+    "call": {
+      "conviction": "Conviction",
+      "invalidation": "What would change our view:"
+    },
+    "macro": {
+      "heading": "Macro pressure",
+      "intro": "The backdrop this outlook was written against. A stronger dollar and higher real yields are headwinds for gold; rising inflation expectations are a tailwind.",
+      "asOf": "as of <time>{date}</time>",
+      "supportive": "supportive for gold",
+      "restrictive": "restrictive for gold",
+      "srUp": "up {change} over 30 days:",
+      "srDown": "down {change} over 30 days:",
+      "window": "30d",
+      "pp": "pp",
+      "footnote": "<attribution>{source}</attribution>. The dollar figure is the Federal Reserve’s trade-weighted broad dollar index, not the ICE “DXY”. Inflation breakeven is derived as the 10-year Treasury yield minus the 10-year real yield."
+    }
+  },
+  "breadcrumb": {
+    "home": "Home"
+  },
+  "insights": {
+    "metaTitle": "Market Insights",
+    "metaDescription": "Gold-market insights — news summaries, analysis, and educational guides on prices, central banks, and the macro picture. Every claim cites a reputable source.",
+    "heading": "Market Insights",
+    "lede": "Everything we publish, newest first — market updates pegged to what just happened, and explainers built to stay true. Every claim is tied to a cited source.",
+    "empty": "No insights published yet. Check back soon.",
+    "all": "All insights",
+    "filterLabel": "Filter insights",
+    "kindEmpty": "Nothing published here yet. <insights>Browse all insights</insights>.",
+    "lookingFor": "Looking for {label} instead? <other>{heading}</other>.",
+    "kinds": {
+      "explainers": {
+        "label": "Explainers",
+        "inlineLabel": "explainers",
+        "heading": "Gold explainers",
+        "title": "Gold Explainers — How the Gold Market Actually Works",
+        "description": "Plain-English guides to what moves the gold price: interest rates, the dollar, central-bank demand, purity, and premiums. Written to stay true, and every claim cited.",
+        "intro": "The durable half of our writing: how the gold market works, explained for people who do not trade for a living. These pieces are about mechanisms rather than headlines, so they stay useful long after the week they were written."
+      },
+      "marketUpdates": {
+        "label": "Market updates",
+        "inlineLabel": "market updates",
+        "heading": "Gold market updates",
+        "title": "Gold Market Updates — What Moved the Price, and Why",
+        "description": "Timely coverage of the gold market: Fed decisions, inflation prints, geopolitics, and the moves they caused. Dated, cited, and written for everyday investors.",
+        "intro": "What happened, when, and why it mattered for gold. These are pegged to a moment — a rate decision, an inflation print, a geopolitical shock — so read the date first. For the mechanisms behind them, start with the explainers."
+      }
+    },
+    "article": {
+      "notFoundTitle": "Insight not found",
+      "readingTime": "{count, plural, one {{minutes} min read} other {{minutes} min read}}",
+      "sourcesHeading": "Sources",
+      "disclaimer": "Educational information only — not financial advice. See our <disclaimer>disclaimer</disclaimer>."
+    }
+  },
+  "trends": {
+    "metaTitle": "Gold Price Trends",
+    "metaDescription": "Live XAU/USD gold spot price and an interactive 30-day price chart, updated throughout the day.",
+    "heading": "Gold Price Trends",
+    "lede": "The live gold spot price (XAU/USD) and how it has moved over the past 30 days.",
+    "last30": "Last 30 days",
+    "chartUnavailable": "The 30-day chart is temporarily unavailable. Please check back shortly.",
+    "footnote": "Price data is provided for educational purposes and may be delayed. Source: CoinGecko (PAX Gold proxy). Not financial advice — see our <disclaimer>disclaimer</disclaimer>.",
+    "ctaOutlook": "Read the outlook",
+    "ticker": {
+      "unavailable": "Price unavailable",
+      "unavailableBody": "We couldn't load the live gold price. Please try again shortly.",
+      "unit": "XAU/USD · per oz",
+      "up": "Up",
+      "down": "Down",
+      "window": "24h",
+      "asOf": "As of {time} · <attribution>{source}</attribution>",
+      "status": {
+        "live": "Live",
+        "delayed": "Delayed",
+        "error": "Offline"
+      }
+    },
+    "chart": {
+      "summary": "Gold price over the last 30 days: from {from} on {fromDate} to {to} on {toDate}. Range {min} to {max}.",
+      "caption": "Gold price (USD/oz), last 30 days",
+      "date": "Date",
+      "price": "Price"
+    }
+  },
+  "calculatorPage": {
+    "metaTitle": "Smart Gold Calculator — Budget, Quantity & Break-Even",
+    "metaDescription": "Calculate how much gold your budget buys at any purity and dealer premium. See break-even prices and profit/loss scenarios at different gold prices.",
+    "ogTitle": "Smart Gold Calculator",
+    "ogDescription": "How much gold can you buy? Enter your budget, purity, and dealer premium to find out.",
+    "eyebrow": "Smart Gold Calculator",
+    "heading": "How much gold can you buy?",
+    "lede": "Enter your budget, gold purity, and dealer premium to estimate quantity purchased, your break-even price, and profit/loss at different spot prices.",
+    "disclaimer": "Educational purposes only — not financial advice. Always consult a qualified advisor before investing.",
+    "toolsHeading": "More gold tools",
+    "toolsIntro": "The calculator above answers the whole question at once. These do one job each, with a worked example and the arithmetic explained.",
+    "openTool": "Open tool",
+    "howHeading": "How this calculator works",
+    "how": {
+      "quantity": "<strong>Quantity</strong>: budget ÷ (spot × purity × (1 + premium%)). Dealer price per item troy oz = spot × purity factor × (1 + premium).",
+      "breakEven": "<strong>Break-even</strong>: spot × (1 + premium%). The premium is the minimum price rise needed to recover your investment when selling at spot.",
+      "scenarios": "<strong>P/L scenarios</strong>: assumes you sell pure gold equivalent at the given spot price with no sell-side commission. Actual returns depend on market conditions, taxes, storage costs, and the dealer's buy-back spread.",
+      "units": "1 troy oz = 31.1035 grams. Spot price source: CoinGecko (PAX Gold proxy)."
+    }
+  },
+  "calc": {
+    "karat": "{n}K",
+    "purityOption": "{karat} ({fineness} fine)",
+    "units": {
+      "g": {
+        "label": "Gram",
+        "short": "g"
+      },
+      "kg": {
+        "label": "Kilogram",
+        "short": "kg"
+      },
+      "ozt": {
+        "label": "Troy ounce",
+        "short": "ozt"
+      },
+      "oz": {
+        "label": "Ounce (avoirdupois)",
+        "short": "oz"
+      },
+      "dwt": {
+        "label": "Pennyweight",
+        "short": "dwt"
+      },
+      "tola": {
+        "label": "Tola",
+        "short": "tola"
+      }
+    },
+    "percentValue": "{value} percent",
+    "spotLabel": "Spot price (XAU/USD)",
+    "stale": "stale",
+    "resetLabel": "Reset spot price to live price",
+    "reset": "Reset to live",
+    "spotUnavailable": "Live price unavailable — enter the current spot price manually.",
+    "emptyTitle": "Enter your details to see results",
+    "shell": {
+      "eyebrow": "Gold tools",
+      "disclaimer": "Educational purposes only — not financial advice.",
+      "aboutHeading": "How this calculator works",
+      "mistakesHeading": "Common mistakes",
+      "breadcrumbLabel": "Breadcrumb",
+      "otherTools": "Other gold tools",
+      "footnote": "Figures are estimates for educational use and exclude taxes, shipping, insurance, and storage. Read our <methodology>methodology</methodology> and <disclaimer>disclaimer</disclaimer>."
+    },
+    "breakEven": {
+      "inputsTitle": "Purchase terms",
+      "spotLabel": "Spot price when you buy",
+      "premium": "Dealer premium",
+      "premiumHint": "What you pay over spot. Bars/coins: 3–8% · Jewellery: 10–15%",
+      "sellFee": "Sell-side spread",
+      "sellFeeHint": "What a buy-back costs you. Set to 0 to see the spot-only break-even.",
+      "resultsLabel": "Break-even results",
+      "empty": "Enter the spot price you paid to see the price gold has to reach.",
+      "breakEven": "Break-even gold price",
+      "mustRise": "Gold must rise <strong>{rise}</strong> from {spot} before you are back to even.",
+      "costLabel": "Your effective cost per troy ounce of pure gold",
+      "costSub": "Spot {spot} plus a {premium}% premium. This is your real entry price, whatever karat you bought.",
+      "tableTitle": "Break-even by product type",
+      "colProduct": "Typical product",
+      "colPremium": "Premium",
+      "colBreakEven": "Break-even price",
+      "colRise": "Required rise",
+      "products": {
+        "largeBars": "Large bars (1 kg+)",
+        "smallBars": "Small bars (1 oz)",
+        "bullionCoins": "Bullion coins",
+        "collectibleCoins": "Collectible coins",
+        "jewellery": "Jewellery"
+      },
+      "tableNote": "All rows assume the same {sellFee}% sell-side spread. Premiums vary by dealer, product, and order size — treat these as illustrative ranges."
+    },
+    "karatPrice": {
+      "inputsTitle": "Your gold",
+      "weight": "Weight",
+      "weightUnit": "Weight unit",
+      "karat": "Karat / purity",
+      "karatHint": "Check the hallmark stamped on the item — 750 means 18K, 585 means 14K.",
+      "resultsLabel": "Karat price results",
+      "empty": "Enter a weight and confirm the spot price to see what your gold is worth.",
+      "meltValue": "Melt value of {weight} {unit} of {karat} gold",
+      "contains": "Contains <strong>{grams} g</strong> of pure gold ({fineness} parts per thousand).",
+      "enterWeight": "Enter a weight above to value a specific item.",
+      "perGram": "{karat} price per gram",
+      "perTroyOz": "{karat} price per troy ounce",
+      "tableTitle": "Every karat at this spot price",
+      "colKarat": "Karat",
+      "colFineness": "Fineness",
+      "colPerGram": "Per gram",
+      "colPerTroyOz": "Per troy oz",
+      "colYourWeight": "Your weight",
+      "tableNote": "Melt value only — the worth of the metal itself. A dealer buying scrap pays a percentage of this; a dealer selling coins or jewellery charges more than this."
+    },
+    "profitLoss": {
+      "inputsTitle": "Your trade",
+      "entry": "Gold price when you bought",
+      "exit": "Gold price when you sell",
+      "exitHint": "Pre-filled with today's spot price, {spot}. Change it to test a target.",
+      "quantity": "Quantity",
+      "quantityUnit": "Quantity unit",
+      "purity": "Purity",
+      "premium": "Premium paid on purchase",
+      "sellFee": "Sell-side spread",
+      "resultsLabel": "Profit and loss results",
+      "empty": "Enter your buy price, sell price, and quantity to see the result.",
+      "netLoss": "Net loss",
+      "netProfit": "Net profit",
+      "returnOn": "<strong>{pct}</strong> return on a {cost} outlay.",
+      "totalCost": "Total cost",
+      "totalCostSub": "{oz} troy oz of pure gold, including the {premium}% premium.",
+      "proceeds": "Sale proceeds",
+      "proceedsSub": "After a {sellFee}% sell-side spread.",
+      "whyTitle": "Why the result differs from the price move",
+      "priceMove": "Gold price move",
+      "breakEven": "Break-even price",
+      "actualReturn": "Your actual return",
+      "whyNote": "The gap between the two percentages is the cost of buying and selling. Gold had to reach {breakEven} just to return your money — everything above that is profit."
+    },
+    "unitConverter": {
+      "inputsTitle": "Convert",
+      "amount": "Amount",
+      "fromUnit": "From unit",
+      "purity": "Purity (for valuation)",
+      "purityHint": "Purity does not change the weight conversion — only the dollar value.",
+      "resultsLabel": "Conversion results",
+      "empty": "Enter an amount to convert it into every other gold weight unit.",
+      "inGrams": "In grams",
+      "inTroyOz": "In troy ounces",
+      "gramsValue": "{qty} g",
+      "troyOzValue": "{qty} ozt",
+      "amountOf": "{qty} {unit} of {karat} gold",
+      "worth": "Worth {value} at {karat}",
+      "tableTitle": "All units",
+      "colUnit": "Unit",
+      "colGramsEach": "Grams each",
+      "colAmount": "Amount",
+      "colValue": "Value per unit",
+      "tableNote": "Values assume {karat} gold at {spot} per troy ounce of pure gold, with no dealer premium.",
+      "theSpotPrice": "the spot price"
+    },
+    "flagship": {
+      "inputsTitle": "Purchase Details",
+      "budget": "Your budget (USD)",
+      "purity": "Gold purity",
+      "premium": "Dealer premium",
+      "premiumHint": "Markup over spot. Bars/coins: 3–8% · Jewelry: 10–15%",
+      "displayUnit": "Display unit",
+      "troyOz": "Troy oz",
+      "grams": "Grams",
+      "resultsLabel": "Calculation results",
+      "copied": "Copied!",
+      "share": "Share this calculation",
+      "copyPrompt": "Copy this link:",
+      "emptyTitle": "Enter your budget to see results",
+      "emptyBody": "Fill in the purchase details to calculate gold quantity, break-even price, and scenarios.",
+      "youCanBuy": "Gold you can buy",
+      "unitTroyOz": "troy oz",
+      "unitG": "g",
+      "pure": "{unit} pure",
+      "ofKarat": "{unit} of {karat} gold",
+      "pureEquivalent": "Pure gold equivalent:",
+      "quantityNote": "1 troy oz = 31.1035 g · Dealer price = spot × purity × (1 + premium%)",
+      "breakEven": "Break-even price",
+      "mustRise": "Gold must rise <strong>{rise}</strong> to break even",
+      "breakEvenNote": "Assumes selling at spot with no sell-side commission or storage costs.",
+      "scenarios": "Profit / Loss scenarios",
+      "colChange": "Spot change",
+      "colSpot": "XAU/USD",
+      "colValue": "Gold value",
+      "colPnl": "P/L",
+      "today": "Today's spot",
+      "scenariosNote": "Assumes selling pure gold equivalent at spot with no buy-back commission. Actual returns will vary."
+    }
+  },
+  "subscribed": {
+    "metaTitle": "You're subscribed",
+    "metaDescription": "Your subscription to the {name} weekly gold update is confirmed.",
+    "heading": "You’re subscribed",
+    "lede": "Your email is confirmed. You’ll get the {name} weekly gold update — the latest outlook, notable price moves, and the key levels worth watching.",
+    "noSpam": "No spam, and you can unsubscribe from any email in one click.",
+    "startHere": "Start here",
+    "steps": {
+      "outlook": {
+        "title": "Market Outlook",
+        "body": "Today's short- and long-term gold signals, with the reasoning and key levels behind them."
+      },
+      "trends": {
+        "title": "Live Price & Trends",
+        "body": "The current spot price and an interactive 30-day chart of where gold has been."
+      },
+      "calculator": {
+        "title": "Smart Gold Calculator",
+        "body": "Turn a budget into real numbers — quantity, break-even after premiums, and P/L scenarios."
+      },
+      "insights": {
+        "title": "Market Insights",
+        "body": "Educational guides and news analysis on prices, central banks, and the macro picture."
+      }
+    },
+    "cta": "Read the latest outlook",
+    "callout": "<strong>Important:</strong> {name} provides educational information only — not financial, investment, tax, or legal advice. Always do your own research before investing. Read our full <disclaimer>disclaimer</disclaimer>."
   }
 }

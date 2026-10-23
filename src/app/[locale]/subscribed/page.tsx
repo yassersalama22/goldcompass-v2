@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { withLocaleMetadata, type LocaleParams } from "@/lib/seo";
 import { Link } from "@/i18n/navigation";
+import { linkTag, richTags } from "@/i18n/rich";
 import { Check, Compass, LineChart, Calculator, Newspaper } from "lucide-react";
 
 import { Container } from "@/components/layout/container";
@@ -15,50 +16,34 @@ import { siteConfig } from "@/config/site";
  * their email. Deliberately `noindex` (thin, no search intent) and kept out of
  * `sitemap.ts`; it exists to bring a fresh subscriber straight into the content.
  */
-const pageMetadata: Metadata = {
-  title: "You're subscribed",
-  description:
-    "Your subscription to the GoldCompass weekly gold update is confirmed.",
-  robots: { index: false, follow: true },
-};
-
+/** Structure only — copy lives in the catalog under `subscribed.*`. */
 const nextSteps = [
-  {
-    icon: Compass,
-    title: "Market Outlook",
-    href: "/outlook",
-    body: "Today's short- and long-term gold signals, with the reasoning and key levels behind them.",
-  },
-  {
-    icon: LineChart,
-    title: "Live Price & Trends",
-    href: "/trends",
-    body: "The current spot price and an interactive 30-day chart of where gold has been.",
-  },
-  {
-    icon: Calculator,
-    title: "Smart Gold Calculator",
-    href: "/calculator",
-    body: "Turn a budget into real numbers — quantity, break-even after premiums, and P/L scenarios.",
-  },
-  {
-    icon: Newspaper,
-    title: "Market Insights",
-    href: "/insights",
-    body: "Educational guides and news analysis on prices, central banks, and the macro picture.",
-  },
-];
+  { key: "outlook", icon: Compass, href: "/outlook" },
+  { key: "trends", icon: LineChart, href: "/trends" },
+  { key: "calculator", icon: Calculator, href: "/calculator" },
+  { key: "insights", icon: Newspaper, href: "/insights" },
+] as const;
 
 export async function generateMetadata({
   params,
 }: LocaleParams): Promise<Metadata> {
   const { locale } = await params;
-  return withLocaleMetadata(pageMetadata, "/subscribed", locale);
+  const t = await getTranslations({ locale, namespace: "subscribed" });
+  return withLocaleMetadata(
+    {
+      title: t("metaTitle"),
+      description: t("metaDescription", { name: siteConfig.name }),
+      robots: { index: false, follow: true },
+    },
+    "/subscribed",
+    locale,
+  );
 }
 
 export default async function SubscribedPage({ params }: LocaleParams) {
   const { locale } = await params;
   setRequestLocale(locale);
+  const t = await getTranslations("subscribed");
 
   return (
     <Container className="py-12 sm:py-16">
@@ -72,40 +57,42 @@ export default async function SubscribedPage({ params }: LocaleParams) {
         </div>
 
         <h1 className="mt-6 text-3xl font-bold text-balance sm:text-4xl">
-          You&rsquo;re subscribed
+          {t("heading")}
         </h1>
         <p className="text-muted-foreground mt-4 text-lg text-pretty">
-          Your email is confirmed. You&rsquo;ll get the {siteConfig.name} weekly
-          gold update — the latest outlook, notable price moves, and the key
-          levels worth watching.
+          {t("lede", { name: siteConfig.name })}
         </p>
         <p className="text-muted-foreground mt-3 text-sm text-pretty">
-          No spam, and you can unsubscribe from any email in one click.
+          {t("noSpam")}
         </p>
       </div>
 
       {/* Start reading */}
       <section aria-labelledby="start-reading" className="mx-auto mt-14 max-w-4xl">
         <h2 id="start-reading" className="text-center text-2xl font-bold">
-          Start here
+          {t("startHere")}
         </h2>
         <div className="mt-6 grid gap-6 sm:grid-cols-2">
-          {nextSteps.map(({ icon: Icon, title, href, body }) => (
+          {nextSteps.map(({ key, icon: Icon, href }) => (
             <Link
               key={href}
               href={href}
               className="group rounded-xl bg-card p-5 ring-1 ring-foreground/10 transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <Icon className="size-6 text-gold-strong" aria-hidden="true" />
-              <h3 className="mt-3 font-semibold group-hover:text-gold-strong">{title}</h3>
-              <p className="text-muted-foreground mt-1.5 text-sm text-pretty">{body}</p>
+              <h3 className="mt-3 font-semibold group-hover:text-gold-strong">
+                {t(`steps.${key}.title`)}
+              </h3>
+              <p className="text-muted-foreground mt-1.5 text-sm text-pretty">
+                {t(`steps.${key}.body`)}
+              </p>
             </Link>
           ))}
         </div>
 
         <p className="mt-8 text-center">
           <Button render={<Link href="/outlook" />} size="lg">
-            Read the latest outlook
+            {t("cta")}
           </Button>
         </p>
       </section>
@@ -114,13 +101,12 @@ export default async function SubscribedPage({ params }: LocaleParams) {
       <section className="mx-auto mt-14 max-w-4xl">
         <div className="rounded-xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200">
           <p>
-            <strong>Important:</strong> {siteConfig.name} provides educational
-            information only — not financial, investment, tax, or legal advice.
-            Always do your own research before investing. Read our full{" "}
-            <Link href="/disclaimer" className="font-medium underline underline-offset-4">
-              disclaimer
-            </Link>
-            .
+            {t.rich("callout", {
+              ...richTags,
+              name: siteConfig.name,
+              strong: (chunks) => <strong>{chunks}</strong>,
+              disclaimer: linkTag("/disclaimer", "font-medium underline underline-offset-4"),
+            })}
           </p>
         </div>
       </section>

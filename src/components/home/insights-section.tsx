@@ -4,13 +4,14 @@ import { ArrowRight } from "lucide-react";
 import { ArticleCard } from "@/components/articles/article-card";
 import { Container } from "@/components/layout/container";
 import { toArticleSummary } from "@/types/article";
-import { getLocale } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 
 import { getRecentArticles } from "@/server/articles";
 
 export async function InsightsSection() {
   const articles = getRecentArticles(3, await getLocale());
   if (articles.length === 0) return null;
+  const t = await getTranslations("home.insights");
 
   return (
     <section aria-labelledby="insights-heading" className="py-16 sm:py-20">
@@ -18,17 +19,17 @@ export async function InsightsSection() {
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="space-y-2">
             <h2 id="insights-heading" className="text-3xl font-bold">
-              Market insights
+              {t("heading")}
             </h2>
             <p className="text-muted-foreground max-w-prose">
-              Analysis on price moves, central banks, and what they mean for investors.
+              {t("intro")}
             </p>
           </div>
           <Link
             href="/insights"
             className="text-gold-strong inline-flex items-center gap-1 text-sm font-medium underline-offset-4 hover:underline"
           >
-            All insights
+            {t("viewAll")}
             <ArrowRight className="rtl:rotate-180 size-4" aria-hidden="true" />
           </Link>
         </div>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 import { cn } from "@/lib/utils";
 import { useFormat } from "@/lib/use-format";
@@ -20,7 +21,11 @@ import {
   NumberField,
   SelectField,
   SpotField,
+  useKaratLabel,
+  usePurityOptions,
   useSpotState,
+  useUnitOptions,
+  useUnitShort,
   useUrlState,
 } from "@/components/calculator/tool-fields";
 import {
@@ -35,9 +40,6 @@ interface Props {
   isStale: boolean;
 }
 
-const unitOptions = WEIGHT_UNITS.map((u) => ({ key: u.key, label: u.label }));
-const purityOptions = GOLD_PURITIES.map((p) => ({ key: p.key, label: p.label }));
-
 /** Enough precision that a gram doesn't round to zero when shown in kilograms. */
 function formatQty(value: number): string {
   if (value === 0) return "0";
@@ -48,6 +50,12 @@ function formatQty(value: number): string {
 
 export function UnitConverter({ initialSpot, isStale }: Props) {
   const fmt = useFormat();
+  const t = useTranslations("calc.unitConverter");
+  const tu = useTranslations("calc.units");
+  const unitOptions = useUnitOptions();
+  const purityOptions = usePurityOptions();
+  const karatLabel = useKaratLabel();
+  const unitShort = useUnitShort();
   const searchParams = useSearchParams();
   const spotState = useSpotState(initialSpot);
 
@@ -78,26 +86,24 @@ export function UnitConverter({ initialSpot, isStale }: Props) {
   // Value follows the *pure* gold content, so a gram of 14K is worth 58.3% of a gram of 24K.
   const valuePerGram = hasSpot ? (spotNum / TROY_OZ_TO_GRAMS) * factor : 0;
 
-  const sourceUnit = WEIGHT_UNITS.find((u) => u.key === unit);
-
   return (
     <ToolGrid>
-      <InputsCard title="Convert">
+      <InputsCard title={t("inputsTitle")}>
         <NumberField
-          label="Amount"
+          label={t("amount")}
           value={amount}
           onChange={setAmount}
           min="0"
           step="0.1"
           placeholder="1"
         />
-        <SelectField label="From unit" value={unit} onChange={setUnit} options={unitOptions} />
+        <SelectField label={t("fromUnit")} value={unit} onChange={setUnit} options={unitOptions} />
         <SelectField
-          label="Purity (for valuation)"
+          label={t("purity")}
           value={karat}
           onChange={setKarat}
           options={purityOptions}
-          hint="Purity does not change the weight conversion — only the dollar value."
+          hint={t("purityHint")}
         />
         <SpotField
           value={spotState.spot}
@@ -109,28 +115,36 @@ export function UnitConverter({ initialSpot, isStale }: Props) {
         />
       </InputsCard>
 
-      <div aria-live="polite" aria-label="Conversion results">
+      <div aria-live="polite" aria-label={t("resultsLabel")}>
         {!valid ? (
-          <EmptyResults message="Enter an amount to convert it into every other gold weight unit." />
+          <EmptyResults message={t("empty")} />
         ) : (
           <div className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <ResultStat
-                label="In grams"
-                value={`${formatQty(grams)} g`}
-                sub={`${formatQty(amountNum)} ${sourceUnit?.short} of ${karat} gold`}
+                label={t("inGrams")}
+                value={t("gramsValue", { qty: formatQty(grams) })}
+                sub={t("amountOf", {
+                  qty: formatQty(amountNum),
+                  unit: unitShort(unit),
+                  karat: karatLabel(karat),
+                })}
               />
               <ResultStat
-                label="In troy ounces"
-                value={`${formatQty(fromGrams(grams, "ozt"))} ozt`}
-                sub={hasSpot ? `Worth ${fmt.usd(grams * valuePerGram)} at ${karat}` : undefined}
+                label={t("inTroyOz")}
+                value={t("troyOzValue", { qty: formatQty(fromGrams(grams, "ozt")) })}
+                sub={
+                  hasSpot
+                    ? t("worth", { value: fmt.usd(grams * valuePerGram), karat: karatLabel(karat) })
+                    : undefined
+                }
               />
             </div>
 
             <Card>
               <CardHeader>
                 <CardTitle className="text-muted-foreground text-sm font-normal">
-                  All units
+                  {t("tableTitle")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -139,17 +153,17 @@ export function UnitConverter({ initialSpot, isStale }: Props) {
                     <thead>
                       <tr className="border-border text-muted-foreground border-b text-xs">
                         <th scope="col" className="pe-3 pb-2 text-start font-medium">
-                          Unit
+                          {t("colUnit")}
                         </th>
                         <th scope="col" className="pe-3 pb-2 text-end font-medium">
-                          Grams each
+                          {t("colGramsEach")}
                         </th>
                         <th scope="col" className="pe-3 pb-2 text-end font-medium">
-                          Amount
+                          {t("colAmount")}
                         </th>
                         {hasSpot ? (
                           <th scope="col" className="pb-2 text-end font-medium">
-                            Value per unit
+                            {t("colValue")}
                           </th>
                         ) : null}
                       </tr>
@@ -164,8 +178,8 @@ export function UnitConverter({ initialSpot, isStale }: Props) {
                           )}
                         >
                           <th scope="row" className="py-2 pe-3 text-start font-medium">
-                            {u.label}{" "}
-                            <span className="text-muted-foreground font-normal">({u.short})</span>
+                            {tu(`${u.key}.label`)}{" "}
+                            <span className="text-muted-foreground font-normal">({unitShort(u.key)})</span>
                           </th>
                           <td className="text-muted-foreground py-2 pe-3 text-end tabular-nums">
                             {u.grams.toLocaleString("en-US", { maximumFractionDigits: 6 })}
@@ -184,8 +198,10 @@ export function UnitConverter({ initialSpot, isStale }: Props) {
                   </table>
                 </div>
                 <p className="text-muted-foreground mt-3 text-xs">
-                  Values assume {karat} gold at {hasSpot ? fmt.usd(spotNum) : "the spot price"}{" "}
-                  per troy ounce of pure gold, with no dealer premium.
+                  {t("tableNote", {
+                    karat: karatLabel(karat),
+                    spot: hasSpot ? fmt.usd(spotNum) : t("theSpotPrice"),
+                  })}
                 </p>
               </CardContent>
             </Card>

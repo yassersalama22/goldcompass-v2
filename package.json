@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "check:markdown": "tsx scripts/check-markdown-negotiation.mts",
+    "check:untranslated": "node scripts/check-untranslated.mjs",
     "check:rtl": "node scripts/check-rtl.mjs",
     "i18n:translate": "tsx scripts/translate-content.mts",
     "i18n:check": "tsx scripts/check-translations.mts --self-test",
@@ -15,7 +16,8 @@
     "outlook:publish": "tsx scripts/publish-outlook.mts",
     "articles:generate": "tsx scripts/generate-article.mts",
     "articles:publish": "tsx scripts/publish-article.mts",
-    "brand:assets": "tsx scripts/generate-brand-assets.mts"
+    "brand:assets": "tsx scripts/generate-brand-assets.mts",
+    "check:faq": "node scripts/check-faq-parity.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.105.0",
@@ -34,6 +36,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@formatjs/icu-messageformat-parser": "3.5.16",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

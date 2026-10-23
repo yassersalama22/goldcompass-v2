@@ -1,6 +1,7 @@
 import { Container } from "@/components/layout/container";
 import { Prose } from "@/components/markdown/prose";
 import { formatLongDate } from "@/lib/format";
+import { contentLangProps } from "@/server/i18n/availability";
 import type { PageDoc } from "@/types/page";
 
 /**
@@ -16,30 +17,40 @@ import type { PageDoc } from "@/types/page";
 export function ProsePage({
   page,
   locale,
+  translated,
   updatedLabel,
 }: {
   page: PageDoc;
   locale: string;
+  /** False when `page` is the English fallback rendered under another locale. */
+  translated: boolean;
   /** Localized "Last updated" label; the date itself is formatted per locale. */
   updatedLabel: string;
 }) {
+  const content = contentLangProps(translated, locale);
   return (
     <Container className="max-w-3xl py-12 sm:py-16">
       <header className="space-y-2">
         {page.eyebrow ? (
-          <p className="text-gold-strong text-sm font-medium">{page.eyebrow}</p>
+          <p className="text-gold-strong text-sm font-medium" {...content}>
+            {page.eyebrow}
+          </p>
         ) : null}
-        <h1 className="text-3xl font-bold text-balance sm:text-4xl">{page.heading}</h1>
+        <h1 className="text-3xl font-bold text-balance sm:text-4xl" {...content}>
+          {page.heading}
+        </h1>
         <p className="text-muted-foreground text-sm">
           {updatedLabel} {formatLongDate(page.updatedAt, locale)}
         </p>
       </header>
 
       {page.lede ? (
-        <p className="text-muted-foreground mt-6 text-lg text-pretty">{page.lede}</p>
+        <p className="text-muted-foreground mt-6 text-lg text-pretty" {...content}>
+          {page.lede}
+        </p>
       ) : null}
 
-      <div className="text-muted-foreground mt-8 text-sm leading-relaxed sm:text-base">
+      <div className="text-muted-foreground mt-8 text-sm leading-relaxed sm:text-base" {...content}>
         <Prose markdown={page.bodyMarkdown} />
       </div>
     </Container>

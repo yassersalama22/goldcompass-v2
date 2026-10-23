@@ -1,28 +1,20 @@
+import { useTranslations } from "next-intl";
 import { TrendingDown, TrendingUp, Minus } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { Signal } from "@/types/outlook";
 
-const config: Record<
-  Signal,
-  { className: string; Icon: typeof TrendingUp; label: string }
-> = {
-  BUY: {
-    className: "bg-bull text-bull-foreground",
-    Icon: TrendingUp,
-    label: "Buy signal",
-  },
-  SELL: {
-    className: "bg-bear text-bear-foreground",
-    Icon: TrendingDown,
-    label: "Sell signal",
-  },
-  HOLD: {
-    className: "bg-secondary text-secondary-foreground",
-    Icon: Minus,
-    label: "Hold signal",
-  },
+/**
+ * Tone and icon per signal. The visible word and the screen-reader label come
+ * from `market.signal.<buy|sell|hold>` — the enum itself is the API contract
+ * and never shown translated, so `signal` stays "BUY" in data while an Arabic
+ * reader sees شراء.
+ */
+const config: Record<Signal, { className: string; Icon: typeof TrendingUp }> = {
+  BUY: { className: "bg-bull text-bull-foreground", Icon: TrendingUp },
+  SELL: { className: "bg-bear text-bear-foreground", Icon: TrendingDown },
+  HOLD: { className: "bg-secondary text-secondary-foreground", Icon: Minus },
 };
 
 export function SignalBadge({
@@ -34,7 +26,9 @@ export function SignalBadge({
   className?: string;
   size?: "default" | "lg";
 }) {
-  const { className: tone, Icon, label } = config[signal];
+  const t = useTranslations("market.signal");
+  const { className: tone, Icon } = config[signal];
+  const key = signal.toLowerCase() as "buy" | "sell" | "hold";
   return (
     <Badge
       className={cn(
@@ -45,8 +39,8 @@ export function SignalBadge({
       )}
     >
       <Icon aria-hidden="true" />
-      <span className="sr-only">{label}: </span>
-      {signal}
+      <span className="sr-only">{t(`${key}.sr`)}: </span>
+      {t(`${key}.label`)}
     </Badge>
   );
 }

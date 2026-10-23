@@ -1,10 +1,12 @@
-import { Link } from "@/i18n/navigation";
+import { getTranslations } from "next-intl/server";
+
 
 import { ArticleCard } from "@/components/articles/article-card";
 import { InsightFilterNav } from "@/components/articles/insight-filter-nav";
 import { Container } from "@/components/layout/container";
 import { JsonLd } from "@/components/seo/json-ld";
-import { INSIGHT_KINDS, type InsightKindDef } from "@/config/insight-kinds";
+import { INSIGHT_KINDS, insightKindCopy, type InsightKindDef } from "@/config/insight-kinds";
+import { linkTag, richTags } from "@/i18n/rich";
 import { breadcrumbSchema } from "@/lib/structured-data";
 import { getArticlesByKind } from "@/server/articles";
 import { toArticleSummary } from "@/types/article";
@@ -17,7 +19,7 @@ import { toArticleSummary } from "@/types/article";
  * dynamic slug name per level. Static segments also win over `[slug]` in
  * routing, which is what keeps these URLs from being read as article slugs.
  */
-export function InsightKindView({
+export async function InsightKindView({
   def,
   locale,
 }: {
@@ -26,33 +28,32 @@ export function InsightKindView({
 }) {
   const articles = getArticlesByKind(def.kind, locale);
   const other = INSIGHT_KINDS.find((k) => k.kind !== def.kind);
+  const copy = insightKindCopy(def, locale);
+  const otherCopy = other ? insightKindCopy(other, locale) : null;
+  const t = await getTranslations("insights");
+  const tb = await getTranslations("breadcrumb");
+  const tn = await getTranslations("nav");
 
   return (
     <>
       <JsonLd
         data={breadcrumbSchema([
-          { name: "Home", path: "/" },
-          { name: "Insights", path: "/insights" },
-          { name: def.label, path: def.href },
+          { name: tb("home"), path: "/" },
+          { name: tn("insights"), path: "/insights" },
+          { name: copy.label, path: def.href },
         ], locale)}
       />
 
       <Container className="py-12 sm:py-16">
         <header className="mb-8 space-y-3">
-          <h1 className="text-3xl font-bold sm:text-4xl">{def.heading}</h1>
-          <p className="text-muted-foreground max-w-2xl text-lg text-pretty">{def.intro}</p>
+          <h1 className="text-3xl font-bold sm:text-4xl">{copy.heading}</h1>
+          <p className="text-muted-foreground max-w-2xl text-lg text-pretty">{copy.intro}</p>
         </header>
 
         <InsightFilterNav current={def.slug} />
 
         {articles.length === 0 ? (
-          <p className="text-muted-foreground">
-            Nothing published here yet.{" "}
-            <Link href="/insights" className="text-gold-strong underline underline-offset-4">
-              Browse all insights
-            </Link>
-            .
-          </p>
+          <p className="text-muted-foreground">{t.rich("kindEmpty", richTags)}</p>
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {articles.map((article) => (
@@ -61,13 +62,13 @@ export function InsightKindView({
           </div>
         )}
 
-        {other ? (
+        {other && otherCopy ? (
           <p className="text-muted-foreground mt-12 border-t pt-6 text-sm">
-            Looking for {other.label.toLowerCase()} instead?{" "}
-            <Link href={other.href} className="text-gold-strong underline underline-offset-4">
-              {other.heading}
-            </Link>
-            .
+            {t.rich("lookingFor", {
+              label: otherCopy.inlineLabel,
+              heading: otherCopy.heading,
+              other: linkTag(other.href),
+            })}
           </p>
         ) : null}
       </Container>
@@ -76,14 +77,15 @@ export function InsightKindView({
 }
 
 /** Shared metadata builder so both routes describe themselves identically. */
-export function insightKindMetadata(def: InsightKindDef) {
+export function insightKindMetadata(def: InsightKindDef, locale: string) {
+  const copy = insightKindCopy(def, locale);
   return {
-    title: def.title,
-    description: def.description,
+    title: copy.title,
+    description: copy.description,
     alternates: { canonical: def.href },
     openGraph: {
-      title: def.heading,
-      description: def.description,
+      title: copy.heading,
+      description: copy.description,
       url: def.href,
       type: "website" as const,
     },

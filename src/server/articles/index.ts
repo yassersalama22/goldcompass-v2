@@ -4,6 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 import { DEFAULT_LOCALE } from "@/config/locales";
+import { articleFields, hashFields } from "@/server/i18n/field-map";
 import { articleSchema, type Article, type ArticleKind } from "@/types/article";
 
 /**
@@ -57,9 +58,31 @@ function readPublished(dir: string): Map<string, Article> {
  * responsible for not claiming, via hreflang, that a translation exists —
  * `isArticleTranslated` below is how it knows.
  */
+/**
+ * Translations of `locale` that are CURRENT — made from the English text as it
+ * stands now. A translation whose `sourceHash` no longer matches is treated as
+ * missing (English is shown, labelled as English, and no hreflang is claimed),
+ * because a stale translation can contradict the source it claims to render.
+ * Keyed by source filename, like `readPublished`.
+ */
+const freshTranslations = cache((locale: string): Map<string, Article> => {
+  const english = readPublished(ARTICLES_DIR);
+  const fresh = new Map<string, Article>();
+  for (const [file, translated] of readPublished(localeDir(locale))) {
+    const source = english.get(file);
+    if (!source) continue; // orphaned translation — its source was unpublished
+    if (translated.translation?.sourceHash === hashFields(articleFields(source))) {
+      fresh.set(file, translated);
+    } else {
+      console.warn(`[articles] ${locale}/${file} is stale; falling back to English`);
+    }
+  }
+  return fresh;
+});
+
 export const getAllArticles = cache((locale: string = DEFAULT_LOCALE): Article[] => {
   const english = readPublished(ARTICLES_DIR);
-  const translated = locale === DEFAULT_LOCALE ? english : readPublished(localeDir(locale));
+  const translated = locale === DEFAULT_LOCALE ? english : freshTranslations(locale);
 
   const articles = [...english.entries()].map(
     ([file, article]) => translated.get(file) ?? article,
@@ -74,9 +97,7 @@ export const translatedSlugs = cache((locale: string): Set<string> => {
   if (locale === DEFAULT_LOCALE) {
     return new Set(getAllArticles().map((a) => a.slug));
   }
-  return new Set(
-    [...readPublished(localeDir(locale)).values()].map((a) => a.slug),
-  );
+  return new Set([...freshTranslations(locale).values()].map((a) => a.slug));
 });
 
 /** Does this article have its own published translation in `locale`? */

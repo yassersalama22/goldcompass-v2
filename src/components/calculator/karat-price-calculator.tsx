@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 import { cn } from "@/lib/utils";
 import { useFormat } from "@/lib/use-format";
@@ -18,7 +19,11 @@ import {
   NumberField,
   SelectField,
   SpotField,
+  useKaratLabel,
+  usePurityOptions,
   useSpotState,
+  useUnitOptions,
+  useUnitShort,
   useUrlState,
 } from "@/components/calculator/tool-fields";
 import {
@@ -33,11 +38,13 @@ interface Props {
   isStale: boolean;
 }
 
-const unitOptions = WEIGHT_UNITS.map((u) => ({ key: u.key, label: u.label }));
-const purityOptions = GOLD_PURITIES.map((p) => ({ key: p.key, label: p.label }));
-
 export function KaratPriceCalculator({ initialSpot, isStale }: Props) {
   const fmt = useFormat();
+  const t = useTranslations("calc.karatPrice");
+  const unitOptions = useUnitOptions();
+  const purityOptions = usePurityOptions();
+  const karatLabel = useKaratLabel();
+  const unitShort = useUnitShort();
   const searchParams = useSearchParams();
   const spotState = useSpotState(initialSpot);
 
@@ -66,22 +73,22 @@ export function KaratPriceCalculator({ initialSpot, isStale }: Props) {
 
   return (
     <ToolGrid>
-      <InputsCard title="Your gold">
+      <InputsCard title={t("inputsTitle")}>
         <NumberField
-          label="Weight"
+          label={t("weight")}
           value={weight}
           onChange={setWeight}
           min="0"
           step="0.1"
           placeholder="10"
         />
-        <SelectField label="Weight unit" value={unit} onChange={setUnit} options={unitOptions} />
+        <SelectField label={t("weightUnit")} value={unit} onChange={setUnit} options={unitOptions} />
         <SelectField
-          label="Karat / purity"
+          label={t("karat")}
           value={karat}
           onChange={setKarat}
           options={purityOptions}
-          hint="Check the hallmark stamped on the item — 750 means 18K, 585 means 14K."
+          hint={t("karatHint")}
         />
         <SpotField
           value={spotState.spot}
@@ -93,35 +100,38 @@ export function KaratPriceCalculator({ initialSpot, isStale }: Props) {
         />
       </InputsCard>
 
-      <div aria-live="polite" aria-label="Karat price results">
+      <div aria-live="polite" aria-label={t("resultsLabel")}>
         {!table || !selected ? (
-          <EmptyResults message="Enter a weight and confirm the spot price to see what your gold is worth." />
+          <EmptyResults message={t("empty")} />
         ) : (
           <div className="space-y-4">
             <ResultStat
-              label={`Melt value of ${weightNum.toLocaleString("en-US")} ${
-                WEIGHT_UNITS.find((u) => u.key === unit)?.short
-              } of ${karat} gold`}
+              label={t("meltValue", {
+                weight: weightNum.toLocaleString("en-US"),
+                unit: unitShort(unit),
+                karat: karatLabel(karat),
+              })}
               value={hasWeight ? fmt.usd(selected.value) : "—"}
               sub={
                 hasWeight ? (
-                  <>
-                    Contains <strong className="text-foreground">{selected.pureGrams.toFixed(2)} g</strong>{" "}
-                    of pure gold ({selected.fineness} parts per thousand).
-                  </>
+                  t.rich("contains", {
+                    grams: selected.pureGrams.toFixed(2),
+                    fineness: String(selected.fineness),
+                    strong: (chunks) => <strong className="text-foreground">{chunks}</strong>,
+                  })
                 ) : (
-                  "Enter a weight above to value a specific item."
+                  t("enterWeight")
                 )
               }
             />
 
             <div className="grid gap-4 sm:grid-cols-2">
               <ResultStat
-                label={`${karat} price per gram`}
+                label={t("perGram", { karat: karatLabel(karat) })}
                 value={fmt.usd(selected.pricePerGram)}
               />
               <ResultStat
-                label={`${karat} price per troy ounce`}
+                label={t("perTroyOz", { karat: karatLabel(karat) })}
                 value={fmt.usd(selected.pricePerTroyOz)}
               />
             </div>
@@ -129,7 +139,7 @@ export function KaratPriceCalculator({ initialSpot, isStale }: Props) {
             <Card>
               <CardHeader>
                 <CardTitle className="text-muted-foreground text-sm font-normal">
-                  Every karat at this spot price
+                  {t("tableTitle")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -138,20 +148,20 @@ export function KaratPriceCalculator({ initialSpot, isStale }: Props) {
                     <thead>
                       <tr className="border-border text-muted-foreground border-b text-xs">
                         <th scope="col" className="pe-3 pb-2 text-start font-medium">
-                          Karat
+                          {t("colKarat")}
                         </th>
                         <th scope="col" className="pe-3 pb-2 text-end font-medium">
-                          Fineness
+                          {t("colFineness")}
                         </th>
                         <th scope="col" className="pe-3 pb-2 text-end font-medium">
-                          Per gram
+                          {t("colPerGram")}
                         </th>
                         <th scope="col" className="pe-3 pb-2 text-end font-medium">
-                          Per troy oz
+                          {t("colPerTroyOz")}
                         </th>
                         {hasWeight ? (
                           <th scope="col" className="pb-2 text-end font-medium">
-                            Your weight
+                            {t("colYourWeight")}
                           </th>
                         ) : null}
                       </tr>
@@ -166,7 +176,7 @@ export function KaratPriceCalculator({ initialSpot, isStale }: Props) {
                           )}
                         >
                           <th scope="row" className="py-2 pe-3 text-start font-medium">
-                            {row.key}
+                            {karatLabel(row.key)}
                           </th>
                           <td className="text-muted-foreground py-2 pe-3 text-end tabular-nums">
                             {row.fineness}
@@ -188,8 +198,7 @@ export function KaratPriceCalculator({ initialSpot, isStale }: Props) {
                   </table>
                 </div>
                 <p className="text-muted-foreground mt-3 text-xs">
-                  Melt value only — the worth of the metal itself. A dealer buying scrap pays a
-                  percentage of this; a dealer selling coins or jewellery charges more than this.
+                  {t("tableNote")}
                 </p>
               </CardContent>
             </Card>

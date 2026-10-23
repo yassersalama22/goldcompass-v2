@@ -1,6 +1,6 @@
-import { INSIGHT_KINDS } from "@/config/insight-kinds";
+import { INSIGHT_KINDS, insightKindCopy } from "@/config/insight-kinds";
 import { siteConfig } from "@/config/site";
-import { FLAGSHIP_TOOL, TOOLS } from "@/config/tools";
+import { FLAGSHIP_TOOL, TOOLS, toolCopy } from "@/config/tools";
 import { getAllArticles } from "@/server/articles";
 
 /**
@@ -49,8 +49,10 @@ function buildBody(): string {
     ``,
     `## Calculators`,
     ``,
-    link(FLAGSHIP_TOOL.name, FLAGSHIP_TOOL.href, FLAGSHIP_TOOL.description),
-    ...TOOLS.map((tool) => link(tool.name, tool.href, tool.description)),
+    ...[FLAGSHIP_TOOL, ...TOOLS].map((tool) => {
+      const copy = toolCopy(tool, "en");
+      return link(copy.name, tool.href, copy.description);
+    }),
     ``,
     `## Insights`,
     ``,
@@ -59,7 +61,10 @@ function buildBody(): string {
       "/insights",
       "The full archive of gold market explainers and updates, newest first.",
     ),
-    ...INSIGHT_KINDS.map((kind) => link(kind.heading, kind.href, kind.description)),
+    ...INSIGHT_KINDS.map((kind) => {
+      const copy = insightKindCopy(kind, "en");
+      return link(copy.heading, kind.href, copy.description);
+    }),
     link("RSS feed", "/insights/rss.xml", "Every article, as RSS."),
     ``,
     ...(articles.length > 0

@@ -58,16 +58,28 @@ export async function generateJson<T>(
     messages: Anthropic.MessageParam[],
     useSearch: boolean,
   ): Promise<Anthropic.Message> {
+    /*
+     * Streamed, then awaited to completion — the callers still see one whole
+     * Message, so nothing downstream changes.
+     *
+     * This is not a preference. The SDK refuses a *non*-streaming request whose
+     * predicted duration exceeds 10 minutes, and that prediction scales with
+     * `max_tokens`: a large batch (the 76-key UI catalog at 32k tokens) is
+     * rejected before it is ever sent. Streaming lifts that ceiling, so the
+     * token budget can be sized to the work rather than to an SDK guard.
+     */
     const create = () =>
-      client.messages.create({
-        model: opts.model,
-        max_tokens: opts.maxTokens ?? 16000,
-        thinking: { type: "adaptive" },
-        output_config: { effort: opts.effort },
-        system,
-        messages,
-        tools: useSearch && searchBudget > 0 ? [webSearchTool] : undefined,
-      });
+      client.messages
+        .stream({
+          model: opts.model,
+          max_tokens: opts.maxTokens ?? 16000,
+          thinking: { type: "adaptive" },
+          output_config: { effort: opts.effort },
+          system,
+          messages,
+          tools: useSearch && searchBudget > 0 ? [webSearchTool] : undefined,
+        })
+        .finalMessage();
 
     let response = await create();
     let continuations = 0;

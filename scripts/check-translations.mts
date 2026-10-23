@@ -17,8 +17,17 @@ import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 
 import { LOCALES, requireLocale, type LocaleDef } from "@/config/locales";
+import { hasCatalog } from "@/i18n/messages";
 import { checkCatalogParity, checkTranslation, type Finding } from "@/server/i18n/check";
-import { articleFields, hashFields, outlookFields } from "@/server/i18n/field-map";
+import {
+  articleFields,
+  catalogFields,
+  hashFields,
+  hashValue,
+  outlookFields,
+  pageFields,
+} from "@/server/i18n/field-map";
+import { parsePageMarkdown } from "@/lib/page-markdown";
 import { articleSchema, type Article } from "@/types/article";
 import { outlookReportSchema, type OutlookReport } from "@/types/outlook";
 
@@ -74,6 +83,44 @@ async function checkOutlook(locale: LocaleDef) {
   );
 }
 
+/** Page translations, paired with their English source by filename. */
+async function checkPages(locale: LocaleDef) {
+  const dir = path.join(CONTENT, "pages", locale.code);
+  let files: string[];
+  try {
+    files = (await readdir(dir)).filter((f) => f.endsWith(".md"));
+  } catch {
+    return;
+  }
+  for (const file of files) {
+    const slug = file.replace(/\.md$/, "");
+    let sourceRaw: string;
+    try {
+      sourceRaw = await readFile(path.join(CONTENT, "pages", file), "utf8");
+    } catch {
+      console.log(`  FAIL  ${locale.code}/pages/${file}`);
+      console.log(`          ✗ <artifact>: no English source with this filename`);
+      errors++;
+      checked++;
+      continue;
+    }
+    const source = parsePageMarkdown(sourceRaw, slug);
+    const translated = parsePageMarkdown(await readFile(path.join(dir, file), "utf8"), slug);
+    report(
+      `${locale.code}/pages/${file}`,
+      checkTranslation({
+        label: `${file} (${locale.code})`,
+        locale: locale.code,
+        sourceFields: pageFields(source),
+        translatedFields: pageFields(translated),
+        source: source as unknown as Record<string, unknown>,
+        translated: translated as unknown as Record<string, unknown>,
+        storedHash: translated.translation?.sourceHash,
+      }),
+    );
+  }
+}
+
 async function checkArticles(locale: LocaleDef) {
   const dir = path.join(CONTENT, "articles", locale.code);
   let files: string[];
@@ -111,6 +158,105 @@ async function checkArticles(locale: LocaleDef) {
 /* -------------------------------------------------------------------------- */
 /* Self-test: prove each rule actually fires                                   */
 /* -------------------------------------------------------------------------- */
+
+/**
+ * Catalog fixtures.
+ *
+ * Separate from the artifact ones because `checkCatalogParity` takes catalogs
+ * rather than field lists. These exist because the per-string content rules did
+ * NOT apply to catalogs until the tool-page copy moved in — a fabricated
+ * "99.9999 grams" in a FAQ answer passed the gate clean, on a page whose whole
+ * job is to state that a troy ounce is 31.1035 grams.
+ */
+function selfTestCatalog(): number {
+  console.log("\nSelf-test — catalog fixtures, each must be REJECTED:");
+
+  const en = {
+    tools: { conv: { faq: "A troy ounce is 31.1035 grams, not 28.35." } },
+    site: { titleTemplate: "%s | GoldCompass" },
+    page: { rich: "See the chart on our <trends>trends page</trends>, <strong>not</strong> a forecast." },
+    plural: { read: "{count, plural, one {{minutes} min read} other {{minutes} min read}}" },
+  };
+  const good = {
+    tools: { conv: { faq: "الأونصة التروية تساوي 31.1035 غرامًا، وليست 28.35." } },
+    site: { titleTemplate: "%s | GoldCompass" },
+    // The link moved within the sentence — legitimate, and must pass.
+    page: { rich: "<strong>ليس</strong> توقعًا: راجع الرسم البياني في <trends>صفحة الاتجاهات</trends>." },
+    // Arabic's six CLDR categories against English's two, with `{minutes}`
+    // absent from the one/two branches (the word carries the number there) —
+    // legitimate, and must pass.
+    plural: {
+      read: "{count, plural, zero {{minutes} دقيقة قراءة} one {دقيقة واحدة للقراءة} two {دقيقتان للقراءة} few {{minutes} دقائق للقراءة} many {{minutes} دقيقة للقراءة} other {{minutes} دقيقة للقراءة}}",
+    },
+  };
+  // Hashes recorded from the current English, so nothing reads as stale.
+  const meta = Object.fromEntries(
+    catalogFields(en).map((f) => [f.path, hashValue(f.value)]),
+  );
+
+  const run = (mutate: (c: Record<string, unknown>) => void) => {
+    const t = structuredClone(good) as Record<string, unknown>;
+    mutate(t);
+    return checkCatalogParity(en, t, "ar", meta).filter((f) => f.severity === "error");
+  };
+
+  type Nested = Record<string, Record<string, string>>;
+  const fixtures: [string, (c: Record<string, unknown>) => void][] = [
+    ["a fabricated number in a FAQ answer", (c) => {
+      (c.tools as Nested).conv.faq = "الأونصة التروية تساوي 99.9999 غرامًا، وليست 28.35.";
+    }],
+    ["a dropped precise constant", (c) => {
+      (c.tools as Nested).conv.faq = "الأونصة التروية تساوي غرامًا، وليست 28.35.";
+    }],
+    ["Arabic-Indic digits", (c) => {
+      (c.tools as Nested).conv.faq = "الأونصة التروية تساوي ٣١٫١٠٣٥ غرامًا، وليست 28.35.";
+    }],
+    ["a dropped %s in the title template", (c) => {
+      (c.site as Record<string, string>).titleTemplate = "GoldCompass";
+    }],
+    ["a dropped rich-text tag pair", (c) => {
+      (c.page as Record<string, string>).rich = "<strong>ليس</strong> توقعًا: راجع الرسم البياني في صفحة الاتجاهات.";
+    }],
+    ["a translated plural keyword", (c) => {
+      (c.plural as Record<string, string>).read = "{count, plural, one {دقيقة واحدة للقراءة} أخرى {{minutes} دقيقة للقراءة}}";
+    }],
+    ["a plural with no other branch", (c) => {
+      (c.plural as Record<string, string>).read = "{count, plural, one {دقيقة واحدة للقراءة} few {{minutes} دقائق للقراءة}}";
+    }],
+    ["an unbalanced ICU brace", (c) => {
+      (c.plural as Record<string, string>).read = "{count, plural, one {دقيقة واحدة} other {{minutes} دقيقة للقراءة}";
+    }],
+    ["a renamed ICU argument", (c) => {
+      (c.plural as Record<string, string>).read = "{count, plural, one {دقيقة واحدة} other {{دقائق} دقيقة للقراءة}}";
+    }],
+    ["a tag and an argument sharing a name", (c) => {
+      (c.page as Record<string, string>).rich = "<strong>ليس</strong> توقعًا: راجع <trends>{trends}</trends>.";
+    }],
+    ["a translated rich-text tag name", (c) => {
+      (c.page as Record<string, string>).rich = "<strong>ليس</strong> توقعًا: راجع الرسم البياني في <اتجاهات>صفحة الاتجاهات</اتجاهات>.";
+    }],
+  ];
+
+  let missed = 0;
+  for (const [name, mutate] of fixtures) {
+    if (run(mutate).length > 0) {
+      console.log(`  ok    rejects ${name}`);
+    } else {
+      console.log(`  FAIL  did NOT reject ${name}`);
+      missed++;
+    }
+  }
+
+  const clean = run(() => {});
+  if (clean.length === 0) {
+    console.log("  ok    accepts a valid catalog translation");
+  } else {
+    console.log("  FAIL  rejected a valid catalog translation:");
+    for (const f of clean) console.log(`          ✗ ${f.path}: ${f.message}`);
+    missed++;
+  }
+  return missed;
+}
 
 async function selfTest() {
   console.log("\nSelf-test — each fixture must be REJECTED:");
@@ -201,6 +347,8 @@ async function selfTest() {
     missed++;
   }
 
+  missed += selfTestCatalog();
+
   if (missed > 0) {
     console.error(`\n${missed} self-test failure(s) — the gate is not working.`);
     process.exit(1);
@@ -218,15 +366,23 @@ async function checkCatalogs() {
     const meta = (await readJson(
       path.join(CONTENT, "i18n", "ui", `${locale.code}.meta.json`),
     )) as Record<string, string> | null;
-    report(
-      `ui/${locale.code}.json`,
-      checkCatalogParity(
-        canonical,
-        raw as Record<string, unknown>,
-        locale.code,
-        meta ?? {},
-      ),
+    const findings = checkCatalogParity(
+      canonical,
+      raw as Record<string, unknown>,
+      locale.code,
+      meta ?? {},
     );
+    // A catalog file that `messages()` does not know about is served as ENGLISH
+    // to every non-render caller — JSON-LD, Markdown, scripts — while the page
+    // around it renders translated. Silent, and it shipped once.
+    if (!hasCatalog(locale.code)) {
+      findings.unshift({
+        path: `ui/${locale.code}.json`,
+        severity: "error",
+        message: "catalog exists but is not registered in src/i18n/messages.ts (CATALOGS)",
+      });
+    }
+    report(`ui/${locale.code}.json`, findings);
   }
 }
 
@@ -236,6 +392,7 @@ async function main() {
   for (const locale of NON_CANONICAL) {
     await checkOutlook(locale);
     await checkArticles(locale);
+    await checkPages(locale);
   }
   if (checked === 0) console.log("  (none yet)");
 

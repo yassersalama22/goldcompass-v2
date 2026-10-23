@@ -1608,3 +1608,402 @@ Match the current site's look and feel:
   - Self-test is now **14 fixtures**; `i18n:check` also validates catalog key parity and staleness.
   - **Next**: extract the ~133 remaining strings into the catalog (English only), then run
     `TRANSLATE_ONLY=catalog npm run i18n:translate` and review the Arabic. Then Phase E.
+- 2026-08-28: **Tool-page copy extracted to the catalog** (76 strings across the four calculators:
+  5 FAQ Q&A pairs, 4 "common mistakes", and an intro each). English rendering verified unchanged.
+  - **The FAQ JSON-LD ↔ visible-text constraint survived, and is now enforced by a script.**
+    `ToolPageShell` still receives ONE array, built from the catalog and both rendered and passed to
+    `faqSchema()`. **`npm run check:faq`** (`scripts/check-faq-parity.mjs`) fetches each tool page,
+    parses the JSON-LD and asserts every question and answer appears in the visible text: **40/40**.
+    Google treats marked-up FAQ content that a reader cannot see as a structured-data violation, so
+    this is a correctness gate, not tidiness.
+  - **⚠ `JsonLd` emits ONE `<script>` containing an ARRAY of schemas**, not one script per schema.
+    Two successive probe versions reported "NO FAQPage" against a page whose markup was perfectly
+    fine, because they looked for a top-level `@type` on each parsed block. `.flat()` the parsed
+    result. Worth remembering before concluding that structured data is missing.
+  - **Missing catalog keys are an error only for a *routed* locale**, a warning otherwise. A key
+    missing in a language nobody can reach cannot affect a visitor; failing CI over it would force
+    English extraction and its translation into one commit, which is the coupling the per-key
+    freshness model exists to avoid. It escalates to an error automatically the moment the locale is
+    enabled — exactly when a silent fallback to English would start reaching readers. Verified both
+    ways.
+  - **Arabic for these 76 strings is NOT written yet.** Mock output was deliberately not committed
+    (same rule as the generators). Produce it with
+    `TRANSLATE_LOCALE=ar TRANSLATE_ONLY=catalog npm run i18n:translate` and a real
+    `ANTHROPIC_API_KEY`, then review — it goes through the glossary and every `i18n:check` rule,
+    which is the entire reason the catalog was made pipeline-translatable first.
+  - **⚠ `/methodology` and `/ai-disclosure` need RICH-TEXT messages, not plain ones.** Measured
+    before starting: `/methodology` has **10 plain paragraphs and 10 containing inline `<Link>`,
+    `<strong>` or `<em>`**. Extracting only the arrays, headings and plain paragraphs would leave
+    the page half-translatable — and worse, the catalog parity check would then *pass* while an
+    Arabic reader still saw English paragraphs. **Do not start it that way.**
+    Use next-intl's `t.rich()` (confirmed available in `use-intl`'s `createTranslator`): the message
+    carries its own markup, e.g. `"… the 30-day chart on our <trends>trends page</trends> — is
+    fetched from a market data source."`, with the tag supplied as a render function. Keeping each
+    paragraph as ONE string is not a convenience: splitting at a `<strong>` boundary hands the
+    translator sentence fragments that cannot be reordered for Arabic word order, which is exactly
+    how a translation ends up grammatical in pieces and wrong as a whole.
+- 2026-08-28: **First real catalog translation run (76 tool-page strings) + catalog gate hardened.**
+  Arabic still `enabled: false`; nothing reached visitors. No new dependencies.
+  - **Per-key freshness proved itself on real output**: `76 translated, 71 left untouched`, and the
+    71 previously reviewed strings verified **byte-identical key-by-key** afterwards. This is the
+    behaviour the sibling `ui/<locale>.meta.json` exists for; it is now demonstrated, not assumed.
+  - **⚠ `generateJson` had to move to streaming, and this will bite any large batch.** The SDK
+    **refuses a non-streaming request whose predicted duration exceeds 10 minutes**, and that
+    prediction scales with `max_tokens` — so the 76-key batch at `maxTokens: 32000` was rejected
+    *before it was ever sent* (`AnthropicError: Streaming is required for operations that may take
+    longer than 10 minutes`). Fix: `client.messages.stream(...).finalMessage()`. Callers still see
+    one whole `Message`, so nothing downstream changed. **Do not "fix" a recurrence by lowering
+    `max_tokens`** — that sizes the work to an SDK guard instead of to the job.
+  - **⚠ The per-string content rules did NOT apply to catalogs, and the hole was real.** They were
+    artifact-only on the assumption that a catalog holds short UI labels. That stopped being true
+    the moment the tool copy moved in: the catalog now asserts a troy ounce is **31.1035** grams.
+    **Probed it before fixing it** — a fabricated *"99.9999 grams"* substituted into a FAQ answer
+    was reported `ok` by the gate. `checkCatalogParity` now also runs numeral parity, the
+    Arabic-Indic digit ban, placeholder parity, and corpus-wide glossary compliance. (Note the
+    2026-08-28 claim that placeholder parity covered "artifact or catalog" was aspirational — the
+    catalog half landed here.)
+  - **⚠ Catalog numerals are judged by PRECISION, not strict equality — strict equality is wrong
+    here.** Two false positives on the very first run, both correct Arabic: `"a 30-day chart"` →
+    `"رسم بياني لثلاثين يومًا"` and `"A 1 kg bar"` → `"سبيكة الكيلوغرام الواحد"`. Prose spells small
+    round numbers as words. So: a **changed or invented** number is always an error; a **dropped**
+    one is an error when it carries a decimal separator or has ≥3 digits (a precise constant nobody
+    spells out — 31.1035, 32.15, 4,283.61), and a warning otherwise. Nothing precise can hide in
+    that exemption. Artifacts keep strict equality — their prose is market analysis, not UI copy.
+  - Five catalog self-test fixtures added (fabricated number, dropped precise constant,
+    Arabic-Indic digits, dropped `%s`, plus a clean baseline). Self-test is now **17**.
+  - **Glossary compliance surfaced 5/39 misses — all inflection, none a terminology error.** The
+    matcher is case-insensitive **substring**, which cannot see Arabic morphology: `signal` →
+    `إشارات` (plural; the entry lists `إشارة`), `buy-back spread` → `فارق إعادة شراء` (indefinite;
+    entry is definite `فارق إعادة الشراء`), `outlay` → `مبلغك المدفوع` (possessive), `long-term` →
+    the coordinated `على المدى القصير والطويل`, `coin` → `عملات الذهب` (idafa). Several are in
+    strings the **owner already reviewed**, so the `variants` lists are incomplete rather than the
+    translations wrong. Warning severity is correct. **Fix by adding variants, not by rewording
+    good Arabic** — and that is the owner's call, terminology being decided in the glossary.
+  - Verified: `tsc` ✓, `eslint` ✓, `next build` (en+ar) ✓, `i18n:check` **0 errors** / 2 warnings
+    (both the spelled-out numbers above), self-test **17/17**, `check:faq` **40/40 English and
+    40/40 Arabic** with Arabic present in the FAQ JSON-LD, `check:rtl` **22/22, 0 axe violations,
+    0 console errors**, `check:markdown` **37/37**. `ui/en.json` untouched, so English rendering is
+    unchanged by construction.
+  - **⚠ Local standalone testing trap that wasted two probes**: `/ar/*` returned **404** twice. Neither
+    was a routing bug. ① `NEXT_PUBLIC_LOCALES_ENABLED` must be set for the **running server** as well
+    as the build — the runtime registry decides which locales route, so an env-less `node server.js`
+    404s every `/ar` path against a build that prerendered them. ② The second 404 was `EADDRINUSE`
+    in the server log: `pkill -f "node server.js"` did not kill the first instance, so the new one
+    never bound and curl kept hitting the old one. Use `lsof -ti:PORT | xargs kill -9`, and **read
+    the server log before believing a 404**.
+  - **Still open**: the 76 Arabic tool strings need the owner's native review (they went through the
+    glossary and every `i18n:check` rule, but no human has read them); `/methodology` (~39 strings)
+    and `/ai-disclosure` (~22) still need `t.rich()` extraction; then Phase E.
+- 2026-10-10: **`/methodology` + `/ai-disclosure` translated; real remaining scope measured.**
+  Branch `feat/i18n-page-strings` (merged with main first). Arabic still `enabled: false`.
+  - **Rich-text extraction done** — both pages read `methodology.*` / `aiDisclosure.*` via
+    `t.rich()`; tag renderers shared in **`src/i18n/rich.tsx`** (link tags named by destination, so
+    the catalog never carries a URL). English verified identical to a pre-change build (text,
+    title, description, OG, JSON-LD) — except it **fixed a live bug**: production rendered
+    `broaddollar` (no space after `<em>broad</em>`).
+  - **Tag parity added to the gate** — `placeholders()` in `check.ts` now also counts
+    `<tag>`/`</tag>`; prompt rule 7 + `TRANSLATION_PROMPT_VERSION 2026-10-10.1`; 2 new self-test
+    fixtures (dropped pair, translated tag name).
+  - **🐛 It caught a real defect on the first run**: the translator's `stripHtml` removed every
+    rich-text tag, i.e. **every link on the translated pages**. `stripHtml(text, keepTags)` now keeps
+    only *bare* tags whose names appear in that field's **English source** (`richTagNames()`);
+    attributes, `<script>`, invented tags, and all Markdown paths are still stripped.
+  - **🐛 `src/i18n/messages.ts` never registered `ar`** → every non-render caller (all JSON-LD,
+    Markdown builder) served **English on `/ar/*`**, including an English `FAQPage` under Arabic
+    visible FAQs on `/ar/calculator`. Registered with per-key English fallback (`withFallback`);
+    `i18n:check` now **errors on an unregistered catalog** (verified by unregistering it).
+  - **🐛 `/calculator` emitted FAQPage JSON-LD with NO visible FAQ** — live in English since Phase 5,
+    a Google structured-data violation. Now renders one `faqs` array and passes the same array to
+    `faqSchema()`; `calculatorFaqSchema()` deleted. `check:faq` now covers `/calculator` and takes
+    `FAQ_LOCALES=en,ar` → **96/96**.
+  - Verified: `tsc` ✓ `eslint` ✓ `next build` (en, and en+ar) ✓, `i18n:check` 0 errors / self-test
+    19 ✓, `check:rtl` 24/24 incl. `/ar/ai-disclosure` (0 axe, 0 console errors), `check:markdown` 37/37.
+  - **⚠ The remaining scope is much larger than "two pages".** A text audit of every `/ar` route
+    (Latin-script chunks in rendered HTML) found **hardcoded English chrome across ~20 components**
+    that were never extracted: home sections (hero, recommendations, features, insights, CTA),
+    outlook page chrome (key levels, calls, confidence meter, macro panel, methodology box),
+    `SignalBadge` ("Buy signal"), `SubscribeForm`/`SubscribeCta`, theme-toggle aria-label, trends
+    page + ticker + chart labels, insights list/detail chrome + `ArticleCard`, `/calculator` page
+    copy + `config/tools.ts` names/descriptions, `ToolPageShell` (breadcrumbs, "Frequently asked
+    questions", "Common mistakes"), the five calculator client components, `/subscribed`, and
+    page metadata on outlook/trends/insights/calculator. `check:rtl` cannot see any of this — it
+    checks layout, not language. **Content** (outlook body, articles, `/disclaimer`) is separate:
+    that is Phase E backfill.
+  - Next: extract that chrome (in batches by area, English verified unchanged per batch), one
+    pipeline run, then Phase E.
+- 2026-10-22: **i18n chrome batch 1 — home page + shared components.** Also opened **PR #102**
+  (`fix/calculator-faq-visible`, off `main`): the `/calculator` visible-FAQ fix alone, so the live
+  English structured-data violation ships without waiting for Arabic. It carries the `ar` value +
+  meta hash for `page.faqHeading` because **on `main` a missing catalog key is still an error**
+  (the "warning while unrouted" rule exists only on the i18n branch) and `content-check.yml`
+  would otherwise fail it.
+  - Converted: the 5 home sections, plus shared `SignalBadge` (enum stays `BUY` in data, visible
+    word + sr label from `market.signal.*`), `ConfidenceMeter` (**one message per level** —
+    `"High <muted>confidence</muted>"` — because Arabic flips the order: `<muted>ثقة</muted> عالية`),
+    `ArticleCard` (hardcoded `en-US` formatter → new `formatMediumDate`, UTC-pinned),
+    `ThemeToggle`, `SubscribeForm`, `SubscribeCta`. These also fix `/outlook`, `/insights`,
+    articles, `/about` and the footer on every page.
+  - **`/api/subscribe` now returns a stable `code`** alongside `message` (additive); the form maps
+    `errors.<code>` and falls back to `errors.generic` for anything unknown — it no longer shows
+    whatever English the response carried. Verified in headless Chrome: `/ar` shows the Arabic
+    invalid-email message, `/` the original English.
+  - **New `npm run check:untranslated`** (`scripts/check-untranslated.mjs`): reports text chunks
+    (and aria-label/title/placeholder/alt) on `/ar` pages that contain Latin words and no Arabic.
+    The language counterpart to `check:rtl`. Reports by default; `STRICT=1` fails — use that once
+    Phase E lands. `/ar` went **42 → 12** chunks, and all 12 are artifact content (call horizons /
+    reasons, article category/title/description), i.e. Phase E.
+  - English verified **text-identical** (incl. sr-only + aria) on `/`, `/outlook`, `/insights`,
+    `/insights/explainers`, an article, `/about`. `check:rtl` 24/24 (0 axe, 0 console errors),
+    `check:faq` 96/96, `check:markdown` 37/37, `i18n:check` 0 errors, 47 keys translated with
+    268 untouched.
+  - **Local testing note**: `.env.local` sets the Turnstile site key, so the subscribe button stays
+    disabled in headless Chrome (no token). The API validates email *before* Turnstile, so a test
+    can strip `disabled` and submit to exercise the error path.
+  - Next batches: outlook page chrome (key levels, call card, macro panel, methodology box, page
+    metadata), insights (list/kind views/detail chrome), trends, calculator + `ToolPageShell` +
+    5 client calculators + `config/tools.ts`, `/subscribed`.
+- 2026-10-22: **i18n chrome batch 2 — `/outlook`.** Merged `main` first (PR #102 had landed; the
+  only conflict was `ar.meta.json`, resolved by taking the branch's copy after verifying it is a
+  strict superset of `main`'s — all 72 of `main`'s hashes matched).
+  - Converted the page (metadata, "Updated … UTC", headings, conviction note → `linkTag(
+    "/methodology#confidence")`, methodology + disclaimer box as rich messages), `OutlookCallCard`
+    ("Conviction", "What would change our view:"), and `MacroPanel` (heading, intro, "as of", 
+    supportive/restrictive, sr text, "30d", "pp", footnote; hardcoded `en-US` date →
+    `formatMediumDate`). English verified **identical** incl. `<head>` metadata and JSON-LD.
+  - **Two RTL bugs found by screenshot, not by any check** (`check:rtl` was green throughout):
+    ① the change line put the Arabic unit (نقطة مئوية) *inside* the `<Num>` LTR isolate, so it
+    was laid out left-to-right with the digits — `formatChange` now returns `{ num, unit }` and only
+    the number is isolated. ② The English provider attribution (`macro.source`, never translated)
+    had its parentheses/semicolon reordered against the Arabic sentence — the footnote is now
+    `<attribution>{source}</attribution>. …` rendered as `<bdi dir="ltr" lang="en">`.
+    **Lesson: when a message embeds a language-neutral or foreign-language value, isolate the
+    value and keep units/words outside the isolate.** Verify ordering by measuring child
+    `getBoundingClientRect()` x-positions — reading a screenshot of mixed-direction text misled me
+    once in this batch.
+  - `/ar/outlook` chrome is clean; `check:untranslated` still lists 76 chunks, **all** artifact
+    content (summary, key-level labels, calls, macro indicator labels, analysis) plus the source
+    titles, which are deliberately never translated.
+  - **⚠ For Phase E — fallback content renders garbled in RTL.** Untranslated English content on an
+    `/ar` page ("10-year real yield") is laid out in the RTL paragraph direction and reads
+    "year real yield-10". Normally the translation ships in the same PR as the content, so this is
+    the rare path — but where `getOutlookFor` / `isArticleTranslated` report a fallback, the
+    content containers should carry `lang="en" dir="ltr"` (also correct for screen readers).
+  - Verified: `check:rtl` 24/24 (0 axe, 0 console errors), `check:markdown` 37/37, `i18n:check`
+    0 errors (25 + 1 keys translated; the freshness gate correctly failed the footnote after its
+    English changed, and it was re-run through the pipeline rather than hand-patched).
+- 2026-10-22: **i18n chrome batch 3 — `/insights` (list, both kind views, article page).**
+  - **Insight-kind copy moved out of `config/insight-kinds.ts` into the catalog**
+    (`insights.kinds.{explainers,marketUpdates}`); the config keeps structure only (`kind`, `slug`,
+    `href`, `messageKey`). Read it through **`insightKindCopy(def, locale)`** — sync, via
+    `messages()`, because the Markdown builder, `llms.txt` and metadata builders run outside a
+    render. Added `inlineLabel` because the old code did `label.toLowerCase()`, which means nothing
+    in Arabic. `breadcrumb.home` added; breadcrumb "Insights" reuses `nav.insights`.
+  - English verified **byte-identical** for all four Markdown representations, `llms.txt`,
+    `sitemap.xml` and `rss.xml`, and text-identical HTML on `/insights`, both kind views and an
+    article. ISR windows unchanged.
+  - **First ICU plural in the catalog** — `insights.article.readingTime`:
+    `{count, plural, one {{minutes} min read} other {{minutes} min read}}`.
+    **⚠ Pass the digits as a pre-formatted STRING (`minutes: String(n)`) and select with a numeric
+    `count`.** ICU formats number arguments with the page locale, and next-intl's locale is plain
+    `ar` — not the registry's `ar-u-nu-latn` — so a numeric argument renders Arabic-Indic digits
+    (٤), breaking the Latin-digits rule. Renders `4 دقائق قراءة` (CLDR `few`).
+  - **The gate now parses ICU** (`icuInfo` / `icuFindings` in `check.ts`, catalog strings only —
+    artifact Markdown can contain literal braces). A translation must parse, keep the same argument
+    names/types, use only plural categories valid for the target locale (from `Intl.PluralRules`,
+    or `=N`), always include `other`, and keep `select` keys exactly. For branched messages,
+    numerals and placeholders compare as **sets** over **literal text only** — Arabic has six
+    branches to English's two, and an `=1` selector is not a digit. 4 new self-test fixtures
+    (translated keyword, missing `other`, unbalanced brace, renamed argument) + a valid six-branch
+    Arabic fixture; self-test now **27**. Prompt rule 8 (`TRANSLATION_PROMPT_VERSION 2026-10-22.1`)
+    derives the category list from `Intl.PluralRules`, so Spanish (`one, many, other`) needs no code.
+  - New exact devDependency **`@formatjs/icu-messageformat-parser@3.5.16`** (was already in the tree
+    transitively via next-intl). Lock regenerated with **npm 10.9.4** per the deploy-trap recipe;
+    `npm ci` under npm 10 verified.
+  - **⚠ Pre-existing, unrelated: the weekly `security-audit` workflow has FAILED every run since at
+    least 2026-09-28.** All advisories (`@modelcontextprotocol/sdk` high ×5, `braces`, `brace-expansion`)
+    come through the **`shadcn` CLI, which sits in `dependencies`** although it is only a dev tool.
+    Fix in its own PR: move `shadcn` to `devDependencies` (+ `npm audit fix`), which takes it out of
+    the `--omit=dev` gate. Not done here.
+  - **Phase E TODOs collected so far** (all needed before enabling `ar`):
+    ① `insights/[slug]/page.tsx` still passes `ACTIVE_LOCALE_CODES` to `withLocaleMetadata` — must
+    pass only the locales the article is actually translated into (`isArticleTranslated`), or an
+    untranslated article advertises an Arabic hreflang. ② Same for article entries in `sitemap.ts`.
+    ③ Fallback English content on an `/ar` page must carry `lang="en" dir="ltr"` (renders garbled
+    otherwise: ".watch next", "year real yield-10").
+  - Verified: `check:rtl` 24/24 + 12/12 on the insights pages (0 axe, 0 console errors),
+    `check:faq` 96/96, `check:markdown` 37/37, `i18n:check` 0 errors (26 keys translated, 340
+    untouched). `/ar/insights*` chrome is clean; remaining chunks are article content + source titles.
+- 2026-10-22: **i18n chrome batch 4 — `/trends` + all five calculators. Interface translation is now
+  complete on every routed page** (`check:untranslated` reports 0 chrome chunks on trends +
+  calculators, static and hydrated; what remains site-wide is artifact content → Phase E).
+  - Same structure-vs-copy split as insight kinds: **`config/tools.ts` keeps `slug`/`href`/
+    `messageKey`; names/descriptions live in `tools.<key>` and are read via `toolCopy(def, locale)`**
+    (sync — JSON-LD, Markdown builder, `llms.txt`). Tool-page metadata and the four `about` blocks
+    (formula + worked example with live numbers as pre-formatted string placeholders) are catalog
+    messages too. Calculator UI is under `calc.*`; `lib/calculator.ts` stays pure math — unit and
+    purity labels come from `useUnitOptions()` / `usePurityOptions()` / `useKaratLabel()`
+    (`"18K"` stays the key in data and URLs; Arabic shows `عيار 18`, non-breaking).
+  - **Money inputs follow the locale's currency position** (`useCurrencyAffix()`): `$` prefix in
+    English, `دولار` suffix in Arabic. Ticker times use the registry's `intlLocale`.
+  - **⚠ `SignedUsd` (in `components/market/num.tsx`) for any signed money amount.** `<Num>` around
+    `+4,000.00 دولار` keeps the sign attached but flips the word order for an Arabic reader; only
+    the signed AMOUNT may be isolated, the suffix unit must follow outside it. Verified by measuring
+    `getBoundingClientRect()` (number right of `دولار` in RTL). English output is unchanged
+    (`+$4,000.00`, `$-103.38`). `formatUsdParts()` added to `lib/format.ts` for this.
+  - **⚠ next-intl resolves tags and arguments from ONE values object.** `<breakEven>…</breakEven> —
+    {breakEven}` hands the link tag a string and throws at render. Caught by reading, then made a
+    gate rule (both sides, self-tested in isolation).
+  - **Three pre-existing ENGLISH bugs found because `check:rtl` only ever loaded empty calculators:**
+    ① **mobile horizontal scroll** on `/calculator` and three tool pages once results render
+    (441–461px document width at a 390px viewport) — the grids were `grid lg:grid-cols-[…]`, so
+    below `lg` an implicit `auto` column grew to the results tables' `min-w`. Fixed with
+    `grid-cols-1` (= `minmax(0,1fr)`). ② **contrast**: the P/L `(+x%)` used `opacity-75` on
+    bull/bear → under 4.5:1; opacity removed. ③ **dark-mode contrast** of bear text on the
+    highlighted "Today's spot" row: 4.35:1 → dark `--bear` raised L0.64→0.68 (5.12:1; also lifts the
+    SELL badge 5.17→6.09:1). **`check:rtl` now loads six results-state URLs by default** (36
+    combinations) — that is the state where all three lived.
+  - **Signed percentages in calculator tables/lines now use `<Num>`** (they rendered `20%-` and
+    `%5.0+` in Arabic). Two English result lines (`Gold must rise +x% …`, `… return on a $X
+    outlay`) now wrap as one sentence instead of separate flex items — same text, slightly tighter.
+  - English verified: static HTML of `/trends` + 5 calculator pages identical (digits masked — the
+    live spot moves between builds); hydrated DOM text identical (same masking; whitespace differs
+    only where `<Num>` is inline-block); `llms.txt` byte-identical; `check:markdown` 37/37.
+    `check:rtl` 36/36 (0 axe, 0 console errors), `check:faq` 96/96, `i18n:check` 0 errors
+    (238 + 2 keys translated, existing untouched).
+  - **Arabic for review**: `{unit} خالص` lacks gender agreement with `أونصة` (feminine); `ozt`/`oz`/
+    `dwt` short units kept Latin; "stale" → `قديم`; formulas are written in Arabic word order.
+  - **Next: Phase E.** Interface work is done. Remaining before `enabled: true`: ① translate the
+    content artifacts (outlook, 13 articles, `/disclaimer`) — spends API budget, owner review;
+    ② the three Phase E code TODOs (per-article hreflang + sitemap via `isArticleTranslated`,
+    `lang="en" dir="ltr"` on fallback content); ③ native review of the glossary + catalog;
+    ④ flip `ar` to `enabled: true` in a reviewed PR.
+- 2026-10-23: **Phase E, step 1 — translation availability, freshness and fallback (code only).**
+  Merged `main` first (PR #102 and #103 both live; #103's deploy succeeded; the only conflict was the
+  expected overlap in `gold-calculator.tsx`, resolved to the i18n side, which already had the fix).
+  - **Runtime freshness.** A translation whose `translation.sourceHash` ≠ `hashFields(<fields of the
+    CURRENT English>)` is treated as missing — in `getTranslatedOutlook` and in a new
+    `freshTranslations()` behind `getAllArticles` / `translatedSlugs`. Reason: the outlook changes
+    daily, so a translation that missed a run would show Arabic readers yesterday's BUY/SELL beside
+    today's English. `i18n:check` already blocks a stale *merge*; this covers the runtime gap. Logged
+    as `[outlook|articles] … is stale; falling back to English`.
+  - **`src/server/i18n/availability.ts`** — `articleLocales(slug)`, `outlookLocales()`,
+    `pageLocales(slug)` (routed locales with a CURRENT translation, computed across ALL locales) and
+    `contentLangProps(translated, locale)`. **Bug fixed on the way:** `/disclaimer` computed
+    availability for the *current* locale only, so the English page always advertised an Arabic
+    alternate that did not exist.
+  - **Fallback pages canonicalize to English.** `withLocaleMetadata` (`lib/seo.ts`): when the current
+    locale is not in `availableLocales`, canonical, `og:url` and `og:locale` point at the English
+    original, and no hreflang is emitted. JSON-LD on a fallback describes the English article
+    (`inLanguage: "en"`, English URL). Translated pages still self-canonicalize.
+  - **Sitemap** lists `/outlook`, `/disclaimer` and each article only in locales that have a current
+    translation (per-route availability; route ORDER preserved so the English sitemap stays
+    byte-identical).
+  - **`lang="en" dir="ltr"` on fallback content** — article page, outlook (summary, key-level
+    labels, call cards, macro labels, analysis), home recommendations, `/disclaimer`, and **per
+    card** in mixed archives (`ArticleCard`). Source titles are English on every locale, so their
+    `<li>` always carry it on non-English pages. `contentLangProps` returns `{}` for English/
+    translated content, so those pages are unchanged.
+  - **Verified English unchanged, byte for byte**: `sitemap.xml`, `llms.txt`, `rss.xml`, 5 Markdown
+    representations, and the head tags + JSON-LD of 7 pages, against a build of the pre-change commit;
+    route table identical (33 routes, ISR preserved).
+  - **Verified all three Arabic states** with offline mock translations (deleted, never committed):
+    ① *no translations* (today) — `/ar/insights/<slug>`, `/ar/outlook` canonical → English, no
+    hreflang, `inLanguage: en`, content marked English; sitemap has 0 Arabic artifact URLs (13 chrome
+    URLs). ② *translated* — en+ar+x-default hreflang both ways, self-canonical, `inLanguage: ar`,
+    sitemap 17 ar articles + `/ar/outlook`. ③ *stale* (English edited after translation) — that
+    article and the outlook drop back to state ①, sitemap 16 + 0, home marks exactly the stale cards.
+    `check:rtl` 36/36 + fallback pages 10/10 (0 axe, 0 console errors), `check:faq` 96/96.
+  - **⚠ Found, NOT fixed (pre-existing, live in English):** pages whose metadata has no `openGraph`
+    inherit the layout's — `/trends` and `/disclaimer` ship `og:url` = the homepage (verified on
+    production), so a share on Facebook/LinkedIn is attributed to the homepage. Same root cause leaks
+    the layout's `og:locale:alternate` onto those pages. Fix belongs in `withLocaleMetadata` (always
+    emit an `openGraph` with title/description/url) — as its own PR, like #102/#103.
+  - **⚠ The translation pipeline has no PAGE support.** `translate-content.mts` handles the outlook,
+    articles and catalog, not `src/content/pages/`, so `/ar/disclaimer` cannot be produced yet. Needs
+    a `translatePages()` (Markdown + frontmatter, with `translation.sourceHash` stored) before Phase E
+    content. Legal page → owner review mandatory.
+  - **Remaining Phase E**: ① pipeline page support; ② real content run (outlook + 17 articles +
+    disclaimer — API spend) and owner review; ③ native review of glossary + catalog (flagged items
+    across the batch entries above); ④ enable `ar` in a reviewed PR.
+- 2026-10-23: **Phase E step 2 — page translation in the pipeline** (+ PR #104 opened off `main`).
+  - **PR #104 (`fix/og-url-per-page`)**: Next replaces a parent's `openGraph`/`twitter` object
+    wholesale. Live audit: `/trends`, `/insights`, `/disclaimer` previewed as the HOMEPAGE (og:url,
+    title, description); the calculators, `/about`, `/methodology`, `/ai-disclosure` and both insight
+    views had **no og:image** and no `og:site_name`; **every** page sent the homepage's
+    `twitter:title`. `withLocaleMetadata` now always emits complete `openGraph` + `twitter` blocks
+    with the brand card as default image. **⚠ Config `images` OUTRANK a segment's `opengraph-image`
+    file** (verified — `/outlook` lost its dynamic card), so routes with their own image pass
+    `{ ownImage: true }`. When #104 merges, `lib/seo.ts` will conflict with this branch's
+    `contentLocale` change — keep both.
+  - **Pages are now translatable**: `translatePages()` in `translate-content.mts`
+    (`TRANSLATE_ONLY=pages`), `checkPages()` in `i18n:check`, runtime freshness in
+    `server/pages` (`freshTranslation` — stale → English fallback, like articles/outlook).
+    Parser + new serializer live in **`src/lib/page-markdown.ts`** (shared: the pipeline runs under
+    tsx and cannot import `server-only`). Translation metadata is stored as dotted frontmatter keys
+    (`translation.sourceHash: "…"`) and regrouped on read; values are always double-quoted; a value
+    with a newline is rejected. Round-trip verified exact.
+  - **🐛 Fixed in the same change: `TRANSLATE_ONLY` dispatch.** Inserting `pages` exposed that the
+    old guards were negative (`only !== "articles"` ran the outlook for any other value). Now each
+    kind runs only when selected or when nothing is; unknown values throw.
+  - **🐛 Would have cost money daily once `ar` is on**: both workflows ran the FULL
+    `i18n:translate` but commit only their own directory (`add-paths`), so the daily outlook run would
+    have translated — and discarded — any stale articles/pages/catalog keys every day. Now
+    `TRANSLATE_ONLY: outlook` / `articles`.
+  - Verified with the mock translator (all output deleted): write → skip on rerun → `i18n:check`
+    pairs it → `/ar/disclaimer` self-canonical + hreflang both ways + sitemap + Markdown twin →
+    English edited → gate errors "stale", page falls back (canonical → English, no hreflang, out of
+    the sitemap).
+- 2026-10-23: **Phase E step 3 — first real Arabic content run.** Arabic is still `enabled: false`;
+  nothing reaches visitors until the enabling PR.
+  - **Translated (claude-opus-4-8, no web search):** the current outlook, all **17** published
+    articles, `/disclaimer`, plus 16 new catalog keys (`/subscribed`). `i18n:check`: **20 artifacts,
+    0 errors**, 24 warnings — 20 are glossary *inflection* misses (plurals like `علاوات التاجر` /
+    `إشارات` vs singular entries — fix by adding variants, not rewording), 2 are acronym tags kept
+    Latin (`DXY`, `fomc`), 2 are the known spelled-out-number catalog warnings.
+  - **Two gate errors on the first pass, both legitimate Arabic:** "its 20th consecutive month" →
+    `الشهر العشرين` (ordinal as a word) and "2 cents" → `سنتين` (grammatical dual). The article gate
+    is strict on purpose (any number change in market analysis fails), so the two phrases were
+    switched to the equally idiomatic digit forms (`للشهر الـ20 على التوالي`, `بمقدار 2 سنت`)
+    rather than relaxing the rule.
+  - **Glossary contradiction resolved (owner to confirm):** "Fed" was on `doNotTranslate` while
+    "Federal Reserve" had the approved `الاحتياطي الفيدرالي` — the model correctly wrote the Arabic and
+    the gate failed it. "Fed" moved from `doNotTranslate` to a term (`الاحتياطي الفيدرالي`, variant
+    `الفيدرالي`); the one catalog string with Latin "Fed" was regenerated. **Edit glossary JSON
+    textually** — `json.dumps` reflowed the whole file into a 544-line diff (same lesson as the
+    2026-07-30 `kind` migration).
+  - **🐛 Phase B money-order bug fixed:** `<Num>{formatUsd(x)}</Num>` wraps `4,078.59 دولار` in one
+    LTR isolate, which puts the unit on the RIGHT — an Arabic reader meets it first. Measured on the
+    outlook header, key levels and the price ticker. New `Usd` / `MoneyText` (`market/num.tsx`)
+    isolate only the amount. **Never `<Num>` a whole currency string again** — use `Usd`,
+    `SignedUsd` or `MoneyText`.
+  - `/subscribed` converted (missed by the chrome batches). `check:untranslated` across the default
+    12 `/ar` pages now reports only the 5 deliberate English strings on `/ar/outlook` (FRED
+    attribution + source titles).
+  - Verified: Arabic build — all artifact pages self-canonical with en/ar/x-default hreflang, sitemap
+    32 `/ar` URLs, 0 stale; `check:rtl` 36/36, `check:faq` 96/96. English-only build — all 15
+    English surfaces byte-identical to the pre-Phase-E baseline, `check:markdown` 37/37.
+  - **Owner review list before enabling** (everything is in the PR diff): ① the disclaimer (legal);
+    ② the outlook; ③ a sample of articles; ④ the Fed glossary change; ⑤ catalog items flagged across
+    the 2026-10-22 batch entries (signal words, `القناعة`, `حتى` for "as of", `{unit} خالص` gender
+    agreement, `قديم`, `شروحات`, `{minutes} دقيقتان`); ⑥ add plural variants to the glossary.
+  - **Then**: flip `ar` to `enabled: true` in its own reviewed PR. From that point the daily-outlook
+    and articles workflows translate in the same PR as the English (scoped by `TRANSLATE_ONLY`).
+- 2026-10-23: **🚀 Arabic enabled** (`ar` → `enabled: true` in `src/config/locales.ts`) after owner
+  review of the interface, glossary, outlook, 17 articles and the disclaimer. No review edits were
+  made — content ships as generated and gated.
+  - Translations refreshed immediately before the flip (all current: catalog 620/620, outlook, 17
+    articles, disclaimer). No `NEXT_PUBLIC_LOCALES_ENABLED` repo variable exists, so the registry
+    flag alone controls production (an unset var arrives as `""` and is normalised away).
+  - Verified on a plain build (= what CI builds): 21 `/ar` routes, sitemap 64 URLs / 32 Arabic,
+    0 stale, `check:rtl` 36/36, `check:faq` 96/96 (en + ar), `check:markdown` 37/37,
+    `check:untranslated` = only the 5 deliberate English strings on `/ar/outlook`. English
+    canonicals unchanged; every page now carries en/ar/x-default hreflang; switcher renders.
+  - **⚠ Purge Cloudflare after the deploy.** Fully static English pages (`/about`, `/methodology`,
+    …) are edge-cached with `s-maxage=31536000`, so they keep serving pre-launch HTML (no language
+    switcher, no Arabic hreflang) until purged. `/ar/*` 404s and `sitemap.xml` were NOT cached
+    (`DYNAMIC`), so Arabic URLs work as soon as the deploy lands.
+  - From now on: the daily-outlook and articles workflows translate in the same PR as the English
+    (`TRANSLATE_ONLY` scoped); `content-check.yml` gates them; a stale translation falls back to
+    labelled English at runtime rather than contradicting the source.
+  - **PR #104** (social-card fix) is still open against `main`; it will conflict in `lib/seo.ts`
+    with this branch's `contentLocale` — resolve by keeping both.

@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 
 import { useFormat } from "@/lib/use-format";
 import type { PricePoint } from "@/types/price";
@@ -14,6 +15,7 @@ const PAD_BOTTOM = 24;
 
 export function PriceChart({ points }: { points: PricePoint[] }) {
   const fmt = useFormat();
+  const t = useTranslations("trends.chart");
   const [hover, setHover] = React.useState<number | null>(null);
 
   const geom = React.useMemo(() => {
@@ -90,13 +92,14 @@ export function PriceChart({ points }: { points: PricePoint[] }) {
           preserveAspectRatio="none"
           className="h-64 w-full touch-none sm:h-72"
           role="img"
-          aria-label={`Gold price over the last 30 days: from ${fmt.usd(
-            first.price,
-          )} on ${fmt.shortDate(first.t)} to ${fmt.usd(
-            last.price,
-          )} on ${fmt.shortDate(last.t)}. Range ${fmt.usd(
-            geom.min,
-          )} to ${fmt.usd(geom.max)}.`}
+          aria-label={t("summary", {
+            from: fmt.usd(first.price),
+            fromDate: fmt.shortDate(first.t),
+            to: fmt.usd(last.price),
+            toDate: fmt.shortDate(last.t),
+            min: fmt.usd(geom.min),
+            max: fmt.usd(geom.max),
+          })}
           onPointerMove={handleMove}
           onPointerLeave={() => setHover(null)}
         >
@@ -177,11 +180,11 @@ export function PriceChart({ points }: { points: PricePoint[] }) {
 
       {/* Screen-reader / no-JS data table */}
       <table className="sr-only">
-        <caption>Gold price (USD/oz), last 30 days</caption>
+        <caption>{t("caption")}</caption>
         <thead>
           <tr>
-            <th>Date</th>
-            <th>Price</th>
+            <th>{t("date")}</th>
+            <th>{t("price")}</th>
           </tr>
         </thead>
         <tbody>
