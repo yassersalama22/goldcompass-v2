@@ -1953,3 +1953,38 @@ Match the current site's look and feel:
     pairs it → `/ar/disclaimer` self-canonical + hreflang both ways + sitemap + Markdown twin →
     English edited → gate errors "stale", page falls back (canonical → English, no hreflang, out of
     the sitemap).
+- 2026-10-23: **Phase E step 3 — first real Arabic content run.** Arabic is still `enabled: false`;
+  nothing reaches visitors until the enabling PR.
+  - **Translated (claude-opus-4-8, no web search):** the current outlook, all **17** published
+    articles, `/disclaimer`, plus 16 new catalog keys (`/subscribed`). `i18n:check`: **20 artifacts,
+    0 errors**, 24 warnings — 20 are glossary *inflection* misses (plurals like `علاوات التاجر` /
+    `إشارات` vs singular entries — fix by adding variants, not rewording), 2 are acronym tags kept
+    Latin (`DXY`, `fomc`), 2 are the known spelled-out-number catalog warnings.
+  - **Two gate errors on the first pass, both legitimate Arabic:** "its 20th consecutive month" →
+    `الشهر العشرين` (ordinal as a word) and "2 cents" → `سنتين` (grammatical dual). The article gate
+    is strict on purpose (any number change in market analysis fails), so the two phrases were
+    switched to the equally idiomatic digit forms (`للشهر الـ20 على التوالي`, `بمقدار 2 سنت`)
+    rather than relaxing the rule.
+  - **Glossary contradiction resolved (owner to confirm):** "Fed" was on `doNotTranslate` while
+    "Federal Reserve" had the approved `الاحتياطي الفيدرالي` — the model correctly wrote the Arabic and
+    the gate failed it. "Fed" moved from `doNotTranslate` to a term (`الاحتياطي الفيدرالي`, variant
+    `الفيدرالي`); the one catalog string with Latin "Fed" was regenerated. **Edit glossary JSON
+    textually** — `json.dumps` reflowed the whole file into a 544-line diff (same lesson as the
+    2026-07-30 `kind` migration).
+  - **🐛 Phase B money-order bug fixed:** `<Num>{formatUsd(x)}</Num>` wraps `4,078.59 دولار` in one
+    LTR isolate, which puts the unit on the RIGHT — an Arabic reader meets it first. Measured on the
+    outlook header, key levels and the price ticker. New `Usd` / `MoneyText` (`market/num.tsx`)
+    isolate only the amount. **Never `<Num>` a whole currency string again** — use `Usd`,
+    `SignedUsd` or `MoneyText`.
+  - `/subscribed` converted (missed by the chrome batches). `check:untranslated` across the default
+    12 `/ar` pages now reports only the 5 deliberate English strings on `/ar/outlook` (FRED
+    attribution + source titles).
+  - Verified: Arabic build — all artifact pages self-canonical with en/ar/x-default hreflang, sitemap
+    32 `/ar` URLs, 0 stale; `check:rtl` 36/36, `check:faq` 96/96. English-only build — all 15
+    English surfaces byte-identical to the pre-Phase-E baseline, `check:markdown` 37/37.
+  - **Owner review list before enabling** (everything is in the PR diff): ① the disclaimer (legal);
+    ② the outlook; ③ a sample of articles; ④ the Fed glossary change; ⑤ catalog items flagged across
+    the 2026-10-22 batch entries (signal words, `القناعة`, `حتى` for "as of", `{unit} خالص` gender
+    agreement, `قديم`, `شروحات`, `{minutes} دقيقتان`); ⑥ add plural variants to the glossary.
+  - **Then**: flip `ar` to `enabled: true` in its own reviewed PR. From that point the daily-outlook
+    and articles workflows translate in the same PR as the English (scoped by `TRANSLATE_ONLY`).
