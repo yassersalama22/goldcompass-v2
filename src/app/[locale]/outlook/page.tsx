@@ -45,6 +45,7 @@ export async function generateMetadata({
     "/outlook",
     locale,
     outlookLocales(),
+    { ownImage: true },
   );
 }
 

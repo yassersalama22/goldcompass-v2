@@ -60,6 +60,7 @@ export async function generateMetadata({
     `/insights/${article.slug}`,
     locale,
     articleLocales(article.slug),
+    { ownImage: true },
   );
 }
 

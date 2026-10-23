@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { siteConfig } from "@/config/site";
 import {
   ACTIVE_LOCALES,
   DEFAULT_LOCALE,
@@ -94,19 +95,70 @@ export function withLocaleMetadata(
   path: string,
   locale: string,
   availableLocales?: readonly string[],
+  /**
+   * Set when the route segment has its own `opengraph-image` (outlook,
+   * articles). Config `images` OUTRANK a segment's image file — verified: with
+   * the default set, `/outlook` lost its dynamic card to the brand card — so
+   * these pages must leave `images` unset for their file to apply.
+   */
+  options: { ownImage?: boolean } = {},
 ): Metadata {
+  const title =
+    (base.openGraph?.title as string | undefined) ??
+    (typeof base.title === "string" ? base.title : undefined);
+  const description = base.openGraph?.description ?? base.description ?? undefined;
+
+  // A page with no title of its own (the home page) keeps the layout's social
+  // metadata, which already describes it.
+  if (!title) {
+    return { ...base, alternates: localeAlternates(path, locale, availableLocales) };
+  }
+
+  /*
+   * Always emit COMPLETE `openGraph` and `twitter` blocks per page.
+   *
+   * Next replaces a parent's `openGraph`/`twitter` object wholesale rather than
+   * merging it, which broke social previews both ways until 2026-10-23:
+   *  - pages that set no `openGraph` inherited the layout's, so `/trends`,
+   *    `/insights` and `/disclaimer` previewed as the HOME page (og:url, title
+   *    and description all the homepage's);
+   *  - pages that set a partial `openGraph` lost the layout's `siteName` and the
+   *    site-wide image, so the calculators, `/about`, `/methodology`,
+   *    `/ai-disclosure` and the insight views shared with no image at all;
+   *  - no page set `twitter`, so every page — `/outlook` included — sent the
+   *    homepage's `twitter:title`.
+   * The brand card is the default image; see `options.ownImage`.
+   */
+  const images = options.ownImage
+    ? {}
+    : {
+        images: base.openGraph?.images ?? [
+          { url: `/${locale}/opengraph-image`, width: 1200, height: 630, alt: siteConfig.name },
+        ],
+      };
+
   return {
     ...base,
     alternates: localeAlternates(path, locale, availableLocales),
-    ...(base.openGraph
-      ? {
-          openGraph: {
-            ...base.openGraph,
-            url: localizePath(path, contentLocale(locale, availableLocales)),
-            ...localeOpenGraph(contentLocale(locale, availableLocales), availableLocales),
-          },
-        }
-      : {}),
+    openGraph: {
+      type: "website",
+      siteName: siteConfig.name,
+      ...base.openGraph,
+      title,
+      ...(description ? { description } : {}),
+      ...images,
+      // contentLocale: a fallback page (an /ar URL serving English) points its
+      // og:url and og:locale at the English original, like its canonical.
+      url: localizePath(path, contentLocale(locale, availableLocales)),
+      ...localeOpenGraph(contentLocale(locale, availableLocales), availableLocales),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      ...(description ? { description } : {}),
+      ...images,
+      ...base.twitter,
+    },
   };
 }
 
