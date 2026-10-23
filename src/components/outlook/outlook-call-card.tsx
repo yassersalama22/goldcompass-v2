@@ -10,18 +10,22 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import type { ContentLang } from "@/server/i18n/availability";
 import type { OutlookCall } from "@/types/outlook";
 
-export function OutlookCallCard({ call }: { call: OutlookCall }) {
+/** `content` marks the artifact text (not the chrome) when it is a fallback. */
+export function OutlookCallCard({ call, content = {} }: { call: OutlookCall; content?: ContentLang }) {
   const t = useTranslations("outlook.call");
   return (
     <Card className="border-s-gold border-s-4">
       <CardHeader>
         <div className="flex items-center justify-between gap-3">
-          <CardTitle className="text-xl">{call.label}</CardTitle>
+          <CardTitle className="text-xl" {...content}>
+            {call.label}
+          </CardTitle>
           <SignalBadge signal={call.signal} size="lg" />
         </div>
-        <CardDescription className="text-sm font-medium">
+        <CardDescription className="text-sm font-medium" {...content}>
           {call.horizon}
         </CardDescription>
       </CardHeader>
@@ -32,7 +36,9 @@ export function OutlookCallCard({ call }: { call: OutlookCall }) {
           <span className="text-muted-foreground text-sm">{t("conviction")}</span>
           <ConfidenceMeter confidence={call.confidence} />
         </div>
-        <p className="text-foreground/90 leading-7">{call.reason}</p>
+        <p className="text-foreground/90 leading-7" {...content}>
+          {call.reason}
+        </p>
         {call.invalidation ? (
           <p className="text-muted-foreground flex gap-2 text-sm">
             <ShieldAlert
@@ -41,7 +47,7 @@ export function OutlookCallCard({ call }: { call: OutlookCall }) {
             />
             <span>
               <span className="font-medium">{t("invalidation")} </span>
-              {call.invalidation}
+              <span {...content}>{call.invalidation}</span>
             </span>
           </p>
         ) : null}

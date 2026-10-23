@@ -1877,3 +1877,51 @@ Match the current site's look and feel:
     ② the three Phase E code TODOs (per-article hreflang + sitemap via `isArticleTranslated`,
     `lang="en" dir="ltr"` on fallback content); ③ native review of the glossary + catalog;
     ④ flip `ar` to `enabled: true` in a reviewed PR.
+- 2026-10-23: **Phase E, step 1 — translation availability, freshness and fallback (code only).**
+  Merged `main` first (PR #102 and #103 both live; #103's deploy succeeded; the only conflict was the
+  expected overlap in `gold-calculator.tsx`, resolved to the i18n side, which already had the fix).
+  - **Runtime freshness.** A translation whose `translation.sourceHash` ≠ `hashFields(<fields of the
+    CURRENT English>)` is treated as missing — in `getTranslatedOutlook` and in a new
+    `freshTranslations()` behind `getAllArticles` / `translatedSlugs`. Reason: the outlook changes
+    daily, so a translation that missed a run would show Arabic readers yesterday's BUY/SELL beside
+    today's English. `i18n:check` already blocks a stale *merge*; this covers the runtime gap. Logged
+    as `[outlook|articles] … is stale; falling back to English`.
+  - **`src/server/i18n/availability.ts`** — `articleLocales(slug)`, `outlookLocales()`,
+    `pageLocales(slug)` (routed locales with a CURRENT translation, computed across ALL locales) and
+    `contentLangProps(translated, locale)`. **Bug fixed on the way:** `/disclaimer` computed
+    availability for the *current* locale only, so the English page always advertised an Arabic
+    alternate that did not exist.
+  - **Fallback pages canonicalize to English.** `withLocaleMetadata` (`lib/seo.ts`): when the current
+    locale is not in `availableLocales`, canonical, `og:url` and `og:locale` point at the English
+    original, and no hreflang is emitted. JSON-LD on a fallback describes the English article
+    (`inLanguage: "en"`, English URL). Translated pages still self-canonicalize.
+  - **Sitemap** lists `/outlook`, `/disclaimer` and each article only in locales that have a current
+    translation (per-route availability; route ORDER preserved so the English sitemap stays
+    byte-identical).
+  - **`lang="en" dir="ltr"` on fallback content** — article page, outlook (summary, key-level
+    labels, call cards, macro labels, analysis), home recommendations, `/disclaimer`, and **per
+    card** in mixed archives (`ArticleCard`). Source titles are English on every locale, so their
+    `<li>` always carry it on non-English pages. `contentLangProps` returns `{}` for English/
+    translated content, so those pages are unchanged.
+  - **Verified English unchanged, byte for byte**: `sitemap.xml`, `llms.txt`, `rss.xml`, 5 Markdown
+    representations, and the head tags + JSON-LD of 7 pages, against a build of the pre-change commit;
+    route table identical (33 routes, ISR preserved).
+  - **Verified all three Arabic states** with offline mock translations (deleted, never committed):
+    ① *no translations* (today) — `/ar/insights/<slug>`, `/ar/outlook` canonical → English, no
+    hreflang, `inLanguage: en`, content marked English; sitemap has 0 Arabic artifact URLs (13 chrome
+    URLs). ② *translated* — en+ar+x-default hreflang both ways, self-canonical, `inLanguage: ar`,
+    sitemap 17 ar articles + `/ar/outlook`. ③ *stale* (English edited after translation) — that
+    article and the outlook drop back to state ①, sitemap 16 + 0, home marks exactly the stale cards.
+    `check:rtl` 36/36 + fallback pages 10/10 (0 axe, 0 console errors), `check:faq` 96/96.
+  - **⚠ Found, NOT fixed (pre-existing, live in English):** pages whose metadata has no `openGraph`
+    inherit the layout's — `/trends` and `/disclaimer` ship `og:url` = the homepage (verified on
+    production), so a share on Facebook/LinkedIn is attributed to the homepage. Same root cause leaks
+    the layout's `og:locale:alternate` onto those pages. Fix belongs in `withLocaleMetadata` (always
+    emit an `openGraph` with title/description/url) — as its own PR, like #102/#103.
+  - **⚠ The translation pipeline has no PAGE support.** `translate-content.mts` handles the outlook,
+    articles and catalog, not `src/content/pages/`, so `/ar/disclaimer` cannot be produced yet. Needs
+    a `translatePages()` (Markdown + frontmatter, with `translation.sourceHash` stored) before Phase E
+    content. Legal page → owner review mandatory.
+  - **Remaining Phase E**: ① pipeline page support; ② real content run (outlook + 17 articles +
+    disclaimer — API spend) and owner review; ③ native review of glossary + catalog (flagged items
+    across the batch entries above); ④ enable `ar` in a reviewed PR.

@@ -18,7 +18,9 @@ import { withLocaleMetadata, type LocaleParams } from "@/lib/seo";
 import { outlookArticleSchema } from "@/lib/structured-data";
 import { cn } from "@/lib/utils";
 import { siteConfig } from "@/config/site";
-import { getPublishedOutlook } from "@/server/outlook";
+import { DEFAULT_LOCALE } from "@/config/locales";
+import { contentLangProps, outlookLocales } from "@/server/i18n/availability";
+import { getPublishedOutlook, hasOutlookTranslation } from "@/server/outlook";
 
 // ISR: re-render on a schedule; the pipeline will also trigger on-demand
 // revalidation when a new outlook is published.
@@ -42,6 +44,7 @@ export async function generateMetadata({
     },
     "/outlook",
     locale,
+    outlookLocales(),
   );
 }
 
@@ -52,13 +55,16 @@ export default async function OutlookPage({ params }: LocaleParams) {
   const report = getPublishedOutlook(locale);
   if (!report) notFound();
   const t = await getTranslations("outlook");
+  const translated = locale === DEFAULT_LOCALE || hasOutlookTranslation(locale);
+  const content = contentLangProps(translated, locale);
+  const sourceLang = contentLangProps(false, locale);
 
   const change = report.spot.changePct;
   const ChangeIcon = change != null && change < 0 ? ArrowDownRight : ArrowUpRight;
 
   return (
     <>
-      <JsonLd data={outlookArticleSchema(report, locale)} />
+      <JsonLd data={outlookArticleSchema(report, translated ? locale : DEFAULT_LOCALE)} />
 
       <Container className="max-w-3xl py-12 sm:py-16">
         <article className="space-y-10">
@@ -85,7 +91,7 @@ export default async function OutlookPage({ params }: LocaleParams) {
                 </span>
               ) : null}
             </div>
-            <p className="text-muted-foreground text-lg text-pretty">
+            <p className="text-muted-foreground text-lg text-pretty" {...content}>
               {report.summary}
             </p>
           </header>
@@ -95,7 +101,7 @@ export default async function OutlookPage({ params }: LocaleParams) {
             <h2 id="levels-heading" className="sr-only">
               {t("keyLevelsHeading")}
             </h2>
-            <KeyLevels levels={report.keyLevels} />
+            <KeyLevels levels={report.keyLevels} content={content} />
           </section>
 
           {/* Recommendation cards */}
@@ -105,7 +111,7 @@ export default async function OutlookPage({ params }: LocaleParams) {
             </h2>
             <div className="grid gap-6 md:grid-cols-2">
               {report.calls.map((call) => (
-                <OutlookCallCard key={call.term} call={call} />
+                <OutlookCallCard key={call.term} call={call} content={content} />
               ))}
             </div>
             <p className="text-muted-foreground text-sm">
@@ -116,14 +122,14 @@ export default async function OutlookPage({ params }: LocaleParams) {
           </section>
 
           {/* Macro backdrop — only when the artifact carries a snapshot */}
-          {report.macro ? <MacroPanel macro={report.macro} /> : null}
+          {report.macro ? <MacroPanel macro={report.macro} content={content} /> : null}
 
           {/* Full analysis */}
           <section aria-labelledby="analysis-heading">
             <h2 id="analysis-heading" className="sr-only">
               {t("analysisHeading")}
             </h2>
-            <Analysis markdown={report.analysisMarkdown} />
+            <Analysis markdown={report.analysisMarkdown} content={content} />
           </section>
 
           {/* Sources */}
@@ -134,7 +140,7 @@ export default async function OutlookPage({ params }: LocaleParams) {
               </h2>
               <ul className="space-y-2">
                 {report.sources.map((source) => (
-                  <li key={source.url} className="text-sm">
+                  <li key={source.url} className="text-sm" {...sourceLang}>
                     <a
                       href={source.url}
                       target="_blank"

@@ -5,6 +5,7 @@ import { ACTIVE_LOCALES, DEFAULT_LOCALE, localizePath } from "@/config/locales";
 import { siteConfig } from "@/config/site";
 import { TOOLS } from "@/config/tools";
 import { getAllArticles } from "@/server/articles";
+import { articleLocales, outlookLocales, pageLocales } from "@/server/i18n/availability";
 
 /**
  * Absolute URL for a path in a locale.
@@ -37,6 +38,17 @@ const routes = [
   "/ai-disclosure",
   "/disclaimer",
 ];
+
+/**
+ * Artifact-backed routes list only the locales with a current translation. An
+ * /ar URL that merely falls back to English canonicalizes to the English page,
+ * so listing it would hand crawlers a URL that disowns itself. Every other route
+ * is UI chrome, which every active locale has.
+ */
+const routeLocales: Record<string, () => string[]> = {
+  "/outlook": outlookLocales,
+  "/disclaimer": () => pageLocales("disclaimer"),
+};
 
 /**
  * One entry per active locale for a locale-independent path, each carrying the
@@ -87,10 +99,14 @@ function localizedEntries(
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const staticEntries = routes.flatMap((route) =>
-    localizedEntries(route, {
-      changeFrequency: route === "/trends" ? "hourly" : "weekly",
-      priority: route === "" ? 1 : 0.7,
-    }),
+    localizedEntries(
+      route,
+      {
+        changeFrequency: route === "/trends" ? "hourly" : "weekly",
+        priority: route === "" ? 1 : 0.7,
+      },
+      routeLocales[route]?.(),
+    ),
   );
 
   const insightKindEntries = INSIGHT_KINDS.flatMap((kind) =>
@@ -101,16 +117,22 @@ export default function sitemap(): MetadataRoute.Sitemap {
     localizedEntries(tool.href, { changeFrequency: "weekly", priority: 0.7 }),
   );
 
-  // TODO(i18n Phase C): pass the locales each article has been translated into,
-  // once translated artifacts exist. Today every active locale serves every
-  // article, so the default is accurate.
   const articleEntries = getAllArticles().flatMap((article) =>
-    localizedEntries(`/insights/${article.slug}`, {
-      lastModified: article.updatedAt,
-      changeFrequency: "monthly",
-      priority: 0.6,
-    }),
+    localizedEntries(
+      `/insights/${article.slug}`,
+      {
+        lastModified: article.updatedAt,
+        changeFrequency: "monthly",
+        priority: 0.6,
+      },
+      articleLocales(article.slug),
+    ),
   );
 
-  return [...staticEntries, ...insightKindEntries, ...toolEntries, ...articleEntries];
+  return [
+    ...staticEntries,
+    ...insightKindEntries,
+    ...toolEntries,
+    ...articleEntries,
+  ];
 }

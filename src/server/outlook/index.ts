@@ -4,6 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 import { DEFAULT_LOCALE } from "@/config/locales";
+import { hashFields, outlookFields } from "@/server/i18n/field-map";
 import currentOutlookJson from "@/content/outlook/current.json";
 import { outlookReportSchema, type OutlookReport } from "@/types/outlook";
 
@@ -46,7 +47,18 @@ export const getTranslatedOutlook = cache((locale: string): OutlookReport | null
       path.join(OUTLOOK_DIR, locale, "current.json"),
       "utf8",
     );
-    return outlookReportSchema.parse(JSON.parse(raw));
+    const report = outlookReportSchema.parse(JSON.parse(raw));
+    // A translation of an OLDER English outlook is treated as missing. The
+    // outlook changes daily: serving it would show Arabic readers yesterday's
+    // BUY/SELL beside today's English one. English, labelled as English, is the
+    // honest fallback. (`i18n:check` blocks a stale merge; this covers the
+    // runtime gap — e.g. the English artifact updated and translation failed.)
+    const sourceHash = hashFields(outlookFields(getCurrentOutlook()));
+    if (report.translation?.sourceHash !== sourceHash) {
+      console.warn(`[outlook] ${locale} translation is stale; falling back to English`);
+      return null;
+    }
+    return report;
   } catch {
     return null;
   }

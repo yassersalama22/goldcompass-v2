@@ -16,9 +16,13 @@ import {
  *
  * Two properties this must preserve:
  *
- *  1. **The canonical is self-referencing.** Each locale's page points at
- *     itself, never at the English original. Pointing translations at the source
- *     would ask Google to drop them from the index entirely.
+ *  1. **The canonical is self-referencing — for a real translation.** Each
+ *     translated page points at itself, never at the English original; pointing
+ *     translations at the source would ask Google to drop them from the index.
+ *     The exception is a FALLBACK: an `/ar/…` URL serving English because no
+ *     current translation exists. That page is a duplicate of the English one,
+ *     so its canonical (and `og:url`, `og:locale`) point at the English
+ *     original. A locale missing from `availableLocales` is what signals it.
  *
  *  2. **hreflang only advertises translations that exist.** `availableLocales`
  *     defaults to every active locale, which is right for pages that are always
@@ -37,7 +41,7 @@ export function localeAlternates(
   locale: string,
   availableLocales: readonly string[] = ACTIVE_LOCALES.map((l) => l.code),
 ): NonNullable<Metadata["alternates"]> {
-  const canonical = localizePath(path, locale);
+  const canonical = localizePath(path, contentLocale(locale, availableLocales));
 
   const advertised = ACTIVE_LOCALES.filter((l) =>
     availableLocales.includes(l.code),
@@ -56,6 +60,17 @@ export function localeAlternates(
   }
 
   return { canonical, languages };
+}
+
+/**
+ * The locale a page's content is actually in: the requested one when it is
+ * available, otherwise the canonical locale it falls back to.
+ */
+function contentLocale(
+  locale: string,
+  availableLocales: readonly string[] = ACTIVE_LOCALES.map((l) => l.code),
+): string {
+  return availableLocales.includes(locale) ? locale : DEFAULT_LOCALE;
 }
 
 /**
@@ -87,8 +102,8 @@ export function withLocaleMetadata(
       ? {
           openGraph: {
             ...base.openGraph,
-            url: localizePath(path, locale),
-            ...localeOpenGraph(locale, availableLocales),
+            url: localizePath(path, contentLocale(locale, availableLocales)),
+            ...localeOpenGraph(contentLocale(locale, availableLocales), availableLocales),
           },
         }
       : {}),

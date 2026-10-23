@@ -4,6 +4,7 @@ import { ArrowDown, ArrowRight, ArrowUp } from "lucide-react";
 import { Num } from "@/components/market/num";
 import { formatMediumDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import type { ContentLang } from "@/server/i18n/availability";
 import type { MacroIndicator, MacroSnapshot } from "@/types/macro";
 
 /**
@@ -49,7 +50,7 @@ function pressure(indicator: MacroIndicator): "supportive" | "restrictive" | nul
   return rising === isHeadwind ? "restrictive" : "supportive";
 }
 
-export function MacroPanel({ macro }: { macro: MacroSnapshot }) {
+export function MacroPanel({ macro, content = {} }: { macro: MacroSnapshot; content?: ContentLang }) {
   const t = useTranslations("outlook.macro");
   const locale = useLocale();
   if (macro.indicators.length === 0) return null;
@@ -78,7 +79,9 @@ export function MacroPanel({ macro }: { macro: MacroSnapshot }) {
               className="border-border flex items-start justify-between gap-4 rounded-xl border px-4 py-3"
             >
               <div className="min-w-0">
-                <p className="text-sm font-medium">{indicator.label}</p>
+                <p className="text-sm font-medium" {...content}>
+                  {indicator.label}
+                </p>
                 <p className="text-muted-foreground mt-0.5 text-xs">
                   {/* Daily series dated in UTC — formatMediumDate is UTC-pinned. */}
                   {t.rich("asOf", {

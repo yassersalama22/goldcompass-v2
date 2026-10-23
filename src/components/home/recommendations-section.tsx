@@ -13,12 +13,15 @@ import {
 } from "@/components/ui/card";
 import { getLocale, getTranslations } from "next-intl/server";
 
-import { getPublishedOutlook } from "@/server/outlook";
+import { contentLangProps } from "@/server/i18n/availability";
+import { getPublishedOutlook, hasOutlookTranslation } from "@/server/outlook";
 
 export async function RecommendationsSection() {
   // Single source of truth — same data the /outlook page and /api/v1 serve.
-  const report = getPublishedOutlook(await getLocale());
+  const locale = await getLocale();
+  const report = getPublishedOutlook(locale);
   if (!report) return null;
+  const content = contentLangProps(hasOutlookTranslation(locale), locale);
   const t = await getTranslations("home.recommendations");
 
   return (
@@ -47,16 +50,20 @@ export async function RecommendationsSection() {
             <Card key={call.term} className="border-s-gold border-s-4">
               <CardHeader>
                 <div className="flex items-center justify-between gap-3">
-                  <CardTitle className="text-xl">{call.label}</CardTitle>
+                  <CardTitle className="text-xl" {...content}>
+                    {call.label}
+                  </CardTitle>
                   <SignalBadge signal={call.signal} />
                 </div>
-                <CardDescription className="text-sm font-medium">
+                <CardDescription className="text-sm font-medium" {...content}>
                   {call.horizon}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
                 <ConfidenceMeter confidence={call.confidence} size="sm" />
-                <p className="text-muted-foreground">{call.reason}</p>
+                <p className="text-muted-foreground" {...content}>
+                  {call.reason}
+                </p>
               </CardContent>
             </Card>
           ))}
