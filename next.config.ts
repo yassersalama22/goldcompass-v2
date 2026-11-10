@@ -1,9 +1,9 @@
 import createNextIntlPlugin from "next-intl/plugin";
 import type { NextConfig } from "next";
 
-// Content-Security-Policy. Everything the browser loads is same-origin
-// (self-hosted next/font, no third-party scripts/images), so the policy is
-// tight. `unsafe-inline` is required for scripts because Next injects an inline
+// Content-Security-Policy. Apart from the explicitly allowed third parties
+// below (Turnstile, the Cloudflare beacon, and optionally GA4), everything the
+// browser loads is same-origin (self-hosted next/font), so the policy is tight. `unsafe-inline` is required for scripts because Next injects an inline
 // bootstrap script and we emit inline JSON-LD (<script type="application/ld+json">),
 // and for styles because Next/Tailwind inject inline styles — there is no nonce
 // pipeline. This is defense-in-depth: the app renders no user/model raw HTML, so
@@ -17,13 +17,28 @@ const TURNSTILE = "https://challenges.cloudflare.com";
 const CF_INSIGHTS_SCRIPT = "https://static.cloudflareinsights.com";
 const CF_INSIGHTS_CONNECT = "https://cloudflareinsights.com";
 
+// Google Analytics 4 — allowed ONLY when a measurement ID is configured, the
+// same rule as the preconnect hints: don't open the policy to a host this
+// deployment never contacts. Hosts follow Google's published CSP guidance for
+// GA4: gtag.js from googletagmanager.com, hits to the regional
+// *.google-analytics.com / *.analytics.google.com collectors, and — when Google
+// Signals is enabled in the GA property — *.g.doubleclick.net + *.google.com.
+// Beacon images are already covered by `img-src https:`. There is no separate
+// Google Ads tag (conversions are imported from GA4; see src/lib/analytics.ts),
+// so no googleadservices / googlesyndication allowance is needed.
+const GA_ENABLED = Boolean(process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID?.trim());
+const GA_SCRIPT = GA_ENABLED ? "https://*.googletagmanager.com" : "";
+const GA_CONNECT = GA_ENABLED
+  ? "https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.g.doubleclick.net https://*.google.com"
+  : "";
+
 const CSP = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline' ${TURNSTILE} ${CF_INSIGHTS_SCRIPT}`,
+  `script-src 'self' 'unsafe-inline' ${TURNSTILE} ${CF_INSIGHTS_SCRIPT} ${GA_SCRIPT}`.trim(),
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: https:",
   "font-src 'self'",
-  `connect-src 'self' ${TURNSTILE} ${CF_INSIGHTS_CONNECT}`,
+  `connect-src 'self' ${TURNSTILE} ${CF_INSIGHTS_CONNECT} ${GA_CONNECT}`.trim(),
   `frame-src ${TURNSTILE}`,
   "form-action 'self'",
   "frame-ancestors 'none'",

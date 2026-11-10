@@ -75,6 +75,7 @@ const HAS_MARKDOWN = [
   // Its body lives in `src/content/pages/disclaimer.md`, so the Markdown served
   // IS the source rather than a hand-maintained copy of a JSX page.
   "/disclaimer",
+  "/privacy",
 ];
 
 /**

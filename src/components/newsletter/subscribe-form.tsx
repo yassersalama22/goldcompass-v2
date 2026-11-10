@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { Check, Loader2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { trackEvent } from "@/lib/analytics";
 import { Button } from "@/components/ui/button";
 
 type Status = "idle" | "loading" | "success" | "error";
@@ -90,6 +91,14 @@ export function SubscribeForm({
       const data = await res.json();
 
       if (res.ok && data.ok) {
+        // GA4 recommended event `generate_lead`: a submitted, not-yet-confirmed
+        // signup. It fires in the same session as the ad click, so it carries
+        // the click's attribution — which makes it the conversion to bid on.
+        // Confirmation is tracked separately as `sign_up` on /subscribed.
+        // Re-submits of an existing address are not new leads.
+        if (data.status === "subscribed") {
+          trackEvent("generate_lead", { method: "newsletter", form_source: source });
+        }
         setStatus("success");
         setMessage(
           data.status === "already_subscribed" ? t("already") : t("success")

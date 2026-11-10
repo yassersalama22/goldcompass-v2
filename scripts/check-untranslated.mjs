@@ -35,6 +35,7 @@ const PAGES = process.env.PAGES
       "/ar/methodology",
       "/ar/ai-disclosure",
       "/ar/disclaimer",
+      "/ar/privacy",
       "/ar/subscribed",
     ];
 

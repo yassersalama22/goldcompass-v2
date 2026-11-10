@@ -9,6 +9,7 @@ import { Check, Compass, LineChart, Calculator, Newspaper } from "lucide-react";
 import { Container } from "@/components/layout/container";
 import { Button } from "@/components/ui/button";
 import { siteConfig } from "@/config/site";
+import { TrackOnMount } from "@/components/analytics/track-on-mount";
 
 /**
  * Landing page for the newsletter provider's "after confirming" redirect —
@@ -47,6 +48,14 @@ export default async function SubscribedPage({ params }: LocaleParams) {
 
   return (
     <Container className="py-12 sm:py-16">
+      {/*
+        GA4 `sign_up` = a confirmed (double-opt-in) subscriber. Observational,
+        not the conversion to bid on: the confirm link is often opened in a mail
+        app's browser or on another device, which has no record of the ad click,
+        so this under-attributes paid traffic. The URL is also guessable. Bid on
+        `generate_lead` (subscribe-form.tsx); use this to judge lead quality.
+      */}
+      <TrackOnMount event="sign_up" params={{ method: "newsletter" }} oncePerSession />
       {/* Confirmation */}
       <div className="mx-auto max-w-2xl text-center">
         <div

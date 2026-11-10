@@ -30,6 +30,7 @@ export const siteConfig = {
       { key: "methodology", href: "/methodology" },
       { key: "aiDisclosure", href: "/ai-disclosure" },
       { key: "disclaimer", href: "/disclaimer" },
+      { key: "privacy", href: "/privacy" },
     ] satisfies NavItem[],
   },
 };

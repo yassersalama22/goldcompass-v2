@@ -2049,3 +2049,70 @@ Match the current site's look and feel:
     `ec2:DescribeSecurityGroupRules` for `deploy/whitelist-cloudflare-ips.sh`; field Core Web Vitals
     review in Search Console (now worth doing per locale — submit the sitemap again so `/ar` URLs
     are discovered).
+- 2026-11-10: **GA4 + Google Ads conversion tracking, and `/privacy`** — groundwork for a Google
+  Ads experiment targeting the Gulf (Arabic pages). Branch `feat/ga4-ads-tracking`. **Inert until
+  `NEXT_PUBLIC_GA_MEASUREMENT_ID` is set** — no tag, no CSP change. No new dependencies.
+  - **Why not Cloudflare Web Analytics alone**: it counts page views but has no campaign
+    attribution and no conversions, so Ads could only optimise for clicks. CF analytics stays on.
+  - **GA4 is the only Google tag** (`src/lib/analytics.ts`). Ads conversions are **imported from
+    GA4 key events**, not measured by a second Ads tag: one script, one CSP allowance, one consent
+    config. The CSP gains Google's hosts **only when the ID is set** (`next.config.ts`), same rule
+    as the preconnect hints. Build-time var: Docker ARG → `deploy.yml` build-arg from a repo
+    **variable**.
+  - **Consent defaults**: denied for EEA + UK + CH (no banner → cookieless pings there), granted
+    elsewhere. `ad_personalization` denied everywhere: no remarketing, so no reason to build
+    audiences. Changing either is a privacy-page change in the same PR. **Saudi/UAE PDPL
+    applicability to analytics cookies was not legally assessed** — owner's call.
+  - **⚠ Page views are manual, never GA4's history listener.** The calculators call
+    `history.replaceState` on every input, so enhanced measurement's "page changes based on
+    browser history events" would log a page view per keystroke *and* send budgets and spot prices
+    to Google. Bootstrap sends the landing view with `send_page_view: false`; `<GaPageViews>` sends
+    one per pathname change. `page_location` is sanitized to keep only `gclid|gbraid|wbraid|dclid|
+    utm_*|gad_*` and is `set` globally, so events inherit it too.
+  - **⚠ The bootstrap must be `beforeInteractive`.** With `afterInteractive`, `/subscribed`'s
+    effect ran before `gtag` existed, the `sign_up` was dropped and *then* marked sent in
+    sessionStorage. Caught by the headless test, not by review. gtag.js itself stays deferred.
+  - **Conversions**: `generate_lead` on a successful new subscribe (`subscribe-form.tsx`; not on
+    `already_subscribed`) — **the one to bid on**, it fires in the ad-click session.
+    `sign_up` on `/subscribed` (confirmed double opt-in, once per session) — **observational
+    only**: the confirm link often opens in a mail app's browser or another device with no record
+    of the click, so it under-attributes paid traffic; the URL is also guessable.
+  - **Known, accepted**: the calculators' `replaceState` rewrites the query string and drops
+    `gclid`/`utm_*` from the address bar after the first input. Attribution is already captured
+    in the landing `page_location`, so GA4 is unaffected; noted in case a direct Ads tag is ever
+    added (its conversion linker reads the live URL).
+  - **`/privacy`** — Markdown page artifact (`src/content/pages/privacy.md`), same mechanism as
+    `/disclaimer`: Markdown twin, sitemap, footer *Resources*, `llms.txt`. Written against the code
+    (Buttondown + forwarded IP, Turnstile, in-memory rate-limit IP, CF + GA analytics, input
+    stripping, `gc-theme` / `gc-tracked:*` storage). **Contact: `hello@goldcompass.app`** (owner's
+    existing address) for privacy questions and access/correction/deletion requests — the first
+    contact channel on the site. `/methodology` and `/ai-disclosure` can now gain one too (both were
+    held back for lack of it, see 2026-07-30). `Prose` no longer gives `mailto:` links
+    `target="_blank"`. **Owner-reviewed and approved in English and Arabic (2026-11-10).**
+  - `/ar/privacy` translated by the pipeline (0 errors; 2 glossary warnings are false positives —
+    "technical *signals*", "*returning* browser"). **Note: the scripts do not read `.env.local`** —
+    without `set -a; . ./.env.local; set +a` they silently use the mock provider (a first run here
+    wrote mock Arabic and had to be discarded). `nav.privacy` Arabic (`سياسة الخصوصية`) was added by
+    hand and its hash recorded by the bootstrap-adopt path.
+  - **Campaign objective decided (owner): website traffic** (Maximize clicks), not conversions.
+    The `generate_lead` / `sign_up` events stay in place — they cost nothing and make switching to
+    conversion bidding later a dashboard change, not a code change. Runbook steps ②–③'s conversion
+    *import* is therefore optional for now; the GA4↔Ads link is still wanted (Ads cost and GA4
+    engagement in one place).
+  - Verified: headless Chrome against a GA-enabled standalone build — consent order, regional
+    defaults, one landing view, attribution params kept + calculator inputs stripped, no view on
+    `replaceState`, one view per soft navigation with the new title, `generate_lead` without PII,
+    `sign_up` once then not on reload, 0 CSP violations / console errors. GA-off build: no Google
+    markup, CSP unchanged. `tsc` ✓ `eslint` ✓ `next build` ✓ `i18n:check` 0 errors ✓
+    `check:markdown` 38/38 ✓ `check:faq` ✓ `check:rtl` (incl. `/privacy`, `/ar/privacy`) 0 axe.
+  - **Runbook to activate** (dashboard, owner):
+    ① GA4 → create property + web stream → **turn OFF "Page changes based on browser history
+    events"** (Enhanced measurement → gear). Copy the `G-…` ID into repo variable
+    `NEXT_PUBLIC_GA_MEASUREMENT_ID`; redeploy; **purge Cloudflare** (static pages are cached a year).
+    ② GA4 → Admin → Events → mark `generate_lead` and `sign_up` as **key events**.
+    ③ Link GA4 ↔ Google Ads (GA4 Admin → Product links). Ads → Goals → Conversions → Import → GA4:
+    `generate_lead` = **primary**, count **One**; `sign_up` = **secondary**. Keep auto-tagging on.
+    ④ Cloudflare: Cache Rule cache key should **ignore query strings** for public HTML, or every
+    ad click (unique `gclid`) is a cache MISS on the t4g.micro — safe because no page reads
+    `searchParams` on the server. And extend the cache rule to `/ar/*` (still open from launch).
+    ⑤ Check Google Ads' financial-services verification requirements for each Gulf country.
