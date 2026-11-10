@@ -470,7 +470,7 @@ function buildHome(locale: string): string {
     "",
     `- [Methodology](${page("/methodology", locale)}) — data sources, what the signals mean, cadence, calculator arithmetic.`,
     `- [AI disclosure](${page("/ai-disclosure", locale)}) — what the model drafts, what it never touches, and the failure modes that remain.`,
-    `- [About](${page("/about", locale)}) · [Disclaimer](${page("/disclaimer", locale)})`,
+    `- [About](${page("/about", locale)}) · [Disclaimer](${page("/disclaimer", locale)}) · [Privacy](${page("/privacy", locale)})`,
     "",
     "## Machine-readable endpoints",
     "",
@@ -511,6 +511,8 @@ export async function buildMarkdown(
       return buildTrends(locale);
     case "/disclaimer":
       return buildProsePage("disclaimer", locale);
+    case "/privacy":
+      return buildProsePage("privacy", locale);
     case "/insights":
       return buildArticleList(
         "Gold market insights",

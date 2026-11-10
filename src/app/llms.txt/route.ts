@@ -95,6 +95,11 @@ function buildBody(): string {
       "/disclaimer",
       "Educational-use-only terms, risk warnings, and our independence statement.",
     ),
+    link(
+      "Privacy Policy",
+      "/privacy",
+      "What we collect (newsletter email, analytics, ad measurement), who processes it, and your choices.",
+    ),
     ``,
     `## API`,
     ``,

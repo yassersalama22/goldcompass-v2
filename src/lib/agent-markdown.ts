@@ -73,8 +73,8 @@ export function prefersMarkdown(accept: string | null | undefined): boolean {
  * than serving the HTML an agent can already read. Falling through to HTML is a
  * valid content-negotiation outcome.
  *
- * `/disclaimer` is listed because its body genuinely moved into a content
- * artifact (`src/content/pages/disclaimer.md`), so the Markdown served IS the
+ * `/disclaimer` and `/privacy` are listed because their bodies are content
+ * artifacts (`src/content/pages/<slug>.md`), so the Markdown served IS the
  * source rather than a copy of it. `/about`, `/methodology` and `/ai-disclosure`
  * are deliberately absent — they are designed layouts (card grids, definition
  * lists, a styled step sequence, section icons, heading anchors other pages link
@@ -89,6 +89,7 @@ const STATIC_MARKDOWN_PATHS = new Set([
   "/insights/explainers",
   "/insights/market-updates",
   "/disclaimer",
+  "/privacy",
 ]);
 
 /**

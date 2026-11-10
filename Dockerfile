@@ -17,6 +17,10 @@ ARG NEXT_PUBLIC_TURNSTILE_SITE_KEY=""
 # both public values inlined into the HTML at build time. Unset = feature off.
 ARG NEXT_PUBLIC_CF_BEACON_TOKEN=""
 ARG NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION=""
+# Google Analytics 4 measurement ID (G-XXXXXXXXXX). Public; inlined into the
+# HTML AND read by next.config.ts to open the CSP to Google's hosts, so it must
+# be present at build time. Unset = no Google tag, no CSP allowance.
+ARG NEXT_PUBLIC_GA_MEASUREMENT_ID=""
 # Locale set to build, comma-separated (e.g. "en,ar"). Empty = fall back to the
 # `enabled` flags in src/config/locales.ts, which is the reviewed default.
 # Must be a build ARG, not a runtime env var: it decides which `[locale]` routes
@@ -28,6 +32,7 @@ ENV NEXT_TELEMETRY_DISABLED=1 \
     NEXT_PUBLIC_TURNSTILE_SITE_KEY=$NEXT_PUBLIC_TURNSTILE_SITE_KEY \
     NEXT_PUBLIC_CF_BEACON_TOKEN=$NEXT_PUBLIC_CF_BEACON_TOKEN \
     NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION=$NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION \
+    NEXT_PUBLIC_GA_MEASUREMENT_ID=$NEXT_PUBLIC_GA_MEASUREMENT_ID \
     NEXT_PUBLIC_LOCALES_ENABLED=$NEXT_PUBLIC_LOCALES_ENABLED
 RUN npm run build
 

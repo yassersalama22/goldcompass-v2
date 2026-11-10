@@ -16,6 +16,8 @@ import {
   requireLocale,
 } from "@/config/locales";
 import { localeOpenGraph } from "@/lib/seo";
+import { GA_MEASUREMENT_ID, gaBootstrapScript } from "@/lib/analytics";
+import { GaPageViews } from "@/components/analytics/ga-page-views";
 
 const geistSans = Geist({
   // Its own variable rather than `--font-sans` directly: `--font-sans` is the
@@ -169,6 +171,9 @@ export default async function RootLayout({
         {cfBeaconToken ? (
           <link rel="preconnect" href="https://static.cloudflareinsights.com" />
         ) : null}
+        {GA_MEASUREMENT_ID ? (
+          <link rel="preconnect" href="https://www.googletagmanager.com" />
+        ) : null}
         {/*
           Supplies messages to client components (the subscribe form, the
           calculators, the theme toggle). Server components read messages
@@ -198,6 +203,30 @@ export default async function RootLayout({
             strategy="afterInteractive"
             data-cf-beacon={JSON.stringify({ token: cfBeaconToken })}
           />
+        ) : null}
+        {/*
+          Google Analytics 4 (see lib/analytics.ts for consent defaults and why
+          there is no separate Google Ads tag). The markup is identical on every
+          page and carries no per-visitor data, so it is safe in edge-cached
+          HTML.
+
+          The tiny bootstrap is `beforeInteractive` so `gtag` (and the consent
+          defaults) exist before any client component mounts — with
+          `afterInteractive`, /subscribed's `sign_up` fired into a missing
+          `gtag` and was lost. Only the ~100KB library stays deferred; events
+          queue in `dataLayer` until it arrives.
+        */}
+        {GA_MEASUREMENT_ID ? (
+          <>
+            <Script id="ga-bootstrap" strategy="beforeInteractive">
+              {gaBootstrapScript(GA_MEASUREMENT_ID)}
+            </Script>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(GA_MEASUREMENT_ID)}`}
+              strategy="afterInteractive"
+            />
+            <GaPageViews />
+          </>
         ) : null}
       </body>
     </html>

@@ -37,6 +37,7 @@ const routes = [
   "/methodology",
   "/ai-disclosure",
   "/disclaimer",
+  "/privacy",
 ];
 
 /**
@@ -48,6 +49,7 @@ const routes = [
 const routeLocales: Record<string, () => string[]> = {
   "/outlook": outlookLocales,
   "/disclaimer": () => pageLocales("disclaimer"),
+  "/privacy": () => pageLocales("privacy"),
 };
 
 /**

@@ -45,9 +45,16 @@ const components: Components = {
    * nofollowing your own pages tells search engines not to follow your internal
    * link graph, which is the opposite of what it is for. This became live the
    * moment long-form prose with internal links moved into Markdown artifacts.
+   *
+   * `mailto:` is neither: it opens the mail client, so `target="_blank"` would
+   * only leave an empty tab behind in some browsers.
    */
   a: ({ href, ...props }) => {
-    const external = !!href && !href.startsWith("/") && !href.startsWith("#");
+    const external =
+      !!href &&
+      !href.startsWith("/") &&
+      !href.startsWith("#") &&
+      !href.startsWith("mailto:");
     return (
       <a
         href={href}
