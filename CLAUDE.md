@@ -2116,3 +2116,34 @@ Match the current site's look and feel:
     ad click (unique `gclid`) is a cache MISS on the t4g.micro — safe because no page reads
     `searchParams` on the server. And extend the cache rule to `/ar/*` (still open from launch).
     ⑤ Check Google Ads' financial-services verification requirements for each Gulf country.
+- 2026-11-10: **GA4 live in production + verification** (`G-BRD8J9V9DT`, property
+  `properties/530272740`). Branch `fix/ga-pageview-title`.
+  - **⚠ Deploy-order trap**: the repo variable was set ~45 min *after* PR #123's deploy, so that
+    build shipped with no tag. `NEXT_PUBLIC_*` vars are build-time — **setting one never affects
+    the running site; it needs a fresh deploy** (`gh workflow run deploy.yml --ref main`, or
+    Actions → Deploy → Run workflow) **and then a Cloudflare purge**. Check with
+    `curl -s https://goldcompass.app/ | grep -c ga-bootstrap`.
+  - **GA admin state** (read via Admin API with ADC, project `goldcompass-analytics`): "page
+    changes based on browser history events" **off** ✓, event retention **14 months** ✓, Google
+    Signals off ✓, no Google Ads link yet.
+  - **⚠ Headless Chrome hits are discarded by GA4's bot filter** — they get `204` from
+    `/g/collect` but never appear in reports or realtime (`HeadlessChrome` UA). To verify
+    end-to-end, launch Chrome with a normal `--user-agent`; then realtime shows the visit within
+    ~30s. Test visits use `utm_source=claude_test` so they can be filtered out.
+  - **🐛 Fixed: navigation page views had an empty title.** On production the pathname commits
+    before Next's streamed `<title>` lands, so `<GaPageViews>` read the old/empty title and GA's
+    page-title report filed every in-site navigation under `""` (confirmed in realtime). Now it
+    waits for `document.title` to change (MutationObserver, 2s cap), with the URL captured at
+    navigation time; the cleanup flushes a pending view if the visitor navigates on. Verified
+    under 400ms emulated latency: new Arabic title sent. Locally it had passed only because there
+    was no latency — **test GA timing under network throttling**.
+  - **🐛 Pre-existing, NOT fixed — RSC prefetch storm on Arabic soft navigation.** After a client
+    navigation between `/ar/*` pages (e.g. `/ar/calculator` → `/ar/outlook`) the browser requests
+    the **English** `/outlook?_rsc=…` ~70–90 times in 12s, with intermittent 404s. All `DYNAMIC`,
+    i.e. every one hits the t4g.micro. **Not caused by GA** — worse with Google blocked (93 vs 68).
+    Absent on a direct `/ar/outlook` load and on English→English navigation. Suspect: the
+    language switcher's `<Link href="/outlook">` (unprefixed English) prefetched from an `/ar`
+    route, interacting with the `as-needed` proxy rewrite. Reproduces on a local standalone build.
+    Investigate in its own PR.
+  - `/privacy` returns `cf-cache-status: DYNAMIC` — not covered by the "Cache public pages" rule
+    (the rule appears to be a path list). Add it, along with `/ar/*`.

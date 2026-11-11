@@ -108,19 +108,25 @@ declare global {
   }
 }
 
+/** The sanitized URL of the current page, or undefined when analytics is off. */
+export function currentPageLocation(): string | undefined {
+  if (!GA_MEASUREMENT_ID || typeof window === "undefined") return undefined;
+  return window.__gcPageLocation?.();
+}
+
 /**
  * Record a client-side navigation as a page view. The initial page view is sent
- * by the bootstrap script, so callers skip the first render.
+ * by the bootstrap script, so callers skip the first render. `location` comes
+ * from `currentPageLocation()` captured when the navigation happened.
  */
-export function trackPageView(): void {
+export function trackPageView(location: string | undefined, title: string): void {
   if (!GA_MEASUREMENT_ID || typeof window === "undefined") return;
-  const location = window.__gcPageLocation?.();
   if (!location || !window.gtag) return;
   try {
     window.gtag("set", { page_location: location });
     window.gtag("event", "page_view", {
       page_location: location,
-      page_title: document.title,
+      page_title: title,
     });
   } catch {
     // See trackEvent.
