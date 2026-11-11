@@ -2147,3 +2147,22 @@ Match the current site's look and feel:
     Investigate in its own PR.
   - `/privacy` returns `cf-cache-status: DYNAMIC` — not covered by the "Cache public pages" rule
     (the rule appears to be a path list). Add it, along with `/ar/*`.
+- 2026-11-11: **Link prefetching turned off site-wide** (decided with the owner) — fixes the RSC
+  request storm on Arabic pages logged 2026-11-10. Branch `perf/disable-link-prefetch`.
+  - **`Link` in `src/i18n/navigation.ts` now defaults to `prefetch={false}`** (a thin wrapper
+    over next-intl's; a call site can still opt in explicitly). Every internal link goes through
+    it. In the 16.4 App Router `false` disables both viewport **and** hover prefetching.
+  - **Why off, not tuned**: the Cloudflare rule bypasses any request with an `RSC` header
+    (2026-07-27, or flight payloads poison the HTML cache), so every prefetch — clicked or not —
+    was a render on the t4g.micro. First loads still come from the edge cache.
+  - **The language switcher is now a plain `<a>`**, not `next/link`. Switching locale swaps the
+    root layout (`lang`/`dir`/fonts), which the router cannot do softly, so the router only added
+    cost — and it was the storm's trigger: from an `/ar` page, its prefetch/click of the English
+    URL looped on `/outlook?_rsc=` requests.
+  - **Measured** (local standalone builds of `main` vs the branch, 200ms emulated latency, same
+    scenarios): prefetch requests on landing **10 → 0**; RSC requests in the 12s after an
+    `/ar/calculator → /ar/outlook` menu click **125 → 1**; after the language switch **131 → 0**
+    (now a single full page load). **Click-to-new-`<h1>` time unchanged: ~236ms → ~242ms** —
+    prefetch was not buying instant clicks here anyway. Not yet measured against production.
+  - Verified: `tsc` ✓ `eslint` ✓ `next build` ✓, `check:rtl` 10/10 (0 axe, 0 console errors),
+    `check:markdown` 38/38, `check:faq` 48/48.
