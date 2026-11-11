@@ -3,8 +3,6 @@
 import { Languages } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 
-import Link from "next/link";
-
 import { ACTIVE_LOCALES, localizePath } from "@/config/locales";
 import { usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
@@ -65,10 +63,19 @@ export function LanguageSwitcher({ className }: { className?: string }) {
 
           return (
             <li key={locale.code}>
-              <Link
+              <a
                 /*
-                 * Plain `next/link` with an explicitly built path, not the
-                 * next-intl `Link` with a `locale` prop.
+                 * A plain `<a>`, not `next/link` and not the next-intl `Link`
+                 * with a `locale` prop.
+                 *
+                 * Not `next/link`: switching language swaps the root layout
+                 * (`lang`, `dir`, fonts), which the client router cannot do as a
+                 * soft navigation — it always ends in a full page load. So the
+                 * router only added cost: it prefetched the other language's
+                 * flight data, and from an `/ar` page that prefetch looped —
+                 * 70–90 uncached `/outlook?_rsc=` requests to the origin in 12s
+                 * after one soft navigation (2026-11-11). A plain anchor is the
+                 * full page load the router would have ended up doing anyway.
                  *
                  * Passing `locale` to next-intl's Link prefixes the *default*
                  * locale too, producing `/en/outlook` — a URL that only exists
@@ -95,7 +102,7 @@ export function LanguageSwitcher({ className }: { className?: string }) {
                 )}
               >
                 {locale.label}
-              </Link>
+              </a>
             </li>
           );
         })}
