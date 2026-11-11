@@ -2166,3 +2166,14 @@ Match the current site's look and feel:
     prefetch was not buying instant clicks here anyway. Not yet measured against production.
   - Verified: `tsc` ✓ `eslint` ✓ `next build` ✓, `check:rtl` 10/10 (0 axe, 0 console errors),
     `check:markdown` 38/38, `check:faq` 48/48.
+  - **Production results** (PR #125 deployed + Cloudflare purge, 2026-11-11, real network from
+    Cairo): prefetch requests on landing **0**; one RSC request per menu click; Arabic menu click →
+    new `<h1>` **275–627ms**, English **278ms**; language switch = one full page load, **93–148ms
+    from an edge HIT**, ~520–560ms on a MISS; 4/4 switches worked. The storm is gone.
+  - **⚠ Deploy-skew trap, seen live**: before the purge, some Cloudflare servers still held
+    pre-deploy HTML (`age` ~28 min, different byte size) next to fresh copies. Old HTML runs the old
+    build's JS against the new server, which caused one 42s click and one language switch where the
+    page reloaded under the click. **After any deploy that changes client code, purge** — the
+    "no purge-on-deploy" decision (2026-07-27) makes this a manual step every time, not just for
+    content. Check: `curl -sI https://goldcompass.app/ar/outlook | grep -i '^age'` across a few
+    requests should show only small ages.
