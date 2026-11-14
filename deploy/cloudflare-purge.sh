@@ -22,8 +22,8 @@
 # has already succeeded, and an unconfigured fork should not go red. Note GitHub
 # passes an unset secret/variable as an EMPTY STRING, so test for emptiness.
 # A configured purge that FAILS exits 1, so a stale edge is never silent.
-# The post-purge check only warns: Cloudflare may challenge requests from
-# datacenter IPs, which would make a correct deploy look broken.
+# The post-purge check never fails the run: a page still on the old build is a
+# warning, and Cloudflare challenging the runner's datacenter IP is a notice.
 
 set -euo pipefail
 
@@ -59,24 +59,37 @@ if [ -z "$EXPECTED_BUILD_ID" ]; then
   exit 0
 fi
 
-# Purges propagate in seconds; allow up to ~60s per path.
-stale=""
+# Purges propagate in seconds; allow up to ~60s per path. A response that is
+# Cloudflare challenging or blocking the *runner* is not evidence about the
+# cache, so it is reported separately and not retried. The first production
+# run (2026-11-14) spent 5 minutes retrying exactly that and warned on every
+# path, while the same requests from a residential IP showed the new build.
+body="$(mktemp)"; headers="$(mktemp)"
+trap 'rm -f "$body" "$headers"' EXIT
+
+verified="" stale="" blocked=""
 for path in $CHECK_PATHS; do
-  ok=""
+  result="stale"
   for _ in $(seq 1 12); do
-    if curl -sS --max-time 15 -A "$UA" "${SITE}${path}" 2>/dev/null | grep -q -- "$EXPECTED_BUILD_ID"; then
-      ok=1
-      break
+    code="$(curl -sS --max-time 15 -A "$UA" -o "$body" -D "$headers" -w '%{http_code}' "${SITE}${path}" 2>/dev/null || true)"
+    if grep -q -- "$EXPECTED_BUILD_ID" "$body"; then
+      result="ok"; break
+    fi
+    if [ "$code" = 403 ] || [ "$code" = 429 ] || [ "$code" = 503 ] || grep -qi '^cf-mitigated:' "$headers"; then
+      result="blocked:${code}"; break
     fi
     sleep 5
   done
-  if [ -n "$ok" ]; then
-    echo "  ${path}: serving build ${EXPECTED_BUILD_ID}"
-  else
-    stale="${stale} ${path}"
-  fi
+  case "$result" in
+    ok) verified="${verified} ${path}"; echo "  ${path}: serving build ${EXPECTED_BUILD_ID}" ;;
+    blocked:*) blocked="${blocked} ${path}(${result#blocked:})" ;;
+    *) stale="${stale} ${path}" ;;
+  esac
 done
 
+if [ -n "$blocked" ]; then
+  echo "::notice::Cloudflare challenged or blocked the runner on:${blocked} — that says nothing about the cache, and the purge itself succeeded. Verify from a normal connection if needed."
+fi
 if [ -n "$stale" ]; then
-  warn "After the purge, these paths did not show build ${EXPECTED_BUILD_ID}:${stale}. Check manually (curl -sI ${SITE}/ | grep -i '^age') — a Cloudflare challenge on the runner's IP can also cause this."
+  warn "After the purge, these paths still did not show build ${EXPECTED_BUILD_ID}:${stale}. Check manually: curl -sI ${SITE}/ | grep -i '^age'"
 fi
