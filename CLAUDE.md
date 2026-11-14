@@ -2205,3 +2205,11 @@ Match the current site's look and feel:
     goldcompass.app**, nothing else. ② `gh secret set CLOUDFLARE_API_TOKEN` (paste at the prompt —
     never in chat or a file). ③ Zone ID (dashboard → goldcompass.app → Overview, right column) →
     `gh variable set CLOUDFLARE_ZONE_ID --body <id>`. Manual purging is then no longer needed.
+  - **First real run (PR #127, deploy 43633271120)**: wait step ✓ (`BUILD_ID=pP6J2bvrPuX4bEJF0I_-h`),
+    purge ✓ — but the post-purge check **warned on all 5 paths and spent 5 minutes retrying**,
+    while the same requests from a residential IP (same UA) all showed the new build with
+    `cf-cache-status: MISS`. I.e. the runner was being challenged/blocked, not the cache stale.
+    Follow-up (`ci/purge-check-detect-challenge`): a 403/429/503 or a `cf-mitigated` header is now
+    a one-shot `::notice::` with the status code and **no retries**; only a 200 serving the old
+    build (or no response) retries and warns. 11 stub tests (run under **bash** — zsh does not
+    word-split an unquoted `$VAR`, which broke the first harness run, not the script).
