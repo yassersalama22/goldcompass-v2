@@ -194,6 +194,9 @@ Match the current site's look and feel:
 - Recommendation engine **built** (§12 + §13 Phase 3.5). LLM provider = **Claude
   `claude-opus-4-8`** with the `web_search_20260209` tool; needs `ANTHROPIC_API_KEY` for real runs.
 - Chart library **decided**: custom lightweight SVG (no chart dep) — see §13 Phase 3.
+- **Push notifications** (daily outlook / new articles) — design proposal parked in
+  `docs/push-notifications-design.md` (2026-11-14). Not decided, nothing built; 4 open decisions
+  at the end of that doc.
 - Final EC2 instance type + whether to go fully static export — **decided**: Docker standalone on **t4g.micro** (1GB RAM + 2GB swap). Static export not needed; standalone mode handles ISR/API routes.
 
 ## 12. Recommendation engine (Aureus v2) — design
