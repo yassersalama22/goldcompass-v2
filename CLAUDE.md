@@ -2166,3 +2166,42 @@ Match the current site's look and feel:
     prefetch was not buying instant clicks here anyway. Not yet measured against production.
   - Verified: `tsc` ✓ `eslint` ✓ `next build` ✓, `check:rtl` 10/10 (0 axe, 0 console errors),
     `check:markdown` 38/38, `check:faq` 48/48.
+  - **Production results** (PR #125 deployed + Cloudflare purge, 2026-11-11, real network from
+    Cairo): prefetch requests on landing **0**; one RSC request per menu click; Arabic menu click →
+    new `<h1>` **275–627ms**, English **278ms**; language switch = one full page load, **93–148ms
+    from an edge HIT**, ~520–560ms on a MISS; 4/4 switches worked. The storm is gone.
+  - **⚠ Deploy-skew trap, seen live**: before the purge, some Cloudflare servers still held
+    pre-deploy HTML (`age` ~28 min, different byte size) next to fresh copies. Old HTML runs the old
+    build's JS against the new server, which caused one 42s click and one language switch where the
+    page reloaded under the click. **After any deploy that changes client code, purge** — the
+    "no purge-on-deploy" decision (2026-07-27) makes this a manual step every time, not just for
+    content. Check: `curl -sI https://goldcompass.app/ar/outlook | grep -i '^age'` across a few
+    requests should show only small ages.
+- 2026-11-14: **Automatic Cloudflare purge after every deploy** — supersedes the 2026-07-27
+  "no purge-on-deploy" decision (owner, after the 2026-11-11 deploy-skew incident). Branch
+  `ci/auto-purge-cloudflare`. **Inert until the two Cloudflare settings below exist.**
+  - **Why every deploy, Purge Everything**: Next assigns a **random build ID per build** (no
+    `generateBuildId`; nanoid fallback in `next/dist/build/index.js`) and every page embeds it, so
+    *any* merge to main — daily outlook PRs included — leaves cached HTML pointing at a build that
+    no longer exists. Static pages are cached a year, so single-URL purges are not enough.
+  - **Order is the point**: the "Deploy to EC2" step now waits, after `docker compose up`, until
+    the origin **through Caddy** (`curl --resolve goldcompass.app:443:127.0.0.1`) serves HTML
+    containing the new `.next/BUILD_ID`, then prints `BUILD_ID=…` (captured via ssh-action
+    `capture_stdout`). It fails the step if that takes over 120s. Only then does
+    `deploy/cloudflare-purge.sh` purge — purging while the old container still answers lets the
+    edge re-cache old HTML, which is the manual-purge timing trap.
+  - **Failure policy**: unset credentials → **skip with a warning** (unset GitHub secrets/vars
+    arrive as `""` — tested for emptiness); a configured purge that fails → **exit 1** (a red run,
+    never a silently stale edge); post-purge check (5 paths must show the new build ID) → **warning
+    only**, since Cloudflare may challenge GitHub's datacenter IPs and fail a correct deploy.
+  - Verified: workflow YAML parses (step order checkout → buildx → login → build-push → deploy →
+    purge); `bash -n`; **9 stub tests** (curl/sleep stubbed): unset and empty-string credentials
+    skip without calling curl; success verifies all 5 paths; request shape (zone URL, bearer,
+    `purge_everything`); API auth error → exit 1 with the response; network failure → exit 1;
+    stale edge → warning listing paths; no build ID → purge + skip check; BUILD_ID parsed from
+    noisy CRLF stdout. **Not yet exercised on the real box** — the first deploy is the test.
+  - **To activate (owner)**: ① Cloudflare → My Profile → API Tokens → Create Token → Custom:
+    permission **Zone → Cache Purge → Purge**, zone resources **Include → Specific zone →
+    goldcompass.app**, nothing else. ② `gh secret set CLOUDFLARE_API_TOKEN` (paste at the prompt —
+    never in chat or a file). ③ Zone ID (dashboard → goldcompass.app → Overview, right column) →
+    `gh variable set CLOUDFLARE_ZONE_ID --body <id>`. Manual purging is then no longer needed.
