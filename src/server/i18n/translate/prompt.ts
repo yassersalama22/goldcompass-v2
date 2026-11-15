@@ -3,7 +3,7 @@ import type { GlossaryEntry } from "@/server/i18n/glossary";
 import type { TranslatableField } from "@/server/i18n/field-map";
 
 /** Bump on any change to the wording below; recorded on every artifact. */
-export const TRANSLATION_PROMPT_VERSION = "2026-10-22.1";
+export const TRANSLATION_PROMPT_VERSION = "2026-11-15.1";
 
 const KIND_RULES: Record<TranslatableField["kind"], string> = {
   title:
@@ -47,6 +47,7 @@ export function buildSystemPrompt(locale: LocaleDef): string {
     "## Numerals and currency",
     "",
     "- Write all numbers with WESTERN ARABIC (Latin) digits: 0123456789. Do not use Eastern Arabic-Indic numerals.",
+    "- Keep every number in the FORM the source uses. A number the source writes as digits stays digits — never spell it out as a word, even when the word would be more idiomatic, and including small numbers inside compounds: \"20-day return\" keeps \"20\", \"2 cents\" keeps \"2\", \"the 20th month\" keeps \"20\". A number the source writes as a word stays a word — \"Twenty-day volatility\" must not become \"20\". An automated check compares the digits in the source and the translation and rejects any difference, in either direction.",
     `- Write USD amounts as ${currency}.`,
     "- Keep ranges and their dash characters as they appear in the source.",
     "",

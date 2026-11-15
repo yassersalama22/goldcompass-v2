@@ -35,6 +35,17 @@ export const macroIndicatorSchema = z.object({
    * yields). Null when we lack a comparable earlier observation.
    */
   change30d: z.number().nullable(),
+  /**
+   * Same, over ~90 days — the window the long-term scorecard reads. Optional:
+   * it post-dates the first published snapshots, which stay valid without it.
+   */
+  change90d: z.number().nullable().optional(),
+  /**
+   * Where the latest reading sits within its own trailing year, 0–100. A real
+   * yield at the 95th percentile is a different backdrop from one at the 20th
+   * even if both rose 0.1pp this month.
+   */
+  pctile1y: z.number().min(0).max(100).nullable().optional(),
   /** ISO date of the latest observation (these series are daily, not intraday). */
   asOf: z.string(),
   /**
@@ -54,6 +65,22 @@ export const macroSnapshotSchema = z.object({
   fetchedAt: z.string(),
 });
 export type MacroSnapshot = z.infer<typeof macroSnapshotSchema>;
+
+/** One dated reading of a daily series. */
+export type MacroObservation = { date: string; value: number };
+
+/**
+ * The raw daily series behind the snapshot, oldest first.
+ *
+ * The snapshot answers "what is the backdrop today"; the history lets the
+ * signal logic answer the same question *as of any past date*, which is what
+ * makes the scorecard replayable rather than something we can only assert.
+ */
+export type MacroHistory = {
+  dollarIndex: MacroObservation[];
+  real10y: MacroObservation[];
+  nominal10y: MacroObservation[];
+};
 
 /** Mirrors `PriceResult` — the data layer degrades instead of throwing. */
 export type MacroResult = {

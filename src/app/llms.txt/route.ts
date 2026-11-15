@@ -30,7 +30,7 @@ function buildBody(): string {
     ``,
     `> Gold-investing guidance for everyday investors: a dated directional outlook on the gold price, live XAU/USD trends, calculators for physical gold purchases, and cited market analysis.`,
     ``,
-    `GoldCompass publishes a short-term (weeks) and long-term (months) view on gold, each with a signal, a confidence level, and an invalidation level that says what would prove it wrong. Analysis is drafted by a large language model against deterministic market data and reviewed by a human before publication — see the AI disclosure and methodology pages for exactly what that means.`,
+    `GoldCompass publishes a short-term (weeks) and long-term (months) view on gold, each with a signal, a confidence level, and the price levels that would prove it wrong. Signals, confidence and levels are computed by published rules from market data, and each call stands until a level is broken or the evidence changes; the scorecard describes current conditions and is not a forecast. The written analysis is drafted by a large language model on top of that and reviewed by a human before publication — see the AI disclosure and methodology pages for exactly what that means.`,
     ``,
     `Educational content only. Nothing here is financial advice, and no investment products are sold.`,
     ``,
@@ -39,7 +39,7 @@ function buildBody(): string {
     link(
       "Gold outlook",
       "/outlook",
-      "Current short- and long-term calls with rationale, key levels, invalidation levels, and cited sources.",
+      "Current short- and long-term calls with the scorecard behind each, how long each has stood, the levels that would change it, the dated events behind the analysis, and cited sources.",
     ),
     link(
       "Gold price trends",
@@ -82,7 +82,7 @@ function buildBody(): string {
     link(
       "Methodology",
       "/methodology",
-      "Data sources, what the signals and confidence levels mean, cadence, and the calculator arithmetic.",
+      "Data sources, the published rules that set each call, what the signals and confidence levels mean, cadence, and the calculator arithmetic.",
     ),
     link(
       "AI disclosure",
@@ -108,7 +108,7 @@ function buildBody(): string {
     link(
       "GET /api/v1/recommendations",
       "/api/v1/recommendations",
-      "The current published outlook report — signals, confidence, key levels, sources.",
+      "The current published outlook report — signals, confidence, standing-since dates, levels, scorecard, dated events, sources.",
     ),
     link(
       "GET /api/v1/price",

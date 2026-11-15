@@ -1,8 +1,10 @@
 import { z } from "zod";
 
 import {
+  pricePointSchema,
   priceQuoteSchema,
   priceSeriesSchema,
+  type PricePoint,
   type PriceQuote,
   type PriceSeries,
 } from "@/types/price";
@@ -79,5 +81,17 @@ export const coinGeckoProvider: PriceProvider = {
       currency: "USD",
       points,
     } satisfies PriceSeries);
+  },
+
+  async getDailyHistory(days: number): Promise<PricePoint[]> {
+    // The public API serves at most the past 365 days of daily data.
+    const span = Math.min(Math.max(Math.round(days), 1), 365);
+    const url =
+      `${BASE}/coins/${COIN_ID}/market_chart` +
+      `?vs_currency=usd&days=${span}&interval=daily`;
+    const raw = marketChartSchema.parse(await getJson(url, SERIES_TTL));
+    return raw.prices.map(([t, price]) =>
+      pricePointSchema.parse({ t: Math.round(t), price }),
+    );
   },
 };

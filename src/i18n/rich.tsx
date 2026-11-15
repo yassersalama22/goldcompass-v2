@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import { MoneyText, Num } from "@/components/market/num";
 import { Link } from "@/i18n/navigation";
 
 /**
@@ -40,6 +41,25 @@ export const richTags = {
   karatPrice: linkTag("/calculator/gold-karat-price"),
   profitLoss: linkTag("/calculator/gold-profit-loss"),
   unitConverter: linkTag("/calculator/gold-unit-converter"),
+};
+
+/** Rich-text chunks arrive as a node or an array of strings; join them back. */
+function chunkText(chunks: ReactNode): string {
+  return Array.isArray(chunks) ? chunks.join("") : String(chunks ?? "");
+}
+
+/**
+ * Tags for values embedded in a sentence: `<num>{pct}</num>` and
+ * `<money>{level}</money>`, the arguments pre-formatted by the caller.
+ *
+ * A value inside a translated sentence needs the same bidi treatment as one on
+ * its own (`<Num>`, `<MoneyText>`): in Arabic, `30.4%` and `4,121 دولار` must
+ * each be isolated, with a suffix unit kept outside the isolate. Doing it in a
+ * tag keeps the whole sentence one message a translator can reorder.
+ */
+export const valueTags = {
+  num: (chunks: ReactNode) => <Num>{chunkText(chunks)}</Num>,
+  money: (chunks: ReactNode) => <MoneyText text={chunkText(chunks)} />,
 };
 
 /**

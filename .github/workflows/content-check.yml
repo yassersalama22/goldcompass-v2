@@ -17,6 +17,8 @@ on:
       - "src/server/i18n/**"
       - "src/types/article.ts"
       - "src/types/outlook.ts"
+      - "src/types/signal.ts"
+      - "src/server/outlook/**"
       - "src/config/locales.ts"
   push:
     branches: [main]
@@ -42,3 +44,8 @@ jobs:
       # dropped heading, a stale hash — and fails if the checker does not catch
       # them. A gate nobody has watched fail is not known to work.
       - run: npm run i18n:check
+      # The rules that set the outlook's BUY / HOLD / SELL, and the integrity of
+      # the published artifact against them: signal, confidence and levels are
+      # computed, so a hand-edit to any of them in a PR fails here. Offline —
+      # it reads only the repository.
+      - run: npm run check:signal

@@ -1,9 +1,19 @@
 import { createMockGenerator } from "./mock";
 import type { OutlookGenerator } from "./provider";
 
+export {
+  assembleCalls,
+  contextFrom,
+  historyEntryFor,
+  keyLevelsFrom,
+  scorecardFrom,
+  sourcesFrom,
+} from "./assemble";
+export { buildBrief, stepKey } from "./brief";
+export type { HorizonBrief } from "./brief";
 export { PROMPT_VERSION } from "./prompt";
 export { sanitizeGenerated } from "./sanitize";
-export { generatedOutlookSchema } from "./schema";
+export { advisoriesFor, buildGeneratedSchema, levelText, validateGenerated } from "./schema";
 export type { GeneratedOutlook, GenerationInput } from "./schema";
 export type { OutlookGenerator } from "./provider";
 
