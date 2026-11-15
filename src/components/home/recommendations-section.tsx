@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/card";
 import { getLocale, getTranslations } from "next-intl/server";
 
+import { formatMediumDate } from "@/lib/format";
 import { contentLangProps } from "@/server/i18n/availability";
 import { getPublishedOutlook, hasOutlookTranslation } from "@/server/outlook";
 
@@ -58,6 +59,14 @@ export async function RecommendationsSection() {
                 <CardDescription className="text-sm font-medium" {...content}>
                   {call.horizon}
                 </CardDescription>
+                {call.since ? (
+                  <p className="text-muted-foreground text-xs">
+                    {t.rich("since", {
+                      date: formatMediumDate(call.since, locale),
+                      time: (chunks) => <time dateTime={call.since}>{chunks}</time>,
+                    })}
+                  </p>
+                ) : null}
               </CardHeader>
               <CardContent className="space-y-3">
                 <ConfidenceMeter confidence={call.confidence} size="sm" />

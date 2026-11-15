@@ -78,6 +78,11 @@ export function articleFields(article: Article): TranslatableField[] {
  *    and `macro-panel.tsx` plus the Markdown builder both rely on it beginning
  *    with "Source:".
  *  - `sources[]` — see the note on articles.
+ *  - Everything that records HOW a call was set — `since`, `previous`,
+ *    `change`, `levels`, `baseline`, the whole `scorecard` and `context` — is
+ *    computed by the pipeline. A translation that could alter "SELL since
+ *    2026-11-15" or a frozen level would be altering the call itself.
+ *    Scorecard factors carry keys, not labels: the UI catalog words them.
  *
  * `keyLevels[].value` IS included, as `kind: "money"`. It is a formatted string
  * in the artifact (`"$4,283.61"`, `"$4,000–$4,070"`), so leaving it out would
@@ -104,6 +109,22 @@ export function outlookFields(report: OutlookReport): TranslatableField[] {
         kind: "phrase",
       });
     }
+    if (call.adjustment !== undefined) {
+      fields.push({
+        path: `calls.${i}.adjustment.reason`,
+        value: call.adjustment.reason,
+        kind: "phrase",
+      });
+    }
+  });
+
+  // The events behind the analysis. Title and summary are prose; the date,
+  // direction, horizon and URL are data, and stay exactly as published.
+  report.drivers?.forEach((driver, i) => {
+    fields.push(
+      { path: `drivers.${i}.title`, value: driver.title, kind: "title" },
+      { path: `drivers.${i}.summary`, value: driver.summary, kind: "phrase" },
+    );
   });
 
   report.keyLevels.forEach((level, i) => {
@@ -288,6 +309,16 @@ const NEVER_TRANSLATED: RegExp[] = [
   /^macro\.source$/,
   /^macro\.fetchedAt$/,
   /^macro\.indicators\.\d+\.(key|unit|asOf|goldEffect)$/,
+  // How the call was set (Aureus v3) — computed, never prose.
+  /^calls\.\d+\.(since|baseline)$/,
+  /^calls\.\d+\.previous\.(signal|until)$/,
+  /^calls\.\d+\.change\.(reason|date)$/,
+  /^calls\.\d+\.levels\.(setOn|basis)$/,
+  /^scorecard\.rulesVersion$/,
+  /^scorecard\.(short|long)\.factors\.\d+\.(key|unit)$/,
+  /^context\.asOf$/,
+  /^context\.high52w\.date$/,
+  /^drivers\.\d+\.(direction|horizon|eventDate|url)$/,
 ];
 
 /** Collect every string leaf in an object, as dotted paths. */

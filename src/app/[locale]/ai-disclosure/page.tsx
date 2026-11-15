@@ -18,13 +18,16 @@ import { siteConfig } from "@/config/site";
  */
 
 /** Shown in the page footer and in the JSON-LD `dateModified`. */
-const LAST_UPDATED = "2026-07-30";
+const LAST_UPDATED = "2026-11-15";
 
 const aiWrites = ["w1", "w2", "w3", "w4"] as const;
-const aiNeverTouches = ["n1", "n2", "n3", "n4"] as const;
+// The computed calls lead the list: since Aureus v3 they are the most
+// consequential thing a model is kept away from. Keys are stable identifiers
+// for translation, so the order lives here rather than in the key names.
+const aiNeverTouches = ["n5", "n6", "n1", "n2", "n3", "n4"] as const;
 const pipelineSteps = ["s1", "s2", "s3", "s4", "s5"] as const;
-const failureModes = ["f1", "f2", "f3", "f4", "f5", "f6"] as const;
-const neverDo = ["n1", "n2", "n3", "n4", "n5"] as const;
+const failureModes = ["f1", "f2", "f3", "f4", "f5", "f6", "f7"] as const;
+const neverDo = ["n1", "n6", "n2", "n3", "n4", "n5"] as const;
 
 export async function generateMetadata({
   params,
@@ -100,7 +103,7 @@ export default async function AiDisclosurePage({ params }: LocaleParams) {
                   {aiNeverTouches.map((item) => (
                     <li key={item} className="text-muted-foreground flex gap-2 text-sm leading-6">
                       <X className="text-gold-strong mt-1 size-3.5 shrink-0" aria-hidden="true" />
-                      <span>{t(`split.never.${item}`)}</span>
+                      <span>{rich(`split.never.${item}`)}</span>
                     </li>
                   ))}
                 </ul>

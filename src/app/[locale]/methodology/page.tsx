@@ -7,6 +7,7 @@ import { linkTag, richTags } from "@/i18n/rich";
 import {
   Database,
   Bot,
+  Gauge,
   UserCheck,
   RefreshCw,
   Scale,
@@ -17,6 +18,8 @@ import { Container } from "@/components/layout/container";
 import { JsonLd } from "@/components/seo/json-ld";
 import { methodologyPageSchema } from "@/lib/structured-data";
 import { siteConfig } from "@/config/site";
+import { RULES } from "@/server/outlook/signal";
+import type { FactorKey } from "@/types/signal";
 
 /**
  * Structure only — the copy lives in the UI catalog under `methodology.*`.
@@ -28,6 +31,32 @@ import { siteConfig } from "@/config/site";
 const signals = ["buy", "hold", "sell"] as const;
 const confidence = ["high", "medium", "low"] as const;
 const steps = ["s1", "s2", "s3", "s4"] as const;
+const ruleSteps = ["s1", "s2", "s3", "s4", "s5"] as const;
+
+/**
+ * The numbers in "How a call is set", read from the rules that set the calls.
+ *
+ * Restating a threshold in copy is how a methodology page ends up describing a
+ * rule set that no longer exists. Passed as STRINGS: ICU formats a numeric
+ * argument in the page locale, and next-intl's `ar` is not the registry's
+ * `ar-u-nu-latn`, so a number would render in Arabic-Indic digits.
+ */
+function ruleValues(): Record<string, string> {
+  const short = Object.keys(RULES.short.factors) as FactorKey[];
+  const long = Object.keys(RULES.long.factors) as FactorKey[];
+  return {
+    totalFactors: String(short.length + long.length),
+    shortFactors: String(short.length),
+    longFactors: String(long.length),
+    // The two horizons share a threshold today; the copy states one number.
+    enter: String(RULES.short.enter),
+    confirmDays: String(RULES.confirmDays),
+    shortMin: String(RULES.levels.short.minDistancePct),
+    longMin: String(RULES.levels.long.minDistancePct),
+    shortRecency: String(RULES.adjustmentRecencyDays.short),
+    longRecency: String(RULES.adjustmentRecencyDays.long),
+  };
+}
 
 export async function generateMetadata({
   params,
@@ -55,6 +84,7 @@ export default async function MethodologyPage({ params }: LocaleParams) {
   setRequestLocale(locale);
   const t = await getTranslations("methodology");
   const rich = (key: string) => t.rich(key, richTags);
+  const values = ruleValues();
 
   return (
     <>
@@ -80,6 +110,31 @@ export default async function MethodologyPage({ params }: LocaleParams) {
               <p>{rich("data.p3")}</p>
               <p>{rich("data.p4")}</p>
               <p>{rich("data.p5")}</p>
+            </div>
+          </section>
+
+          {/* How a call is set — the rules, before the model that explains them */}
+          <section aria-labelledby="rules" className="space-y-4">
+            <SectionHeading id="rules" icon={<Gauge className="size-5 text-gold-strong" aria-hidden="true" />}>
+              {t("rules.heading")}
+            </SectionHeading>
+            <div className="text-muted-foreground space-y-4 text-pretty">
+              <p>{rich("rules.intro")}</p>
+              <ol className="ms-1 space-y-3">
+                {ruleSteps.map((step, i) => (
+                  <li key={step} className="flex gap-3">
+                    <span
+                      className="bg-accent text-gold-strong mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold"
+                      aria-hidden="true"
+                    >
+                      {i + 1}
+                    </span>
+                    <span>{t.rich(`rules.steps.${step}`, { ...richTags, ...values })}</span>
+                  </li>
+                ))}
+              </ol>
+              <p>{rich("rules.p1")}</p>
+              <p>{rich("rules.p2")}</p>
             </div>
           </section>
 

@@ -5,7 +5,7 @@ import { INSIGHT_KINDS, getInsightKind, insightKindCopy } from "@/config/insight
 import { FLAGSHIP_TOOL, TOOLS, toolCopy } from "@/config/tools";
 import { siteConfig } from "@/config/site";
 import { messages } from "@/i18n/messages";
-import { formatSignedPct, formatUsd } from "@/lib/format";
+import { formatSignedPct, formatUsd, formatUsdCompact } from "@/lib/format";
 import {
   getAllArticles,
   getArticleBySlug,
@@ -56,8 +56,9 @@ function disclaimer(locale: string): string {
 
 function aiNote(locale: string): string {
   return (
-    "Analysis is drafted by a large language model against deterministic market " +
-    `data and reviewed by a human before publication (${page("/ai-disclosure", locale)}). ` +
+    "Signals, confidence and price levels are computed by published rules from " +
+    "market data. The analysis is drafted by a large language model on top of that " +
+    `and reviewed by a human before publication (${page("/ai-disclosure", locale)}). ` +
     `Spot is proxied by PAX Gold (PAXG), not the London fix (${page("/methodology", locale)}).`
   );
 }
@@ -176,6 +177,23 @@ function spotLine(report: OutlookReport): string {
   return `Gold spot is **${formatUsd(report.spot.price)} ${report.spot.currency} per troy ounce**${change}, as of ${report.spot.asOf}.`;
 }
 
+/** Machine-facing wording of why a call opened — mirrors `outlook.call.changeReason`. */
+const CHANGE_REASONS: Record<string, string> = {
+  invalidation_hit: "a price level fixed when the previous call opened was broken by a daily close",
+  evidence_shift: "the scorecard baseline moved",
+  event_adjustment: "moved one step off the scorecard for a recent, dated event",
+  adjustment_ended: "an earlier event adjustment no longer applies",
+  methodology_change: "first call set by the published rules (a change of method, not a market event)",
+};
+
+function levelsText(levels: NonNullable<OutlookReport["calls"][number]["levels"]>): string {
+  const parts = [
+    levels.below !== undefined ? `below ${formatUsdCompact(levels.below)}` : null,
+    levels.above !== undefined ? `above ${formatUsdCompact(levels.above)}` : null,
+  ].filter(Boolean);
+  return `a daily close ${parts.join(" or ")} (fixed ${levels.setOn})`;
+}
+
 function callsSection(report: OutlookReport): string[] {
   const lines: string[] = ["## Calls", ""];
   for (const call of report.calls) {
@@ -184,9 +202,32 @@ function callsSection(report: OutlookReport): string[] {
       "",
       `- **Signal:** ${call.signal}`,
       `- **Confidence:** ${call.confidence}`,
-      `- **Rationale:** ${call.reason}`,
     );
-    if (call.invalidation) {
+    if (call.since) {
+      lines.push(
+        `- **Standing since:** ${call.since}` +
+          (call.previous ? ` (previously ${call.previous.signal})` : ""),
+      );
+    }
+    if (call.change && call.previous) {
+      lines.push(`- **Why it changed:** ${CHANGE_REASONS[call.change.reason] ?? call.change.reason}`);
+    }
+    if (call.baseline) lines.push(`- **Scorecard baseline:** ${call.baseline}`);
+    if (call.adjustment) {
+      const cited = call.adjustment.driverIndexes
+        .map((i) => report.drivers?.[i])
+        .filter((d) => d !== undefined)
+        .map((d) => `[${d.title}](${d.url}) (${d.eventDate})`)
+        .join("; ");
+      lines.push(
+        `- **Event adjustment:** ${call.adjustment.step > 0 ? "+1" : "−1"} — ${call.adjustment.reason}` +
+          (cited ? ` Cites: ${cited}` : ""),
+      );
+    }
+    lines.push(`- **Rationale:** ${call.reason}`);
+    if (call.levels) {
+      lines.push(`- **Changes on:** ${levelsText(call.levels)}`);
+    } else if (call.invalidation) {
       lines.push(`- **Invalidation:** ${call.invalidation}`);
     }
     lines.push("");
@@ -200,7 +241,67 @@ function callsSection(report: OutlookReport): string[] {
     "prove the view wrong.",
     "",
   );
+  if (report.scorecard) {
+    lines.push(
+      "Signals, confidence and levels are computed by published rules, not",
+      "written by a language model. A call stands until one of its fixed levels",
+      "is broken or the scorecard reading changes. The scorecard describes",
+      "current conditions; it is not a forecast.",
+      "",
+    );
+  }
   return lines;
+}
+
+const FACTOR_LABELS = messages(DEFAULT_LOCALE).outlook.scorecard.factors;
+
+/** The readings each baseline came from, as one table per horizon. */
+function scorecardSection(scorecard: NonNullable<OutlookReport["scorecard"]>): string[] {
+  const signed = (n: number) => (n > 0 ? `+${n}` : String(n));
+  const rows = (card: typeof scorecard.short) =>
+    card.factors.map((f) => [
+      FACTOR_LABELS[f.key] ?? f.key,
+      f.value == null
+        ? "not measured"
+        : `${f.value > 0 ? "+" : ""}${f.value.toFixed(2)}${f.unit === "pp" ? " pp" : "%"}`,
+      f.value == null ? "—" : signed(f.reading),
+    ]);
+  return [
+    "## Scorecard",
+    "",
+    "Each factor reads from −2 (strongly adverse for gold) to +2 (strongly",
+    "supportive). A total of +2 or more points to BUY, −2 or less to SELL; a",
+    `call is given up only when its total crosses back through zero. Rules ${scorecard.rulesVersion}.`,
+    "",
+    `### Short term (total ${signed(scorecard.short.score)})`,
+    "",
+    table(["Factor", "Measured", "Reading"], rows(scorecard.short)),
+    "",
+    `### Long term (total ${signed(scorecard.long.score)})`,
+    "",
+    table(["Factor", "Measured", "Reading"], rows(scorecard.long)),
+    "",
+  ];
+}
+
+function contextLine(context: NonNullable<OutlookReport["context"]>): string {
+  return (
+    `Spot is ${Math.abs(context.drawdownPct).toFixed(1)}% below its 52-week high of ` +
+    `${formatUsdCompact(context.high52w.price)} (${context.high52w.date}).`
+  );
+}
+
+function driversSection(drivers: NonNullable<OutlookReport["drivers"]>): string[] {
+  return [
+    "## Events behind this outlook",
+    "",
+    ...drivers.map(
+      (d) =>
+        `- **${d.eventDate}** · ${d.direction} for gold · ${d.horizon === "both" ? "both horizons" : `${d.horizon} term`} — ` +
+        `[${d.title}](${d.url}): ${d.summary}`,
+    ),
+    "",
+  ];
 }
 
 function buildOutlook(locale: string): string | null {
@@ -218,7 +319,9 @@ function buildOutlook(locale: string): string | null {
     "",
     spotLine(report),
     "",
+    ...(report.context ? [contextLine(report.context), ""] : []),
     ...callsSection(report),
+    ...(report.scorecard ? scorecardSection(report.scorecard) : []),
     ...(report.keyLevels.length > 0
       ? [
           "## Key levels",
@@ -231,6 +334,7 @@ function buildOutlook(locale: string): string | null {
         ]
       : []),
     ...(report.macro ? macroSection(report.macro) : []),
+    ...(report.drivers?.length ? driversSection(report.drivers) : []),
     "## Analysis",
     "",
     report.analysisMarkdown.trim(),

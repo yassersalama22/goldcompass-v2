@@ -191,9 +191,14 @@ Match the current site's look and feel:
 
 - Exact brand hex values + logo asset source (sample from live site in Phase 1).
 - Newsletter "Subscribe" backend (e.g. a hosted service vs. self-managed) — Phase 6.
-- Recommendation engine **built** (§12 + §13 Phase 3.5). LLM provider = **Claude
-  `claude-opus-4-8`** with the `web_search_20260209` tool; needs `ANTHROPIC_API_KEY` for real runs.
+- Recommendation engine **built** (§12 + §13 Phase 3.5), and since 2026-11-15 the calls are set by
+  published rules — **read §12.1 before touching it**. LLM provider = **Claude `claude-opus-4-8`**
+  with the `web_search_20260209` tool (analysis, events, one-step adjustments only); needs
+  `ANTHROPIC_API_KEY` for real runs, and `FRED_API_KEY` for four of the eleven scorecard factors.
 - Chart library **decided**: custom lightweight SVG (no chart dep) — see §13 Phase 3.
+- **Push notifications** (daily outlook / new articles) — design proposal parked in
+  `docs/push-notifications-design.md` (2026-11-14). Not decided, nothing built; 4 open decisions
+  at the end of that doc.
 - Final EC2 instance type + whether to go fully static export — **decided**: Docker standalone on **t4g.micro** (1GB RAM + 2GB swap). Static export not needed; standalone mode handles ISR/API routes.
 
 ## 12. Recommendation engine (Aureus v2) — design
@@ -233,6 +238,39 @@ Match the current site's look and feel:
 - **Resilience** (keep from v1): on any failure, keep the previous published artifact; alert.
 - **i18n** (future): generate ONE canonical analysis, then **translate** (so all languages share
   the same calls/data). New site is English-only initially.
+
+### 12.1 Aureus v3 — how the call is set (decided + built 2026-11-15)
+
+> Supersedes the v2 line "The LLM does analysis/narrative on top" **for the signal itself**.
+> v2 let the model choose BUY / HOLD / SELL freely; over 97 runs it chose HOLD short-term 95
+> times and BUY long-term 97 times (see §13, 2026-11-15). Full plan:
+> `~/.claude/plans/review-the-daily-recommendation-reflective-snowglobe.md`.
+
+**Decisions locked (owner):**
+
+- **The model does not choose the signal.** Code computes a baseline from a published scorecard
+  (`src/server/outlook/signal/`); the model may shift it **one step** for a **dated, cited
+  event**; a breached level **forces** a change. Signal, confidence and levels are computed.
+- **Signals keep the published meaning** — a description of *market conditions* over the horizon
+  (`/methodology`), not an instruction. The prompt must carry those definitions and ban advice
+  framing ("accumulate", "don't chase"), which is what made long-term BUY always true.
+- **Calls are standing calls.** A call opens on a date with levels derived from the data that
+  day; the levels are then **frozen**. Readers see "HOLD since 3 Oct · previously SELL".
+- **The scorecard is not a forecast, and no copy may say it is.** Replayed over ~2.6 years it
+  moves with conditions; it is not shown to predict the weeks ahead. See the replay header.
+- Thresholds live in `RULES` (`signal/scorecard.ts`) behind `RULES_VERSION`. Changing one changes
+  published calls: bump the version and rerun `npm run outlook:replay -- --deep`.
+
+**Working rules (learned building it):**
+
+- **Hard-fail only on what is mechanically decidable.** A signal either equals the rules' or it
+  does not. Whether a sentence *means* something is a judgement: give it one revision pass, then
+  put it in front of the reviewer (`advisoriesFor`). A pattern over prose that can fail a run
+  will eventually fail one on a correct sentence — it did, on the first live run.
+- **The model never supplies a number or a decision that code can.** Signal, confidence, levels,
+  key levels, dates, scorecard: all assembled from the brief. If a new field is a fact, compute it.
+- **Computed fields are not editable in review.** `check:signal` fails a PR that changes one. The
+  human gate is merge / don't merge.
 
 ## 13. Status log
 
@@ -2213,3 +2251,239 @@ Match the current site's look and feel:
     a one-shot `::notice::` with the status code and **no retries**; only a 200 serving the old
     build (or no response) retries and warns. 11 stub tests (run under **bash** — zsh does not
     word-split an unquoted `$VAR`, which broke the first harness run, not the script).
+- 2026-11-15: **Outlook signal review → Aureus v3, step 1 of 4** (rules + replay). Branch
+  `feat/aureus-v3-signal`, **uncommitted, and NOT wired into the pipeline** — the daily job still
+  runs the v2 prompt and the live site is unchanged. Design + decisions: §12.1.
+  - **Review finding: the calls were effectively constant.** All 97 generated outlooks in git
+    history (2026-06-21 → 11-14): short-term HOLD 95 / SELL 2 / BUY 0; long-term BUY 97/97;
+    confidence "medium" on 193 of 194 calls — while spot ranged $3,863–$4,643, the dollar's 30-day
+    change swung −2.5 → +3.7 and the real yield 2.32% → 2.95%. Every long-term BUY is underwater
+    (average −8.9%).
+  - **Root causes** (all verified in the artifacts, not inferred): ① the prompt carries a
+    **30-day** price summary only, so a 20–31% drawdown from the January high (~$5,496) and a
+    price under its 200-day average were invisible — about a third of published outlooks call the
+    price a record ("fresh record near $4,396", 12 Aug; "just below record territory near $4,108",
+    9 Nov); ② **stateless**, so invalidation levels were rewritten daily just under spot and never
+    hit ($4,150 → $4,000 → $3,800; "monthly close below $4,000 invalidates" → October closed
+    $3,898 → next call BUY/high); ③ the prompt never defined the signals, so the model used advice
+    framing, under which HOLD absorbs rallies *and* sell-offs and long-term BUY ("accumulate via
+    DCA") is always true; ④ news changed the prose, never the call; ⑤ the review PR is a 9 KB prose
+    diff with no "what changed"; ⑥ no track record, so nobody saw it.
+  - **Built** (`src/server/outlook/signal/`, pure, no `server-only`): `market-state.ts` (one year
+    of closes → returns, 50/200-day averages, 52-week high + drawdown, level windows, macro as of
+    any date), `scorecard.ts` (`RULES` + `RULES_VERSION`; 5 short and 6 long factors reading −2…+2;
+    baseline with hysteresis + confirmation; **computed** confidence), `standing.ts` (frozen
+    levels, breach detection, `resolveCall`, `previewOutcomes`). Contract vocabulary in
+    `src/types/signal.ts`; `signalSchema` / `confidenceSchema` now live there and are re-exported
+    from `types/outlook.ts`, so every existing import is unchanged.
+  - **Data layer**: `PriceProvider.getDailyHistory(days)` (free API = 365 daily points);
+    `MacroProvider.getHistory()`; `fetchMacroHistory()` returns the raw series **and** the snapshot
+    derived from them (one fetch — the panel and the scorecard cannot disagree). FRED lookback
+    60 → 400 days; `MacroIndicator` gained optional `change90d` + `pctile1y` (additive).
+    `src/server/macro/stats.ts` `readingAsOf()` is the single implementation of "30-day change",
+    used for today's snapshot and for any past date. Verified: the refactored snapshot reproduces
+    the published artifact's values and 30-day changes **exactly**.
+  - **Precedence in `resolveCall` is the design**: ① a breached level forces ≥1 step toward the
+    breached side and an adjustment cannot undo it; ② a call *pinned* by a breach holds until the
+    baseline itself moves (adjustments ignored), so it cannot bounce back the next morning;
+    ③ otherwise baseline ± one step.
+  - **Confirmation rule added because the replay showed one-day calls**: a baseline move needs
+    **2 consecutive market readings** to agree (`RULES.confirmDays`). Recomputed from price history
+    via `priorScores()`, not from stored state — the outlook is not published every day, so
+    "yesterday's published score" may be a week old. A breach is exempt (a close through a level
+    is a fact). Effect over ~2.6 years: 1–2-day calls 8 → 2 (short), 1 → 0 (long).
+  - **`npm run outlook:replay -- --deep`** replays ~1,000 days (2024-02 → today) through the
+    exact production code. Short-term: BUY 54% / HOLD 14% / SELL 32%, 1.6 changes/month.
+    Long-term: BUY 68% / HOLD 9% / SELL 23%, 8 changes in 800 days — BUY stood 423 days through
+    the 2025 run, SELL since 2026-05-16. **Today: short SELL (medium), long SELL (high, score −6:
+    all six factors adverse).**
+  - **⚠ The one-year replay alone is misleading for the long-term rules**: the 200-day average
+    consumes 200 of the free source's 365 days, leaving 166 days of a single down-regime (SELL
+    100%). `--deep` reads daily PAXG closes from a public market-data endpoint
+    (`data-api.binance.vision`) — **calibration only, never published or stored.** A kline's close
+    is the END of its UTC day = the production source's 00:00 reading for the NEXT day, so deep
+    closes are dated one day forward.
+  - **⚠ The free daily series is 365 midnight readings + 1 trailing live point.** `toDailyCloses`
+    drops the live one: levels are defined on closes, and a mid-session wobble must not breach one.
+  - **⚠ Standing calls are path-dependent.** The two replays report a different `since` for the
+    same day because they start from different dates. In production the path is the published
+    history (`history.json`, step 2) — not something to "fix".
+  - **Honest limit, and it constrains all copy**: the "what happened next" table orders correctly
+    long-term in the deep replay (BUY days +5.5% over 60 days vs SELL −1.4%) but that is mostly
+    trend persistence in one bull market, and short-term it barely separates (BUY +1.7% / SELL
+    +0.2% over 21 days). The rules describe conditions; they are not a forecast. Do not tune
+    thresholds against that table.
+  - Verified: `npm run check:signal` **43 fixtures**, and the gate was watched failing on three
+    mutations (breach not forcing → 4 fail; levels re-derived daily → 1; confirmation off → 3).
+    `tsc --noEmit` ✓, `eslint` ✓, `next build` ✓, `i18n:check` 0 errors, `check:markdown` 38/38,
+    mock pipeline run with live price + FRED ✓.
+  - **Shell traps hit while reading git history** (zsh): `$c:src/…` applies a history *modifier*
+    to `$c` — write `"${c}:path"`; and zsh's `echo` interprets `\n` inside JSON, breaking
+    `JSON.parse` downstream — pipe `git show` straight into the consumer.
+  - **Documentation that must change, and WHEN** — published copy describes live behaviour, so it
+    changes in the step that makes it true, never before:
+    | Where | What is (or will be) wrong | Step |
+    |---|---|---|
+    | `ui/en.json` `aiDisclosure` `w2` (~line 463) | lists signals, confidence and invalidation as **AI-drafted** — they become computed | 3 |
+    | `ui/en.json` `methodology.signals` + `cadence.p1` | no account of the scorecard, standing calls, frozen levels | 3 |
+    | `ui/en.json` `methodology`/`aiDisclosure` review `p1`, `outlook.methodologyBody` | "reasoning is consistent with the signal" / "AI-drafted on top of that data" | 3 |
+    | `src/app/llms.txt/route.ts` (~line 33), `server/markdown/index.ts` `callsSection` | same claim, machine-facing; Markdown twin gains since / levels / scorecard | 3 |
+    | `ui/ar.json` | all of the above, via `TRANSLATE_ONLY=catalog npm run i18n:translate` + owner review | 3 |
+    | `.env.example` | `OUTLOOK_WEB_SEARCH_MAX_USES` default 4 → 6; FRED section should say the key now also feeds the scorecard (unset = yield and dollar factors read neutral) | 2 |
+    | `daily-outlook.yml` PR body, `content-check.yml` | review checklist → generated "what changed" summary; add `check:signal` | 2 |
+    | `docs/push-notifications-design.md` §2.1 | its "signal change" trigger compares artifacts; `calls[].change` will state the change and its reason directly | 2 (note only) |
+    | §11 here | "Recommendation engine built" → point at §12.1 | 4 |
+    Deliberately **not** updated: `docs/competitive-analysis-goldcompass-ai.md` (a dated report;
+    its "we make a directional call with an invalidation level" advantage becomes *more* true)
+    and `README.md` (never mentions the outlook).
+  - **Next — step 2, after the owner approves the thresholds**: contract fields, `history.json` +
+    backfill, prompt v3 with the per-run zod schema, pipeline scripts, mock, PR summary. The first
+    v3 outlook will read short SELL / long SELL against the live HOLD / BUY — a visible reversal,
+    labelled `methodology_change`.
+- 2026-11-15: **Aureus v3, step 2 of 4 — pipeline wired** (owner approved the thresholds). Same
+  branch, still **uncommitted**. The live site is unchanged: the daily job on `main` runs v2 until
+  this branch merges. **⚠ Do not merge before step 3** — `/ai-disclosure` and `/methodology` still
+  say the model drafts the signals, which this branch makes false.
+  - **Flow** (`scripts/generate-outlook.mts`): quote + 365 daily closes + macro history → market
+    state → per horizon a **brief** (`generator/brief.ts`: scorecard, standing call, breach, and
+    the call each of the three permitted adjustments would publish) → model → validate against
+    the brief → **assemble** (`generator/assemble.ts`). Assembly copies the model's prose and takes
+    every decision and number — signal, confidence, levels, dates, key levels, scorecard, context
+    — from the brief and the state. **The model's own `signal` field is never read**, only
+    compared; a fixture mutates it and asserts nothing changes.
+  - **Contract** (additive, `CONTRACT_VERSION` stays 1): `calls[].since | previous | change |
+    levels | baseline | adjustment`; top-level `context`, `scorecard`, `drivers`. Scorecard factors
+    carry **keys, not labels** (the UI catalog will word them — nothing to translate).
+    `src/server/i18n/field-map.ts` translates `drivers[].title|summary` and
+    `calls[].adjustment.reason`; every computed path is in `NEVER_TRANSLATED`. Verified on a real
+    artifact: 34 translatable fields, every computed field untouched by a full rewrite.
+  - **History**: `src/content/outlook/history.json` (one entry per line, so a daily PR adds one
+    line). Appended by `publish-outlook.mts`, **never by generate** — it only ever holds published
+    calls. Pipeline state (`pinned`, `lastChecked`, `score`) lives here, **not in the public
+    artifact** (§4: never leak internals). Backfilled with `npm run outlook:backfill`: **99 legacy
+    entries** from git. A stale backfill is harmless — generation folds in the currently published
+    outlook if history has not recorded it.
+  - **Hard rules vs. advisories — the lesson of the first live run.** The plan made the "record
+    claim" check and the advice-framing ban hard validation failures. The first live run was
+    **lost** to that: the model wrote *"This is the opposite of record territory — it is the
+    weakest the metal has been in a year"* (correct), the pattern matched "record territory",
+    rejected it twice, and nine minutes and two full generations produced nothing. **A pattern over
+    prose cannot tell a claim from its denial reliably enough to fail a run.** Now:
+    `validateGenerated` holds only what is mechanically decidable (signal equals the rules';
+    invalidation quotes the frozen level; an adjustment cites a recent, same-direction, sourced
+    driver; a no-effect adjustment must be 0). `advisoriesFor` holds the prose judgements.
+    `generateJson` gained an optional `advisories` hook: a valid response that draws any gets
+    **one** revision pass, and **if the revision is invalid the valid first response is kept** —
+    so an advisory costs at most one request and can never fail a run. What remains is listed in
+    the PR body for the reviewer. Second live run: 78 s, no flags.
+    **Not unit-tested**: the revision path itself (it needs a stubbed SDK client).
+  - **Deliberate departures from the approved plan** (all for the same reason — fewer places a
+    model can put a number or a decision): ① key levels are **computed** (spot, 20-day low/high,
+    50/200-day averages, 52-week high), no longer written by the model; ② `label` / `horizon` are
+    constants; ③ the two prose checks are advisories (above); ④ a breach or a pinned call makes
+    some adjustments "no effect", and requesting one is a validation error rather than silently
+    ignored.
+  - **PR body is generated** (`generator/review.ts` → `outlook-review.md` via `body-path`, also
+    appended to the job summary): what changed since the last published outlook and why, the
+    scorecard per horizon, any broken level, any adjustment with its cited events, wording flags,
+    then the checklist. The old body was a static checklist above a 9 KB prose diff.
+  - **Integrity gate** (`signal/integrity.ts`, run by `npm run check:signal` on every content PR
+    and in the daily job): cross-checks the artifact against its history entry and recomputes
+    confidence from the scorecard, so hand-editing `"SELL"` → `"HOLD"` in a PR fails CI with
+    *"long-term: signal is "HOLD" in the outlook but "SELL" in history"*. Editing both files
+    together still fails (the levels and the baseline no longer fit). To overrule the rules, do
+    not merge. Pre-rules artifacts are exempt, which is why today's `current.json` reports
+    "nothing to verify yet".
+  - **`OUTLOOK_CONTENT_DIR`** redirects the pipeline to a scratch copy. That is how publish,
+    history and a multi-day sequence were exercised without touching the published artifact —
+    use it instead of publishing mock content and reverting.
+  - **Resilience**: price fetches retry twice (20 s, 60 s). The free API answers 429 after a burst,
+    and unlike v2 — which shrugged off a failed series — the scorecard cannot be computed without
+    history, so one 429 would have cost the day. Fewer than 200 closes, or a newest close older
+    than two days, fails the run: yesterday's outlook stays live (§12).
+  - **First live output** (not published; scratch only): short **SELL** / medium, long **SELL** /
+    high, both `methodology_change` with `previous` HOLD / BUY recorded. Reasons describe
+    conditions; four dated, sourced drivers; adjustment 0 on both, with the model noting "no dated
+    bullish catalyst justifies an adjustment"; the analysis says the price is "decidedly *not*
+    record territory". **Reviewer's job is now the events**: one driver cited a CPI *calendar* page
+    rather than a primary source, and the short-term reason called the dollar "near-record-high"
+    on the strength of a one-year percentile — the prompt now says percentiles describe the past
+    year only.
+  - Verified: `check:signal` **71 fixtures**, gate watched failing on three more mutations
+    (recency window off; signal not checked against the rules; assembly trusting the model's
+    signal). End to end against a scratch copy: first run, publish, a **broken level forcing
+    SELL → HOLD** with the review summary naming the close and the level, the pin holding the next
+    day, an idempotent same-day rerun, and publish refusing a draft with no history entry.
+    `tsc` ✓, `eslint` ✓, `next build` ✓, `i18n:check` 0 errors, `check:markdown` 38/38.
+  - **Docs updated in this step**: `.env.example` (search default 6; what `FRED_API_KEY` now
+    feeds), `daily-outlook.yml` header + generated body, `content-check.yml` (`check:signal`, new
+    path triggers), `docs/push-notifications-design.md` §2.1 (the trigger can read
+    `calls[].change` directly; `methodology_change` must not notify as a market event).
+    **Still wrong until step 3**: the methodology, AI-disclosure and outlook copy, `llms.txt`, the
+    Markdown twin, and the Arabic catalog — see the table in the step-1 entry.
+  - **⚠ A tool-harness trap, not a project one**: a long Bash command embedding a Python heredoc
+    was refused by a safety check that could not parse it ("could not be checked for dangerous rm
+    operations") although it deleted nothing. Use the file tools for multi-file edits.
+  - **Next — step 3**: call card ("SELL since 15 Nov · previously HOLD", change notice, level
+    line), scorecard panel, drivers list, home card, Markdown twin, the copy above, Arabic via the
+    catalog pipeline. Then step 4: first real PR, review, merge.
+- 2026-11-15: **Aureus v3, step 3 of 4 — surfaces + copy.** Same branch, still **uncommitted**.
+  Every item in the step-1 documentation table marked "3" is now done. The branch is mergeable
+  from a copy standpoint; step 4 is the first real PR.
+  - **Outlook page**: header gains the computed 52-week line ("30.4% below the 52-week high of
+    $5,496 (Jan 29, 2026)" — the fact the old outlooks most often got wrong). Call card gains
+    "Standing since … · previously HOLD", the change reason (only while `previous` exists), an
+    adjustment box citing its events by link and date, a "held by a broken level" note, and the
+    **frozen levels rendered from numbers via the catalog** instead of the model's invalidation
+    sentence. New `ScorecardPanel` (semantic `<table>` per horizon; reading = word + arrow +
+    colour, never colour alone) and `DriversList`. Home cards gain "Since …". Key-levels grid is
+    3 across (six levels left one orphan at 5).
+  - **Pre-rules outlooks render exactly as before** — every new block is conditional on its field.
+    Verified on today's `current.json`: no new sections in the visible text, legacy invalidation
+    prose shown, 0 axe / 0 console errors.
+  - **`valueTags`** (`src/i18n/rich.tsx`): `<num>{x}</num>` / `<money>{x}</money>` inside a catalog
+    sentence render through `Num` / `MoneyText`, so a value embedded in a translated sentence gets
+    the same RTL isolation as one on its own. Use these rather than splitting a sentence around a
+    number.
+  - **Methodology numbers are read from `RULES`** (`ruleValues()` in the page), passed as strings
+    (ICU would render Arabic-Indic digits for numbers). Changing a threshold cannot leave the copy
+    describing an old rule. New "How a call is set" section (`#rules`) sits before "How the
+    analysis is written". The copy says plainly the scorecard **is not a forecast**.
+  - **AI-disclosure**: signals, confidence, levels and key levels moved to "AI never touches this"
+    (listed first); "AI drafts this" now lists events + the one-step adjustment request and the
+    wording of what would change each view. New failure mode f7 (rules misread an unusual market),
+    new never-do n6 (let a model choose a call). `LAST_UPDATED` → 2026-11-15.
+  - **Machine-facing**: Markdown twin gains the 52-week line, standing-since / why / baseline /
+    adjustment / "Changes on" per call, a scorecard section and an events section; `aiNote` and
+    `llms.txt` now say signals and levels are computed. The prompt and the PR summary read factor
+    labels from the catalog — page, review and model name factors identically.
+  - **🐛 Translation prompt fixed — would have failed the daily job.** Rule-based analyses say
+    "20-day", "50-day", "200-day" constantly. The first real Arabic translation of a v3 outlook
+    spelled "20-day return" as `لعشرين يومًا`, and the strict artifact numeral gate failed it.
+    Telling the translator "keep digits" then failed the *other* way: the English had
+    "Twenty-day volatility" and the Arabic wrote "20". The rule is now **keep the form the source
+    uses, in both directions** (`TRANSLATION_PROMPT_VERSION 2026-11-15.1`); third run passed.
+    **Do not relax the gate instead** — for market prose any number change must stay an error.
+  - **Glossary** (proposals, owner to confirm): scorecard → `بطاقة التقييم`, baseline →
+    `القراءة الأساسية`, daily close → `الإغلاق اليومي`, 52-week high → `أعلى مستوى في 52 أسبوعًا`.
+    Catalog: **92 strings translated, 597 untouched**, 0 gate errors.
+  - **Arabic review flag**: `changeReason.methodology_change` uses `مصاغة بحرية` ("drafted
+    freely"), which without diacritics can read as "naval". Suggest `بصياغة حرة` or `دون قواعد`.
+  - **Verified with the real live-run artifact temporarily installed** (and its real Arabic
+    translation — the first of a v3 outlook): English and Arabic pages render every new block;
+    **10/10 Arabic money amounts measured in correct RTL order** via `getBoundingClientRect` (incl.
+    the 52-week line and both level lines); check:rtl 16/16 (outlook, home, methodology,
+    ai-disclosure × en/ar × light/dark) 0 axe / 0 console / 0px overflow; check:untranslated on
+    `/ar/outlook` = only FRED attribution + source titles; Markdown twin reviewed; computed fields
+    byte-identical between the English and Arabic artifacts. Artifacts restored afterwards and
+    verified byte-identical to HEAD. Final state: `tsc` ✓ `eslint` ✓ `next build` ✓
+    `check:signal` 71/71 `i18n:check` 0 errors `check:markdown` 38/38 `check:faq` 96/96.
+  - **⚠ Screenshot trap**: headless Chrome's `--window-size` does not set the layout viewport for
+    `Page.captureScreenshot`; an RTL page then looks cut off on the right because the clip takes the
+    left 390px of a wider layout. Call `Emulation.setDeviceMetricsOverride` first.
+  - **Reviewer note from the live draft**: one event (ETF outflows) linked a Kitco page whose URL
+    is about central-bank buying — exactly the "source does not support the sentence" case the
+    PR checklist asks the reviewer to catch.
+  - **Next — step 4**: commit, open the PR, let `content-check` run, merge (deploys + purge). The
+    next daily run then publishes the first rule-based outlook (expected SELL / SELL,
+    `methodology_change`). Update §11 ("Recommendation engine built" → §12.1) in that PR.

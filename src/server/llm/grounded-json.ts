@@ -38,12 +38,22 @@ const MAX_PAUSE_CONTINUATIONS = 4;
  * Shared by the outlook generator, the article generator and the translator, so
  * the SDK/tool/pause-turn/retry logic lives in exactly one place. The only
  * difference between callers is whether the web-search tool is attached.
+ *
+ * `advisories` is the soft counterpart of `schema`. The schema holds rules a
+ * response either meets or does not, and failing them fails the call. An
+ * advisory is a judgement about prose (a pattern that *might* be a problem):
+ * if a valid first response draws any, the model gets ONE chance to revise —
+ * and if the revision is itself invalid, the valid first response is returned.
+ * An advisory therefore costs at most one extra request and can never turn a
+ * usable response into a failed run. Callers surface what remains to a human.
+ * No advisory pass follows a schema retry: two requests is the ceiling.
  */
 export async function generateJson<T>(
   system: string,
   userPrompt: string,
   schema: z.ZodType<T>,
   opts: JsonRequestOptions,
+  advisories?: (value: T) => string[],
 ): Promise<T> {
   const client = new Anthropic(); // reads ANTHROPIC_API_KEY
   const searchBudget = opts.webSearchMaxUses ?? 0;
@@ -102,8 +112,9 @@ export async function generateJson<T>(
   ];
   const response = await runToCompletion(messages, true);
 
+  let first: T;
   try {
-    return schema.parse(parseJsonObject(extractText(response.content)));
+    first = schema.parse(parseJsonObject(extractText(response.content)));
   } catch (err) {
     const reason = err instanceof Error ? err.message : String(err);
     messages.push({ role: "assistant", content: response.content });
@@ -115,6 +126,29 @@ export async function generateJson<T>(
     });
     const retry = await runToCompletion(messages, false);
     return schema.parse(parseJsonObject(extractText(retry.content)));
+  }
+
+  const notes = advisories?.(first) ?? [];
+  if (notes.length === 0) return first;
+
+  messages.push({ role: "assistant", content: response.content });
+  messages.push({
+    role: "user",
+    content:
+      `Your response is valid. Before it is published, please reconsider these points:\n` +
+      notes.map((note) => `- ${note}`).join("\n") +
+      `\n\nIf a point is right, revise the wording. If it is a false alarm — the sentence already says ` +
+      `the correct thing — leave it as it is. Change nothing else: keep every other field exactly as ` +
+      `you wrote it. Respond with ONLY the complete JSON object — no prose, no code fences.`,
+  });
+  try {
+    const revised = await runToCompletion(messages, false);
+    return schema.parse(parseJsonObject(extractText(revised.content)));
+  } catch (err) {
+    console.warn(
+      `[llm] advisory revision was not usable (${(err as Error).message.split("\n")[0]}); keeping the first response`,
+    );
+    return first;
   }
 }
 
@@ -128,6 +162,7 @@ export async function generateGroundedJson<T>(
   userPrompt: string,
   schema: z.ZodType<T>,
   opts: GroundedJsonOptions,
+  advisories?: (value: T) => string[],
 ): Promise<T> {
-  return generateJson(system, userPrompt, schema, opts);
+  return generateJson(system, userPrompt, schema, opts, advisories);
 }

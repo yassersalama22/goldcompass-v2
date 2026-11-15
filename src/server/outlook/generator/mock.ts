@@ -1,87 +1,74 @@
+import type { Levels } from "@/types/signal";
+
 import type { OutlookGenerator } from "./provider";
-import type { GeneratedOutlook, GenerationInput } from "./schema";
+import { levelText, type GeneratedOutlook, type GenerationInput } from "./schema";
 
 /**
- * Deterministic generator for testing the pipeline without an API key or
- * network. Derives a plausible outlook from the supplied ground-truth data so
- * the end-to-end flow (fetch → generate → validate → write draft) can be
- * exercised offline. NOT for production content.
+ * Deterministic generator for exercising the pipeline without an API key or
+ * network. It requests no adjustment, so the calls it "writes" are exactly the
+ * scorecard's — and its output passes through the same validating schema as a
+ * real response, which keeps that schema honest. NOT for production content.
  */
 export function createMockGenerator(): OutlookGenerator {
   return {
     name: "Mock (deterministic)",
 
     async generate(input: GenerationInput): Promise<GeneratedOutlook> {
-      const { spot, series } = input;
-      const usd = (n: number) => `$${Math.round(n).toLocaleString("en-US")}`;
-      const trendDown = (series?.changePct30d ?? 0) < 0;
+      const { spot, state, briefs, date } = input;
 
-      const shortSignal = trendDown ? "SELL" : "HOLD";
-      const support = Math.round(spot.price * 0.97);
-      const resistance = Math.round(spot.price * 1.03);
+      const breaks = (levels: Levels): string =>
+        [
+          levels.below !== undefined ? `a daily close below ${levelText(levels.below)}` : null,
+          levels.above !== undefined ? `a daily close above ${levelText(levels.above)}` : null,
+        ]
+          .filter(Boolean)
+          .join(" or ");
+
+      const call = (term: "short" | "long") => {
+        const { call: outcome } = briefs[term].outcomes["0"];
+        return {
+          term,
+          signal: outcome.signal,
+          reason: `Placeholder rationale: the ${term}-term scorecard reads ${outcome.score}, which the rules map to ${outcome.signal}.`,
+          invalidation: `This view would change on ${breaks(outcome.levels)}.`,
+        };
+      };
 
       return {
-        summary: `Gold trades near ${usd(spot.price)} (XAU/USD). This is placeholder editorial content generated without live research — replace with a real run before publishing.`,
-        calls: [
+        summary: `Gold trades near ${levelText(spot.price)}, ${Math.abs(state.drawdownPct).toFixed(1)}% below its 52-week high. This is placeholder content generated without live research — replace with a real run before publishing.`,
+        drivers: [
           {
-            term: "short",
-            label: "Short-term",
-            horizon: "Next 1–4 weeks",
-            signal: shortSignal,
-            confidence: "medium",
-            reason: `Price action has been ${trendDown ? "soft" : "range-bound"} over the past month; near-term direction is unclear pending fresh catalysts.`,
-            invalidation: `A decisive close above ${usd(resistance)} would improve the short-term tone.`,
+            title: "Mock driver: no live research was performed",
+            direction: "neutral",
+            horizon: "both",
+            eventDate: date,
+            summary: "Placeholder entry so the pipeline can be exercised offline.",
+            url: "https://example.com/mock-driver-1",
           },
           {
-            term: "long",
-            label: "Long-term",
-            horizon: "Next 3–12 months",
-            signal: "BUY",
-            confidence: "high",
-            reason:
-              "Structural demand and central-bank buying support a constructive longer-term view despite near-term noise.",
-            invalidation: `A sustained break below ${usd(support)} would challenge the bullish thesis.`,
+            title: "Mock driver: second placeholder",
+            direction: "neutral",
+            horizon: "both",
+            eventDate: date,
+            summary: "Placeholder entry so the pipeline can be exercised offline.",
+            url: "https://example.com/mock-driver-2",
           },
         ],
-        keyLevels: [
-          { label: "Spot", value: usd(spot.price), emphasis: true },
-          { label: "Near support", value: usd(support) },
-          { label: "Near resistance", value: usd(resistance) },
-          ...(series
-            ? [
-                { label: "30-day low", value: usd(series.min) },
-                { label: "30-day high", value: usd(series.max) },
-              ]
-            : []),
-        ],
+        adjustments: {
+          short: { step: 0, reason: "", driverIndexes: [] },
+          long: { step: 0, reason: "", driverIndexes: [] },
+        },
+        calls: [call("short"), call("long")],
         analysisMarkdown: [
           "## Market overview",
           "",
-          `Gold (XAU/USD) is trading near **${usd(spot.price)}** per ounce${
-            spot.changePct24h != null
-              ? `, ${spot.changePct24h >= 0 ? "up" : "down"} ${Math.abs(spot.changePct24h).toFixed(2)}% over 24h`
-              : ""
-          }.${
-            series
-              ? ` Over the past 30 days the metal has moved ${series.changePct30d.toFixed(1)}%, ranging between **${usd(series.min)}** and **${usd(series.max)}**.`
-              : ""
-          }`,
+          `Gold (XAU/USD) is trading near **${levelText(spot.price)}** per ounce.`,
           "",
-          "_This is mock content for pipeline testing. A real generation run uses live web research for the sections below._",
-          "",
-          "## Key drivers",
-          "",
-          "- US dollar and real yields",
-          "- Central-bank demand",
-          "- Positioning and momentum",
+          "_This is mock content for pipeline testing. A real generation run uses live web research._",
           "",
           "## Outlook",
           "",
           "See the short- and long-term calls above.",
-          "",
-          "## Risks",
-          "",
-          "- A sharp move in the dollar or rates could invalidate the near-term view.",
         ].join("\n"),
         sources: [],
       };

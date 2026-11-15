@@ -1,4 +1,4 @@
-import type { MacroSnapshot } from "@/types/macro";
+import type { MacroHistory, MacroSnapshot } from "@/types/macro";
 
 /**
  * Provider abstraction for the macro backdrop, mirroring `PriceProvider`.
@@ -10,4 +10,9 @@ export interface MacroProvider {
   readonly name: string;
   /** Latest readings. Throws on upstream failure; the data layer catches. */
   getSnapshot(): Promise<MacroSnapshot>;
+  /**
+   * The raw daily series, oldest first, reaching back `lookbackDays` calendar
+   * days. Throws on upstream failure; the data layer catches.
+   */
+  getHistory(lookbackDays?: number): Promise<MacroHistory>;
 }

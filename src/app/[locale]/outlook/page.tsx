@@ -2,18 +2,25 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
-import { linkTag, richTags } from "@/i18n/rich";
+import { linkTag, richTags, valueTags } from "@/i18n/rich";
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 
 import { Num, Usd } from "@/components/market/num";
 import { Container } from "@/components/layout/container";
 import { Analysis } from "@/components/outlook/analysis";
+import { DriversList } from "@/components/outlook/drivers-list";
 import { KeyLevels } from "@/components/outlook/key-levels";
 import { MacroPanel } from "@/components/outlook/macro-panel";
 import { OutlookCallCard } from "@/components/outlook/outlook-call-card";
+import { ScorecardPanel } from "@/components/outlook/scorecard-panel";
 import { JsonLd } from "@/components/seo/json-ld";
 import { SubscribeCta } from "@/components/newsletter/subscribe-cta";
-import { formatLongDateTime, formatSignedPct } from "@/lib/format";
+import {
+  formatLongDateTime,
+  formatMediumDate,
+  formatSignedPct,
+  formatUsdCompact,
+} from "@/lib/format";
 import { withLocaleMetadata, type LocaleParams } from "@/lib/seo";
 import { outlookArticleSchema } from "@/lib/structured-data";
 import { cn } from "@/lib/utils";
@@ -92,6 +99,21 @@ export default async function OutlookPage({ params }: LocaleParams) {
                 </span>
               ) : null}
             </div>
+            {/* Where the price sits in its own year. Computed, so it reads the
+                same in every language — and it is the fact the old outlooks
+                most often got wrong ("record territory" at 25% below the high). */}
+            {report.context ? (
+              <p className="text-muted-foreground text-sm">
+                {report.context.drawdownPct > -0.05
+                  ? t("context.atHigh")
+                  : t.rich("context.drawdown", {
+                      ...valueTags,
+                      pct: `${Math.abs(report.context.drawdownPct).toFixed(1)}%`,
+                      high: formatUsdCompact(report.context.high52w.price, locale),
+                      date: formatMediumDate(report.context.high52w.date, locale),
+                    })}
+              </p>
+            ) : null}
             <p className="text-muted-foreground text-lg text-pretty" {...content}>
               {report.summary}
             </p>
@@ -112,7 +134,12 @@ export default async function OutlookPage({ params }: LocaleParams) {
             </h2>
             <div className="grid gap-6 md:grid-cols-2">
               {report.calls.map((call) => (
-                <OutlookCallCard key={call.term} call={call} content={content} />
+                <OutlookCallCard
+                  key={call.term}
+                  call={call}
+                  drivers={report.drivers}
+                  content={content}
+                />
               ))}
             </div>
             <p className="text-muted-foreground text-sm">
@@ -122,8 +149,18 @@ export default async function OutlookPage({ params }: LocaleParams) {
             </p>
           </section>
 
+          {/* The scorecard behind the calls — only on rule-based outlooks */}
+          {report.scorecard ? (
+            <ScorecardPanel scorecard={report.scorecard} calls={report.calls} />
+          ) : null}
+
           {/* Macro backdrop — only when the artifact carries a snapshot */}
           {report.macro ? <MacroPanel macro={report.macro} content={content} /> : null}
+
+          {/* Dated events the analysis draws on */}
+          {report.drivers?.length ? (
+            <DriversList drivers={report.drivers} content={content} />
+          ) : null}
 
           {/* Full analysis */}
           <section aria-labelledby="analysis-heading">

@@ -6,7 +6,9 @@ import type { KeyLevel } from "@/types/outlook";
 export function KeyLevels({ levels, content = {} }: { levels: KeyLevel[]; content?: ContentLang }) {
   if (levels.length === 0) return null;
   return (
-    <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-3 lg:grid-cols-5">
+    // Three across at most: rule-based outlooks carry six levels, and five
+    // columns left one orphaned in a second row.
+    <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-3">
       {levels.map((level) => (
         <div key={level.label} className="bg-card flex flex-col gap-1 p-4">
           <dt className="text-muted-foreground text-xs font-medium tracking-wide uppercase" {...content}>

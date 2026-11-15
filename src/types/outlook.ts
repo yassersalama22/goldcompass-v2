@@ -1,6 +1,14 @@
 import { z } from "zod";
 
 import { macroSnapshotSchema } from "./macro";
+import {
+  changeReasonSchema,
+  confidenceSchema,
+  driverSchema,
+  levelsSchema,
+  scorecardSchema,
+  signalSchema,
+} from "./signal";
 import { translationMetaSchema } from "./translation";
 
 /**
@@ -14,11 +22,11 @@ import { translationMetaSchema } from "./translation";
  */
 export const CONTRACT_VERSION = 1;
 
-export const signalSchema = z.enum(["BUY", "HOLD", "SELL"]);
-export type Signal = z.infer<typeof signalSchema>;
-
-export const confidenceSchema = z.enum(["low", "medium", "high"]);
-export type Confidence = z.infer<typeof confidenceSchema>;
+// Defined in `./signal` (so the pure signal logic can use them without pulling
+// in this whole contract) and re-exported here, where every consumer imports
+// them from.
+export { confidenceSchema, signalSchema };
+export type { Confidence, Signal } from "./signal";
 
 export const outlookCallSchema = z.object({
   /** Machine key for the horizon. */
@@ -33,6 +41,38 @@ export const outlookCallSchema = z.object({
   reason: z.string().min(1),
   /** What would invalidate this view (price level / condition). */
   invalidation: z.string().optional(),
+
+  /*
+   * ── How the call was set (Aureus v3, §12.1) ───────────────────────────────
+   * All optional: they post-date CONTRACT_VERSION 1 and are absent on outlooks
+   * published before the scorecard, so the version stays 1 — added optional
+   * fields are backwards-compatible for `/api/v1` consumers. None of them is
+   * written by the model: code computes each one.
+   */
+  /** ISO date this signal has stood since. A call persists until it changes. */
+  since: z.string().optional(),
+  /** The call this one replaced, and the date it was replaced. */
+  previous: z.object({ signal: signalSchema, until: z.string() }).optional(),
+  /** Why this call opened, and when. */
+  change: z.object({ reason: changeReasonSchema, date: z.string() }).optional(),
+  /**
+   * The price levels that would break this call — set when it opened and
+   * frozen since. The machine-checkable counterpart of `invalidation`.
+   */
+  levels: levelsSchema.optional(),
+  /** What the scorecard alone says, before any event adjustment. */
+  baseline: signalSchema.optional(),
+  /**
+   * Present only when a dated, cited event moved the call one step off the
+   * baseline. `drivers` holds the events; `driverIndexes` points into it.
+   */
+  adjustment: z
+    .object({
+      step: z.union([z.literal(-1), z.literal(1)]),
+      reason: z.string().min(1),
+      driverIndexes: z.array(z.number().int().nonnegative()).min(1),
+    })
+    .optional(),
 });
 export type OutlookCall = z.infer<typeof outlookCallSchema>;
 
@@ -59,6 +99,33 @@ export const spotSchema = z.object({
 });
 export type Spot = z.infer<typeof spotSchema>;
 
+/**
+ * The year-long facts the outlook was written against — a reader-facing subset
+ * of the pipeline's market state. Snapshotted for the same reason as `macro`:
+ * what the page shows is provably what the call was computed from.
+ */
+export const outlookContextSchema = z.object({
+  /** ISO date of the latest daily close included. */
+  asOf: z.string(),
+  high52w: z.object({ price: z.number().positive(), date: z.string() }),
+  /** Spot relative to the 52-week high, percent — zero or negative. */
+  drawdownPct: z.number(),
+  ma50: z.number().positive().nullable(),
+  ma200: z.number().positive().nullable(),
+  ret20d: z.number().nullable(),
+  ret90d: z.number().nullable(),
+  ret365d: z.number().nullable(),
+});
+export type OutlookContext = z.infer<typeof outlookContextSchema>;
+
+export const outlookScorecardSchema = z.object({
+  /** Which rule set produced these readings (`RULES_VERSION`). */
+  rulesVersion: z.string(),
+  short: scorecardSchema,
+  long: scorecardSchema,
+});
+export type OutlookScorecard = z.infer<typeof outlookScorecardSchema>;
+
 export const outlookReportSchema = z.object({
   contractVersion: z.literal(CONTRACT_VERSION),
   /** ISO date the view is for. */
@@ -81,6 +148,12 @@ export const outlookReportSchema = z.object({
    * numbers the panel shows are provably the ones the analysis reasoned over.
    */
   macro: macroSnapshotSchema.optional(),
+  /** Year-long price context. Optional — see the note on `calls[].since`. */
+  context: outlookContextSchema.optional(),
+  /** The factor readings each call's baseline was computed from. */
+  scorecard: outlookScorecardSchema.optional(),
+  /** Dated, sourced events behind the analysis — and behind any adjustment. */
+  drivers: z.array(driverSchema).optional(),
   /** Short- and long-term calls. */
   calls: z.array(outlookCallSchema).min(1),
   keyLevels: z.array(keyLevelSchema),

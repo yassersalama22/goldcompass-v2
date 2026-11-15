@@ -3,8 +3,16 @@ name: Daily Gold Outlook
 # Generates the gold outlook daily and opens a Pull Request for human review.
 # Merging the PR publishes it (updates current.json → ISR/redeploy serves it).
 #
+# The BUY / HOLD / SELL signals, their confidence and their levels are computed
+# by rules (src/server/outlook/signal/) from a year of price data and the macro
+# series — the model writes the analysis and may request a one-step adjustment
+# for a dated, cited event. The PR body is generated: it leads with what
+# changed since the last published outlook and why.
+#
 # Requires repo secret ANTHROPIC_API_KEY for real (web-grounded) content.
 # Without it, the pipeline produces placeholder mock content — do not merge.
+# FRED_API_KEY feeds four of the scorecard's eleven factors; without it the
+# calls rest on price alone.
 
 on:
   # Manual-only for now (run from the Actions tab). Enable the daily schedule
@@ -33,11 +41,16 @@ jobs:
       - name: Generate + stage outlook
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          # Optional: without it the run simply omits the macro ground-truth block.
+          # Optional, but the scorecard's yield and dollar factors need it.
           FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+        # `generate` writes the draft, the pending history entry and
+        # outlook-review.md (the PR body, also appended to the job summary).
+        # `publish` promotes the draft and appends the entry to history.json —
+        # both land in the PR, so an unmerged draft leaves no trace in either.
         run: |
           npm run outlook:generate
           npm run outlook:publish
+          npm run check:signal
 
       # No-op until a non-English locale is enabled in src/config/locales.ts:
       # TRANSLATION_TARGETS follows the *active* locale set, so this prints
@@ -62,18 +75,11 @@ jobs:
           base: main
           title: "Outlook: daily gold update"
           commit-message: "Outlook: daily gold update"
-          body: |
-            Automated daily gold outlook (Aureus v2).
-
-            **Review before merging:**
-            - Short- and long-term BUY/SELL calls + confidence
-            - Spot price and key levels match reality
-            - Analysis reads well and cites real sources
-            - Any translated artifacts under `src/content/outlook/<locale>/`
-              (numbers, structure and terminology are checked mechanically by
-              `i18n:check`; read the prose for meaning)
-
-            Merging updates `src/content/outlook/current.json` and publishes.
+          # Written by `outlook:generate`: what changed since the last published
+          # outlook, the scorecard behind each call, any broken level or
+          # adjustment, the events the model cited, and the review checklist.
+          # It is gitignored and sits outside `add-paths`, so it is never committed.
+          body-path: outlook-review.md
           add-paths: |
             src/content/outlook/**
           delete-branch: true
