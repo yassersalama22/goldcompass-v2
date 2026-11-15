@@ -47,6 +47,23 @@ on has changed:
 Subscribers choose topics: *signal changes*, *new articles*, or both. This suits a buy-and-hold
 audience and gives a real reason to opt in.
 
+> **Update, 2026-11-15 (Aureus v3).** This trigger no longer needs to compare two artifacts.
+> Calls are now *standing* calls, and the artifact states a change directly:
+> `calls[].change = { reason, date }` and `calls[].previous = { signal, until }`. A signal changed
+> in this outlook exactly when `change.date === report.date`, and `since` is a ready-made
+> idempotency key (`<term>:<since>:<signal>`) — simpler and safer than hashing "signals".
+> Two consequences for the design:
+>
+> - **The reason can go in the notification.** `change.reason` distinguishes "a price level was
+>   broken" (`invalidation_hit`) from "the evidence shifted" (`evidence_shift`) from "adjusted for
+>   an event" (`event_adjustment`). The first v3 outlook carries `methodology_change` — a change
+>   of method, not of market — and should **not** notify as a market event.
+> - **Signal changes became real events.** Under the old pipeline the short-term call changed 4
+>   times in 97 outlooks and the long-term call never did, so this trigger would have almost
+>   never fired. Replayed over ~2.6 years the rules change the short-term call about 1.6 times a
+>   month and the long-term call about once every three months, which is a sensible cadence for
+>   a notification people keep enabled.
+
 ### 2.2 When to send — after the purge, inside the deploy workflow
 
 Publishing already goes through a human gate (the content PR) and every merge deploys. Sending
