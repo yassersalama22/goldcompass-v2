@@ -108,6 +108,7 @@ export default async function MethodologyPage({ params }: LocaleParams) {
               <p>{rich("data.p1")}</p>
               <p>{rich("data.p2")}</p>
               <p>{rich("data.p3")}</p>
+              <p>{rich("data.p6")}</p>
               <p>{rich("data.p4")}</p>
               <p>{rich("data.p5")}</p>
             </div>

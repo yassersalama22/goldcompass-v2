@@ -12,6 +12,7 @@ import { getTool } from "@/config/tools";
 import { TROY_OZ_TO_GRAMS, purityFactorFor } from "@/lib/calculator";
 import { formatUsd } from "@/lib/format";
 import { getGoldQuote } from "@/server/price";
+import { getFxRates } from "@/server/fx";
 
 export const revalidate = 300;
 
@@ -30,7 +31,7 @@ const FALLBACK_SPOT = 4150;
  * must stay ONE array built from ONE source — never two lists that can drift.
  */
 function buildFaqs(t: (key: string) => string): ToolFaq[] {
-  return Array.from({ length: 5 }, (_, i) => ({
+  return Array.from({ length: 6 }, (_, i) => ({
     question: t(`faqs.q${i + 1}.question`),
     answer: t(`faqs.q${i + 1}.answer`),
   }));
@@ -72,7 +73,7 @@ export default async function KaratPricePage({ params }: LocaleParams) {
   const t = await getTranslations(`tools.goldKaratPrice`);
   const ta = await getTranslations(`tools.goldKaratPrice.about`);
 
-  const priceResult = await getGoldQuote();
+  const [priceResult, fx] = await Promise.all([getGoldQuote(), getFxRates()]);
   const initialSpot = priceResult.ok && priceResult.data ? priceResult.data.price : null;
 
   const exampleSpot = initialSpot ?? FALLBACK_SPOT;
@@ -107,7 +108,7 @@ export default async function KaratPricePage({ params }: LocaleParams) {
       }
     >
       <Suspense fallback={<ToolSkeleton />}>
-        <KaratPriceCalculator initialSpot={initialSpot} isStale={priceResult.stale} />
+        <KaratPriceCalculator initialSpot={initialSpot} isStale={priceResult.stale} fx={fx} />
       </Suspense>
     </ToolPageShell>
   );

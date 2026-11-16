@@ -8,6 +8,8 @@ import { RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { requireLocale } from "@/config/locales";
+import { DISPLAY_CURRENCIES, type DisplayCurrency } from "@/config/currencies";
+import { formatAmount, formatUsd } from "@/lib/format";
 import { GOLD_PURITIES, WEIGHT_UNITS, type PurityKey, type WeightUnitKey } from "@/lib/calculator";
 
 /**
@@ -18,6 +20,33 @@ import { GOLD_PURITIES, WEIGHT_UNITS, type PurityKey, type WeightUnitKey } from 
 export function useCurrencyAffix(): { prefix?: string; suffix?: string } {
   const { unit, position } = requireLocale(useLocale()).currency;
   return position === "prefix" ? { prefix: unit } : { suffix: unit };
+}
+
+/**
+ * Formats a money amount in any display currency. USD goes through
+ * `formatUsd` unchanged (`$4,283.61` / `4,283.61 دولار`); other currencies take
+ * their unit from the catalog and sit on the same side the locale puts `$`:
+ * `EGP 2,345.67` in English, `2,345.67 جنيه` in Arabic.
+ */
+export function useMoney(): (value: number, currency: DisplayCurrency) => string {
+  const locale = useLocale();
+  const t = useTranslations("currency");
+  const { position } = requireLocale(locale).currency;
+  return (value, currency) => {
+    if (currency === "USD") return formatUsd(value, locale);
+    const amount = formatAmount(value, locale);
+    const unit = t(`${currency}.unit`);
+    return position === "prefix" ? `${unit}\u00a0${amount}` : `${amount}\u00a0${unit}`;
+  };
+}
+
+/** Currency dropdown options, limited to the currencies we have a rate for. */
+export function useCurrencyOptions(available: readonly DisplayCurrency[]) {
+  const t = useTranslations("currency");
+  return DISPLAY_CURRENCIES.filter((c) => available.includes(c)).map((c) => ({
+    key: c,
+    label: t(`${c}.option`),
+  }));
 }
 
 /** "18K" in English, "عيار 18" in Arabic. The key itself stays "18K" in data and URLs. */
