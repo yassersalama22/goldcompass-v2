@@ -2517,9 +2517,9 @@ Match the current site's look and feel:
     lookup disclosed, ads paragraph, storage, "Your choices". **The page pipeline retranslated the
     whole Arabic page** and reworded paragraphs the owner approved on 2026-11-10 (incl. "الحاسبات" →
     "الآلات الحاسبة"). Restored the approved Arabic and spliced in only the four changed passages;
-    `sourceHash` is the new run's (hash is over the English only). **Owner to review those four
-    passages + the 7 `consent.*` strings.** Lesson: for a small edit to a reviewed page, splice —
-    don't accept a whole-page retranslation.
+    `sourceHash` is the new run's (hash is over the English only). **Owner reviewed the Arabic
+    privacy page and the `consent.*` strings — approved, no edits (2026-11-16).** Lesson: for a
+    small edit to a reviewed page, splice — don't accept a whole-page retranslation.
   - Verified (headless Chrome, `/cdn-cgi/trace` stubbed per country, every Google request
     recorded): **55 assertions** — DE/FR/GB: banner, zero Google requests and cookies before a
     choice, accept loads + sends the buffered views (gclid kept, calculator inputs stripped),
@@ -2531,6 +2531,19 @@ Match the current site's look and feel:
     `check:faq` 96/96 ✓.
   - **⚠ `check:rtl` against a GA-enabled LOCAL build reports one console 404 per page** — that is
     `/cdn-cgi/trace`, which only exists behind Cloudflare. Expected; GA-off builds are clean.
-  - **After deploy**: purge (automatic now) and check from an EU VPN that the banner appears and
-    `googletagmanager.com` is not requested before Accept. GA4 will show **fewer EEA users** from
-    now on — that's the point, not a tracking bug.
+  - **Deployed** (PR #133, deploy + auto-purge ✓). The same 55-assertion test passed against
+    production (country stubbed). **Still open: a real EU-VPN check** — banner appears and
+    `googletagmanager.com` is not requested before Accept; the stubbed test cannot prove
+    Cloudflare returns an EU `loc` for a real EU IP. GA4 will show **fewer EEA users** from now
+    on — that's the point, not a tracking bug.
+- 2026-11-16: **Language switcher on phones.** It was `hidden sm:flex` and the mobile drawer had
+  no switcher, so below 640px there was **no way to change language** (confirmed on production:
+  0 language links at 320–390px). Now: a compact header link (`LanguageSwitcher compact`,
+  `sm:hidden`) showing only the *other* language in its own name ("العربية" / "English") with the
+  language icon, 32px touch target; and the full switcher pinned to the bottom of the menu drawer.
+  The compact variant is a `<div>`, not a `<nav>`, so with the drawer open there is only one
+  "Change language" landmark. Verified at 320/360/390/768px in en + ar: link visible and on
+  screen, keeps the current page (`/outlook` ↔ `/ar/outlook`), no horizontal overflow, header
+  stays one row, drawer link switches language, axe 0 on header + open drawer, 0 console errors;
+  `check:rtl` 36/36. Noted, not changed: Arabic pages' header is 69px vs 65px in English — same
+  on production before this change.

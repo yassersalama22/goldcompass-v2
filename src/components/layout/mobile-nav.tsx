@@ -9,6 +9,7 @@ import { isRtl } from "@/config/locales";
 import { Link, usePathname } from "@/i18n/navigation";
 
 import { Button } from "@/components/ui/button";
+import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import {
   Sheet,
   SheetClose,
@@ -70,6 +71,9 @@ export function MobileNav() {
             );
           })}
         </nav>
+        {/* Full language list. A plain full-page link, so it needs no
+            SheetClose: the page (and the drawer with it) is replaced. */}
+        <LanguageSwitcher className="mx-4 mt-auto border-t pt-4 pb-6" />
       </SheetContent>
     </Sheet>
   );
