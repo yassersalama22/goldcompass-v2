@@ -36,6 +36,15 @@
   "theme": {
     "toggle": "Toggle dark mode"
   },
+  "consent": {
+    "heading": "Analytics cookies",
+    "body": "We’d like to use Google Analytics to learn which pages are read and which of our ads bring visitors. It sets cookies on your device, and nothing is sent to Google unless you accept. See our <privacy>privacy policy</privacy>.",
+    "accept": "Accept",
+    "decline": "Decline",
+    "currentGranted": "Analytics is currently on.",
+    "currentDenied": "Analytics is currently off.",
+    "settings": "Cookie settings"
+  },
   "language": {
     "switcherLabel": "Change language"
   },

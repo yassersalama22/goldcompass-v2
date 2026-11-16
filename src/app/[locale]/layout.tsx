@@ -18,6 +18,7 @@ import {
 import { localeOpenGraph } from "@/lib/seo";
 import { GA_MEASUREMENT_ID, gaBootstrapScript } from "@/lib/analytics";
 import { GaPageViews } from "@/components/analytics/ga-page-views";
+import { ConsentBanner } from "@/components/analytics/consent-banner";
 
 const geistSans = Geist({
   // Its own variable rather than `--font-sans` directly: `--font-sans` is the
@@ -195,6 +196,9 @@ export default async function RootLayout({
               {children}
             </main>
             <SiteFooter />
+            {/* Fixed-position, rendered only after the bootstrap decides —
+                no layout shift, nothing in the cached HTML. */}
+            {GA_MEASUREMENT_ID ? <ConsentBanner /> : null}
           </DirectionProvider>
         </NextIntlClientProvider>
         {cfBeaconToken ? (
@@ -210,21 +214,18 @@ export default async function RootLayout({
           page and carries no per-visitor data, so it is safe in edge-cached
           HTML.
 
-          The tiny bootstrap is `beforeInteractive` so `gtag` (and the consent
-          defaults) exist before any client component mounts — with
+          The tiny bootstrap is `beforeInteractive` so `gtag` and the consent
+          controller exist before any client component mounts — with
           `afterInteractive`, /subscribed's `sign_up` fired into a missing
-          `gtag` and was lost. Only the ~100KB library stays deferred; events
-          queue in `dataLayer` until it arrives.
+          `gtag` and was lost. The bootstrap itself injects the ~100KB library,
+          and only once consent allows it (EEA/UK/CH visitors: after they
+          accept); until then commands are buffered on the device.
         */}
         {GA_MEASUREMENT_ID ? (
           <>
             <Script id="ga-bootstrap" strategy="beforeInteractive">
               {gaBootstrapScript(GA_MEASUREMENT_ID)}
             </Script>
-            <Script
-              src={`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(GA_MEASUREMENT_ID)}`}
-              strategy="afterInteractive"
-            />
             <GaPageViews />
           </>
         ) : null}

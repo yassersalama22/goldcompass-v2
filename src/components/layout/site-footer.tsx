@@ -5,6 +5,11 @@ import { Logo } from "@/components/brand/logo";
 import { Container } from "@/components/layout/container";
 import { SubscribeForm } from "@/components/newsletter/subscribe-form";
 import { siteConfig, type NavItem } from "@/config/site";
+import { ConsentSettingsButton } from "@/components/analytics/consent-banner";
+import { GA_MEASUREMENT_ID } from "@/lib/analytics";
+
+const FOOTER_LINK =
+  "hover:text-foreground cursor-pointer underline-offset-4 hover:underline";
 
 export async function SiteFooter() {
   const t = await getTranslations();
@@ -42,9 +47,12 @@ export async function SiteFooter() {
 
         <div className="text-muted-foreground mt-10 flex flex-col gap-4 border-t pt-6 text-xs sm:flex-row sm:items-center sm:justify-between">
           <p>{t("footer.copyright", { name: siteConfig.name })}</p>
-          <Link href="/disclaimer" className="hover:text-foreground underline-offset-4 hover:underline">
-            {t("footer.disclaimer")}
-          </Link>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <Link href="/disclaimer" className={FOOTER_LINK}>
+              {t("footer.disclaimer")}
+            </Link>
+            {GA_MEASUREMENT_ID ? <ConsentSettingsButton className={FOOTER_LINK} /> : null}
+          </div>
         </div>
       </Container>
     </footer>
