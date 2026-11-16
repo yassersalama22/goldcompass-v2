@@ -2,7 +2,7 @@
 title: Privacy Policy
 description: What GoldCompass collects, why, and who processes it — newsletter signups, analytics, advertising measurement, and the choices you have.
 heading: Privacy Policy
-updatedAt: 2026-11-10
+updatedAt: 2026-11-16
 ---
 
 ## In short
@@ -30,11 +30,13 @@ The calculators mirror their inputs into the page address so that a result can b
 
 We never send your email address or name to Google Analytics.
 
-If you visit from the European Economic Area, the United Kingdom, or Switzerland, Google Analytics runs without cookies and nothing is stored on your device.
+If you visit from the European Economic Area, the United Kingdom, or Switzerland, we ask before using Google Analytics. Until you accept, Google Analytics is not loaded at all: nothing is sent to Google and no Google cookies are set. If you decline, it stays that way. To tell which country you are visiting from, your browser asks Cloudflare, which already delivers the site; only the country is used, and it is kept in your browser for the rest of your visit.
+
+Visitors from other countries are not asked, and Google Analytics runs as described above. Anyone can turn it off with the “Cookie settings” link at the bottom of every page.
 
 ## Advertising
 
-We advertise GoldCompass on Google Ads. When you arrive by clicking one of our ads, Google adds a click identifier to the page address, and Google Analytics uses it, together with cookies (named `_gcl_…`), to tell us which ads brought you to the site and how ad visitors use it, for example which pages they read and whether they subscribe. This is how we judge which ads are worth paying for.
+We advertise GoldCompass on Google Ads. When you arrive by clicking one of our ads, Google adds a click identifier to the page address, and Google Analytics uses it, together with cookies (named `_gcl_…`), to tell us which ads brought you to the site and how ad visitors use it, for example which pages they read and whether they subscribe. This is how we judge which ads are worth paying for. None of this happens if Google Analytics is off for you, whether because you declined or because you have not yet accepted.
 
 We do not use your visits to build advertising audiences, we do not show you personalised ads based on our site, and there is no other advertising on GoldCompass.
 
@@ -44,7 +46,7 @@ The gold calculators run entirely in your browser. Your inputs are not sent to o
 
 ## Preferences stored on your device
 
-If you switch between light and dark mode, your choice is kept in your browser’s local storage so the site remembers it. A short-lived marker in session storage prevents a newsletter confirmation from being counted twice. Neither is sent to us.
+If you switch between light and dark mode, or accept or decline Google Analytics, your choice is kept in your browser’s local storage so the site remembers it. Short-lived markers in session storage remember which country group you are visiting from and prevent a newsletter confirmation from being counted twice. None of these is sent to us.
 
 ## Who processes your data
 
@@ -55,6 +57,7 @@ We do not sell, rent, or trade personal data.
 ## Your choices
 
 - Unsubscribe from the newsletter at any time using the link in any email.
+- Turn Google Analytics on or off at any time with the “Cookie settings” link at the bottom of every page. Turning it off also deletes its cookies from your browser.
 - Block or delete cookies in your browser settings; the site works without them.
 - Opt out of Google Analytics on all websites with Google’s [browser add-on](https://tools.google.com/dlpage/gaoptout).
 - Manage how Google uses data for advertising in your [Google ad settings](https://adssettings.google.com).

@@ -2487,3 +2487,50 @@ Match the current site's look and feel:
   - **Next — step 4**: commit, open the PR, let `content-check` run, merge (deploys + purge). The
     next daily run then publishes the first rule-based outlook (expected SELL / SELL,
     `methodology_change`). Update §11 ("Recommendation engine built" → §12.1) in that PR.
+- 2026-11-16: **Analytics consent prompt — EEA/UK/CH asked, nothing sent until they accept.**
+  Branch `feat/analytics-consent`. Supersedes the 2026-11-10 "advanced" consent mode (cookieless
+  pings without asking). Decided with the owner: ask **only** where consent is required, and use
+  **basic** mode there — Google's tag is not loaded at all before Accept. Gulf/other visitors are
+  unchanged (tag runs, consent granted by default) so the Ads experiment keeps its data. No new deps.
+  - **Region without breaking the edge cache**: HTML is identical for everyone and Cloudflare-cached,
+    so the browser asks **`/cdn-cgi/trace`** (answered by Cloudflare at the edge on every proxied
+    zone — never reaches EC2, same origin so no CSP change) for `loc=<country>`, cached in
+    sessionStorage `gc-region`. **Fails closed**: any error / no Cloudflare / unknown code
+    (`XX`, `T1`) → ask. The endpoint is undocumented; if Cloudflare drops it, everyone is asked.
+  - **`gtag()` buffers on the device until consent settles** (`gaBootstrapScript`, hand-written
+    ES5). Start pushes consent defaults → explicit `update` → `js` → `config` → the buffer, then
+    injects gtag.js after `load` (it was `afterInteractive`; the `<Script>` tag is gone). So an EU
+    visitor who accepts mid-visit still gets their landing view **with its `gclid`**, and nothing
+    left the device before Accept. Decline drops the buffer and turns `gtag` into a no-op. The
+    Google regional defaults are still pushed as belt-and-braces if Cloudflare and Google disagree
+    on location.
+  - **Withdrawal** (footer "Cookie settings" → Decline): if gtag.js was not injected yet, the
+    queue is emptied and injection cancelled (caught in testing: a queued view otherwise went out
+    *after* Decline); else `ga-disable-<ID>` + consent update denied. `_ga*` / `_gid` / `_gcl_*`
+    are deleted at every domain level. Choice in localStorage `gc-consent`.
+  - **Banner** (`components/analytics/consent-banner.tsx`): non-modal bottom card, Accept and
+    Decline **identical** size/style (EDPB: declining as easy as accepting). `useSyncExternalStore`
+    over `window.__gcConsent` with a `pending` server snapshot → nothing in cached HTML, no
+    hydration mismatch, no CLS. Takes focus only when opened from the footer, returns it after.
+    Shows the current choice when re-opened (a non-EU visitor reads as "on").
+  - **`/privacy` updated** (EN + AR, `updatedAt` 2026-11-16): EEA paragraph rewritten, country
+    lookup disclosed, ads paragraph, storage, "Your choices". **The page pipeline retranslated the
+    whole Arabic page** and reworded paragraphs the owner approved on 2026-11-10 (incl. "الحاسبات" →
+    "الآلات الحاسبة"). Restored the approved Arabic and spliced in only the four changed passages;
+    `sourceHash` is the new run's (hash is over the English only). **Owner to review those four
+    passages + the 7 `consent.*` strings.** Lesson: for a small edit to a reviewed page, splice —
+    don't accept a whole-page retranslation.
+  - Verified (headless Chrome, `/cdn-cgi/trace` stubbed per country, every Google request
+    recorded): **55 assertions** — DE/FR/GB: banner, zero Google requests and cookies before a
+    choice, accept loads + sends the buffered views (gclid kept, calculator inputs stripped),
+    decline sends nothing across pages, withdrawal deletes cookies and stops hits; AE: no banner,
+    measured as before, footer opt-out works; trace failure → banner, not cached; axe 0 on the
+    banner in en/ar × light/dark. GA4 batches later events by a few seconds — wait ≥10s before
+    counting hits. GA-off build: no bootstrap, no button, `check:rtl` 0 errors.
+    `tsc` ✓ `eslint` ✓ `next build` ✓ `i18n:check` 0 errors ✓ `check:markdown` 38/38 ✓
+    `check:faq` 96/96 ✓.
+  - **⚠ `check:rtl` against a GA-enabled LOCAL build reports one console 404 per page** — that is
+    `/cdn-cgi/trace`, which only exists behind Cloudflare. Expected; GA-off builds are clean.
+  - **After deploy**: purge (automatic now) and check from an EU VPN that the banner appears and
+    `googletagmanager.com` is not requested before Accept. GA4 will show **fewer EEA users** from
+    now on — that's the point, not a tracking bug.
