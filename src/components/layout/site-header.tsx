@@ -26,6 +26,7 @@ export async function SiteHeader() {
         <div className="flex items-center gap-2">
           <MainNav />
           <LanguageSwitcher className="hidden sm:flex" />
+          <LanguageSwitcher compact className="sm:hidden" />
           <ThemeToggle />
           <Button render={<Link href="/calculator" />} size="sm" className="hidden sm:inline-flex">
             {t("nav.calculator")}

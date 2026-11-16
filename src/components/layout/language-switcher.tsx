@@ -26,22 +26,45 @@ import { cn } from "@/lib/utils";
  *
  * Renders nothing while a single locale is active, so it costs the English-only
  * site no markup at all.
+ *
+ * `compact` is the phone-header variant: there is no room for every language
+ * plus the current one, so it shows only the OTHER language(s), named in their
+ * own language ("العربية" on an English page) — the one thing a reader who
+ * cannot read the current page needs to find. The full list also sits in the
+ * mobile menu drawer.
  */
-export function LanguageSwitcher({ className }: { className?: string }) {
+export function LanguageSwitcher({
+  className,
+  compact = false,
+}: {
+  className?: string;
+  compact?: boolean;
+}) {
   const current = useLocale();
   const pathname = usePathname();
   const t = useTranslations();
 
   if (ACTIVE_LOCALES.length < 2) return null;
 
+  const locales = compact
+    ? ACTIVE_LOCALES.filter((locale) => locale.code !== current)
+    : ACTIVE_LOCALES;
+
+  // The compact link is not its own landmark: on a phone with the menu open,
+  // the drawer's full switcher is already a "Change language" nav, and two
+  // landmarks with one name are ambiguous to screen-reader users.
+  const Wrapper = compact ? "div" : "nav";
+
   return (
-    <nav
-      aria-label={t("language.switcherLabel")}
+    <Wrapper
+      aria-label={compact ? undefined : t("language.switcherLabel")}
       className={cn("flex items-center gap-1", className)}
     >
-      <Languages className="text-muted-foreground size-4" aria-hidden="true" />
+      {compact ? null : (
+        <Languages className="text-muted-foreground size-4" aria-hidden="true" />
+      )}
       <ul className="flex items-center gap-1">
-        {ACTIVE_LOCALES.map((locale) => {
+        {locales.map((locale) => {
           const active = locale.code === current;
 
           // The current language is plain text, not a link to the page you are
@@ -99,14 +122,20 @@ export function LanguageSwitcher({ className }: { className?: string }) {
                   "rounded-md px-2 py-1 text-sm transition-colors",
                   "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none",
                   "text-foreground/70 hover:text-foreground",
+                  // A real touch target in the phone header (matches the 32px
+                  // icon buttons beside it), with the icon inside the link.
+                  compact && "hover:bg-muted inline-flex h-8 items-center gap-1.5",
                 )}
               >
+                {compact ? (
+                  <Languages className="size-4 shrink-0" aria-hidden="true" />
+                ) : null}
                 {locale.label}
               </a>
             </li>
           );
         })}
       </ul>
-    </nav>
+    </Wrapper>
   );
 }
