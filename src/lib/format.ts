@@ -135,6 +135,15 @@ export function formatUsdParts(
   return { amount: usd(locale).format(value), unit, position };
 }
 
+/**
+ * A two-decimal amount with no unit — for callers that place a non-USD
+ * currency unit themselves (`useMoney()` in the calculator field kit, whose
+ * unit words come from the UI catalog).
+ */
+export function formatAmount(value: number, locale: string = DEFAULT_LOCALE): string {
+  return usd(locale).format(value);
+}
+
 export function formatUsd(value: number, locale: string = DEFAULT_LOCALE): string {
   return withUnit(usd(locale).format(value), locale);
 }

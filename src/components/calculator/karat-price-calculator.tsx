@@ -2,9 +2,13 @@
 
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 
 import { cn } from "@/lib/utils";
+import { requireLocale } from "@/config/locales";
+import { isDisplayCurrency, type DisplayCurrency } from "@/config/currencies";
+import type { FxRates } from "@/types/fx";
+import { Num } from "@/components/market/num";
 import { useFormat } from "@/lib/use-format";
 import {
   GOLD_PURITIES,
@@ -19,7 +23,9 @@ import {
   NumberField,
   SelectField,
   SpotField,
+  useCurrencyOptions,
   useKaratLabel,
+  useMoney,
   usePurityOptions,
   useSpotState,
   useUnitOptions,
@@ -36,10 +42,15 @@ import {
 interface Props {
   initialSpot: number | null;
   isStale: boolean;
+  /** `null` when the rate source is down: the tool then offers USD only. */
+  fx: FxRates | null;
 }
 
-export function KaratPriceCalculator({ initialSpot, isStale }: Props) {
+export function KaratPriceCalculator({ initialSpot, isStale, fx }: Props) {
   const fmt = useFormat();
+  const locale = useLocale();
+  const money = useMoney();
+  const tc = useTranslations("currency");
   const t = useTranslations("calc.karatPrice");
   const unitOptions = useUnitOptions();
   const purityOptions = usePurityOptions();
@@ -47,6 +58,19 @@ export function KaratPriceCalculator({ initialSpot, isStale }: Props) {
   const unitShort = useUnitShort();
   const searchParams = useSearchParams();
   const spotState = useSpotState(initialSpot);
+
+  const available: DisplayCurrency[] = [
+    "USD",
+    ...((fx ? Object.keys(fx.rates) : []) as DisplayCurrency[]),
+  ];
+  const currencyOptions = useCurrencyOptions(available);
+  const [currency, setCurrency] = useState<DisplayCurrency>(() => {
+    const c = searchParams.get("currency");
+    // An ad or a shared link may name a currency we have no rate for today
+    // (source down): fall back to USD rather than show unconverted numbers.
+    return isDisplayCurrency(c) && available.includes(c) ? c : "USD";
+  });
+  const fxRate = currency === "USD" ? 1 : (fx?.rates[currency] ?? 1);
 
   const [weight, setWeight] = useState(() => searchParams.get("weight") ?? "");
   const [unit, setUnit] = useState<WeightUnitKey>(() => {
@@ -62,13 +86,17 @@ export function KaratPriceCalculator({ initialSpot, isStale }: Props) {
     weight,
     unit: unit === "g" ? "" : unit,
     karat: karat === "18K" ? "" : karat,
+    currency: currency === "USD" ? "" : currency,
     spot: spotState.urlValue,
   });
 
   const weightNum = parseFloat(weight);
   const hasWeight = Number.isFinite(weightNum) && weightNum > 0;
   const weightGrams = hasWeight ? toGrams(weightNum, unit) : 0;
-  const table = karatPriceTable(parseFloat(spotState.spot), weightGrams);
+  const table = karatPriceTable(parseFloat(spotState.spot), weightGrams, fxRate);
+  const rateText = new Intl.NumberFormat(requireLocale(locale).intlLocale, {
+    maximumFractionDigits: 4,
+  }).format(fxRate);
   const selected = table?.find((row) => row.key === karat);
 
   return (
@@ -90,6 +118,15 @@ export function KaratPriceCalculator({ initialSpot, isStale }: Props) {
           options={purityOptions}
           hint={t("karatHint")}
         />
+        {currencyOptions.length > 1 ? (
+          <SelectField
+            label={tc("label")}
+            value={currency}
+            onChange={setCurrency}
+            options={currencyOptions}
+            hint={tc("hint")}
+          />
+        ) : null}
         <SpotField
           value={spotState.spot}
           onChange={spotState.setSpot}
@@ -111,7 +148,7 @@ export function KaratPriceCalculator({ initialSpot, isStale }: Props) {
                 unit: unitShort(unit),
                 karat: karatLabel(karat),
               })}
-              value={hasWeight ? fmt.usd(selected.value) : "—"}
+              value={hasWeight ? money(selected.value, currency) : "—"}
               sub={
                 hasWeight ? (
                   t.rich("contains", {
@@ -128,11 +165,11 @@ export function KaratPriceCalculator({ initialSpot, isStale }: Props) {
             <div className="grid gap-4 sm:grid-cols-2">
               <ResultStat
                 label={t("perGram", { karat: karatLabel(karat) })}
-                value={fmt.usd(selected.pricePerGram)}
+                value={money(selected.pricePerGram, currency)}
               />
               <ResultStat
                 label={t("perTroyOz", { karat: karatLabel(karat) })}
-                value={fmt.usd(selected.pricePerTroyOz)}
+                value={money(selected.pricePerTroyOz, currency)}
               />
             </div>
 
@@ -182,14 +219,14 @@ export function KaratPriceCalculator({ initialSpot, isStale }: Props) {
                             {row.fineness}
                           </td>
                           <td className="py-2 pe-3 text-end tabular-nums">
-                            {fmt.usd(row.pricePerGram)}
+                            {money(row.pricePerGram, currency)}
                           </td>
                           <td className="py-2 pe-3 text-end tabular-nums">
-                            {fmt.usd(row.pricePerTroyOz)}
+                            {money(row.pricePerTroyOz, currency)}
                           </td>
                           {hasWeight ? (
                             <td className="py-2 text-end font-semibold tabular-nums">
-                              {fmt.usd(row.value)}
+                              {money(row.value, currency)}
                             </td>
                           ) : null}
                         </tr>
@@ -200,6 +237,30 @@ export function KaratPriceCalculator({ initialSpot, isStale }: Props) {
                 <p className="text-muted-foreground mt-3 text-xs">
                   {t("tableNote")}
                 </p>
+                {currency !== "USD" && fx ? (
+                  <div className="text-muted-foreground mt-3 space-y-1 text-xs">
+                    <p>{tc("localNote", { name: tc(`${currency}.name`) })}</p>
+                    <p>
+                      {tc.rich("rateNote", {
+                        rate: rateText,
+                        code: currency,
+                        date: fmt.longDate(fx.updatedAt),
+                        sourceName: fx.source.name,
+                        num: (chunks) => <Num>{chunks}</Num>,
+                        source: (chunks) => (
+                          <a
+                            href={fx.source.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-gold-strong underline underline-offset-2"
+                          >
+                            {chunks}
+                          </a>
+                        ),
+                      })}
+                    </p>
+                  </div>
+                ) : null}
               </CardContent>
             </Card>
           </div>

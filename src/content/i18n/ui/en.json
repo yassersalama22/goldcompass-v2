@@ -187,11 +187,11 @@
         },
         "q2": {
           "question": "What does the karat number actually mean?",
-          "answer": "Karat measures how many parts out of 24 are gold. 24K is pure gold, 18K is 18 parts gold and 6 parts other metals (75%), 14K is 58.3%, and 10K is 41.7%. The remaining metal is usually copper, silver, or zinc, added for hardness and colour. Karat describes purity, not weight or quality of workmanship."
+          "answer": "Karat measures how many parts out of 24 are gold. 24K is pure gold, 21K is 87.5%, 18K is 18 parts gold and 6 parts other metals (75%), 14K is 58.3%, and 10K is 41.7%. The remaining metal is usually copper, silver, or zinc, added for hardness and colour. Karat describes purity, not weight or quality of workmanship."
         },
         "q3": {
           "question": "What is the difference between karat and fineness?",
-          "answer": "They express the same thing on different scales. Fineness is parts per thousand, so 18K (75% gold) is stamped 750, 14K is 585 or 583, and 24K is 999 or 999.9. European and modern jewellery is usually stamped with fineness; the karat mark is more common in the United States."
+          "answer": "They express the same thing on different scales. Fineness is parts per thousand, so 21K (87.5% gold) is stamped 875, 18K (75% gold) is stamped 750, 14K is 585 or 583, and 24K is 999 or 999.9. European and modern jewellery is usually stamped with fineness; the karat mark is more common in the United States."
         },
         "q4": {
           "question": "Will a dealer pay me the melt value of my gold?",
@@ -200,6 +200,10 @@
         "q5": {
           "question": "Does the calculator account for gemstones or non-gold parts?",
           "answer": "It does not. It values the weight you enter as if all of it were gold alloy of the karat you select. For a ring with stones, or a piece with a steel clasp or spring, weigh only the gold portion or expect the true value to be lower than the figure shown."
+        },
+        "q6": {
+          "question": "Can I see gold prices in Egyptian pounds or Gulf currencies?",
+          "answer": "Yes. Under “Show prices in”, choose the Egyptian pound, Saudi riyal, UAE dirham, Kuwaiti dinar, Qatari riyal, Bahraini dinar or Omani rial. The calculator converts the international US-dollar gold price at the day’s exchange rate. A gold shop’s price also includes workmanship and the shop’s margin, and the local market can trade above or below the international price, so expect a shop’s figure to differ from this one."
         }
       },
       "mistakes": {
@@ -223,12 +227,12 @@
       "intro": "Gold is quoted as one price per troy ounce of pure metal, but almost nothing you own is pure. Enter a weight and a karat to see what the gold in it is actually worth.",
       "name": "Gold Karat Price Calculator",
       "shortName": "Karat price",
-      "description": "What 10K, 14K, 18K, 22K, and 24K gold is worth per gram and per troy ounce at today's spot price.",
+      "description": "What 10K to 24K gold, including 21K, is worth per gram and per troy ounce today, in US dollars or your local currency.",
       "meta": {
-        "title": "Gold Karat Price Calculator — 10K to 24K Value per Gram",
-        "description": "Find what 10K, 14K, 18K, 22K, and 24K gold is worth per gram and per troy ounce at today's live gold price. Enter a weight to value a specific item.",
+        "title": "Gold Karat Price Calculator — 21K, 24K and Every Karat per Gram",
+        "description": "What 10K–24K gold, including 21K, is worth per gram today, in US dollars, Egyptian pounds or Gulf currencies. Enter a weight to value a specific item.",
         "ogTitle": "Gold Karat Price Calculator",
-        "ogDescription": "What is your gold worth? Price per gram and per troy ounce for every karat, at today's spot price."
+        "ogDescription": "What is your gold worth? Price per gram for every karat, including 21K, in US dollars or your local currency."
       },
       "about": {
         "p1": "The gold price you see quoted — currently <strong>{spot}</strong> per troy ounce — is the price of <em>pure</em> gold. Every karat below 24 is an alloy, so its value is the spot price scaled down by its purity:",
@@ -385,7 +389,8 @@
       "p2": "Our current price source is the CoinGecko public API, which we read via <strong>PAX Gold (PAXG)</strong> — a token backed one-to-one by physical gold — as our proxy for the XAU/USD spot price. You should know what that implies: <strong>PAXG tracks the gold price closely but is not the London benchmark fix</strong>, and it can deviate modestly, particularly during thin trading. Our figures are appropriate for orientation and education; they are not suitable as a settlement or valuation price, and you should confirm against your dealer’s own quote before transacting.",
       "p3": "The spot quote refreshes roughly every 5 minutes and the 30-day series roughly hourly. Each page shows when its data was last updated. If the upstream source is unavailable we show the last known good reading and label it, rather than displaying a blank or a stale number silently.",
       "p4": "The macro figures behind the “macro pressure” panel — the broad dollar index, the 10-year real yield, and the 10-year Treasury yield — come from <strong>FRED, the Federal Reserve Bank of St. Louis</strong>, using only public-domain series. Two details worth stating: the dollar figure is the Federal Reserve’s trade-weighted <em>broad</em> dollar index, not the ICE “DXY” that headlines usually quote — they move together but are not the same index — and the inflation breakeven is derived by subtracting the real yield from the nominal yield rather than taken from a published series. These are daily readings, not live ones, and the panel shows the observation date for each.",
-      "p5": "That panel is a snapshot stored alongside each outlook rather than a live lookup, which is deliberate: it means the macro numbers you see are the ones the analysis was actually written against, not whatever the market has done since."
+      "p5": "That panel is a snapshot stored alongside each outlook rather than a live lookup, which is deliberate: it means the macro numbers you see are the ones the analysis was actually written against, not whatever the market has done since.",
+      "p6": "Gold prices in local currencies — Egyptian pounds and the Gulf currencies on our <karatPrice>karat price calculator</karatPrice> — are the US-dollar price converted at a daily exchange rate from <strong>Exchange Rate API</strong>. They are international prices, not local shop prices: a shop adds workmanship and its own margin, and the local market can trade above or below the international price."
     },
     "rules": {
       "heading": "How a call is set",
@@ -924,7 +929,7 @@
       "weight": "Weight",
       "weightUnit": "Weight unit",
       "karat": "Karat / purity",
-      "karatHint": "Check the hallmark stamped on the item — 750 means 18K, 585 means 14K.",
+      "karatHint": "Check the hallmark stamped on the item — 875 means 21K, 750 means 18K, 585 means 14K.",
       "resultsLabel": "Karat price results",
       "empty": "Enter a weight and confirm the spot price to see what your gold is worth.",
       "meltValue": "Melt value of {weight} {unit} of {karat} gold",
@@ -1019,6 +1024,51 @@
       "colPnl": "P/L",
       "today": "Today's spot",
       "scenariosNote": "Assumes selling pure gold equivalent at spot with no buy-back commission. Actual returns will vary."
+    }
+  },
+  "currency": {
+    "label": "Show prices in",
+    "hint": "Converted from the US-dollar gold price at today’s exchange rate.",
+    "localNote": "These are international prices converted to {name}. A gold shop adds workmanship and its own margin, and the local market can trade above or below the international price, so treat this as a reference, not a quote.",
+    "rateNote": "Converted at <num>1 USD = {rate} {code}</num>, rates updated {date}. Exchange rates by <source>{sourceName}</source>.",
+    "USD": {
+      "option": "US dollar (USD)",
+      "name": "US dollars"
+    },
+    "EGP": {
+      "option": "Egyptian pound (EGP)",
+      "name": "Egyptian pounds",
+      "unit": "EGP"
+    },
+    "SAR": {
+      "option": "Saudi riyal (SAR)",
+      "name": "Saudi riyals",
+      "unit": "SAR"
+    },
+    "AED": {
+      "option": "UAE dirham (AED)",
+      "name": "UAE dirhams",
+      "unit": "AED"
+    },
+    "KWD": {
+      "option": "Kuwaiti dinar (KWD)",
+      "name": "Kuwaiti dinars",
+      "unit": "KWD"
+    },
+    "QAR": {
+      "option": "Qatari riyal (QAR)",
+      "name": "Qatari riyals",
+      "unit": "QAR"
+    },
+    "BHD": {
+      "option": "Bahraini dinar (BHD)",
+      "name": "Bahraini dinars",
+      "unit": "BHD"
+    },
+    "OMR": {
+      "option": "Omani rial (OMR)",
+      "name": "Omani rials",
+      "unit": "OMR"
     }
   },
   "subscribed": {

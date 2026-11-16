@@ -2547,3 +2547,34 @@ Match the current site's look and feel:
   stays one row, drawer link switches language, axe 0 on header + open drawer, 0 console errors;
   `check:rtl` 36/36. Noted, not changed: Arabic pages' header is 69px vs 65px in English — same
   on production before this change.
+- 2026-11-16: **21K + local-currency gold prices** (groundwork for the Egypt/Gulf traffic campaign).
+  Branch `feat/local-currency-21k`, **uncommitted**. No new dependencies, no new env vars.
+  - **21K added to `GOLD_PURITIES`** (factor 21/24, hallmark 875) — the everyday karat in Egypt and
+    much of the Gulf, and it was missing. Every calculator's purity list gains it automatically.
+  - **Karat price tool converts to EGP, SAR, AED, KWD, QAR, BHD, OMR** ("Show prices in"), via
+    `?currency=` so ads can deep-link, e.g. `/ar/calculator/gold-karat-price?karat=21K&currency=EGP`.
+    Spot stays USD input; conversion is applied last (`karatPriceTable(spot, grams, fxRate)`), so
+    every figure traces to the one spot price. Registry: `src/config/currencies.ts`; names/units in
+    the catalog under `currency.*` (Arabic units are words — جنيه / ريال / درهم / دينار — set by
+    hand after the pipeline run, same reasoning as `دولار`). Formatter: `useMoney()` in
+    `tool-fields.tsx`.
+  - **Rates: ExchangeRate-API open access** (`open.er-api.com`, free, no key, daily) behind
+    `FxProvider` (`src/server/fx/`), Next data cache 6h, 5s timeout, never throws → `null` → the
+    tool offers USD only. **⚠ Terms: attribution required, redistribution forbidden** — so rates are
+    deliberately NOT exposed via `/api/v1` (a documented exception to the §4 rule) and every
+    converted view links the source. Pegged currencies are sanity-checked against their peg (±1%);
+    a bad one is dropped, not shown.
+  - **Honesty copy**: converted prices are *international* prices; shops add workmanship (مصنعية)
+    and margin and the local market can trade above/below. Stated under the table, in new FAQ q6,
+    and in `/methodology` (`data.p6`).
+  - **Not done, deliberately**: auto-selecting currency by visitor country. The `/cdn-cgi/trace`
+    lookup exists (consent), but storing/using the country for anything else is a `/privacy`
+    change. The URL parameter covers ads.
+  - Arabic: 37 catalog keys via the pipeline (0 gate errors, warning count unchanged at 28).
+  - Verified: `tsc` ✓ `eslint` ✓ `next build` ✓ (tool still static + 5m ISR); browser test 24/24
+    (EGP/SAR/USD math vs live rates, URL in/out, unknown currency → USD, RTL order of number vs
+    unit, 390px no overflow, 0 console errors, 21K on all calculators); provider stub tests 6/6;
+    `check:rtl` 36/36 + 12 currency/21K pages, **0 axe** (it caught a colour-only attribution link —
+    now always underlined); `check:faq` 100/100 en+ar; `check:markdown` 38/38; `i18n:check` 0 errors.
+  - **Owner review**: Arabic currency units/names, the new FAQ q6 and `methodology.data.p6`,
+    `currency.localNote`. Not tested: the rates-down path in a browser (logic is one branch).

@@ -3,6 +3,9 @@
 export const GOLD_PURITIES = [
   { label: "24K (999.9 fine)", key: "24K", factor: 1, fineness: 999.9 },
   { label: "22K (916.7 fine)", key: "22K", factor: 22 / 24, fineness: 916.7 },
+  // The everyday karat in Egypt and much of the Gulf — most jewellery sold
+  // there is 21K, hallmarked 875.
+  { label: "21K (875 fine)", key: "21K", factor: 21 / 24, fineness: 875 },
   { label: "18K (750 fine)", key: "18K", factor: 18 / 24, fineness: 750 },
   { label: "14K (583.3 fine)", key: "14K", factor: 14 / 24, fineness: 583.3 },
   { label: "10K (416.7 fine)", key: "10K", factor: 10 / 24, fineness: 416.7 },
@@ -129,12 +132,21 @@ export interface KaratQuote {
  * Melt (intrinsic) value per karat. This is the metal value only — it is what
  * the gold in an item is worth, not what a dealer pays for it or charges for it.
  */
-export function karatPriceTable(spotUsd: number, weightGrams: number): KaratQuote[] | null {
+export function karatPriceTable(
+  spotUsd: number,
+  weightGrams: number,
+  /**
+   * Units of the display currency per 1 USD (1 for USD). Applied to the result
+   * only: spot is always entered in USD, because that is how gold is quoted.
+   */
+  fxRate = 1,
+): KaratQuote[] | null {
   if (!Number.isFinite(spotUsd) || spotUsd <= 0) return null;
   if (!Number.isFinite(weightGrams) || weightGrams < 0) return null;
+  if (!Number.isFinite(fxRate) || fxRate <= 0) return null;
 
   return GOLD_PURITIES.map((p) => {
-    const pricePerTroyOz = spotUsd * p.factor;
+    const pricePerTroyOz = spotUsd * fxRate * p.factor;
     const pricePerGram = pricePerTroyOz / TROY_OZ_TO_GRAMS;
     return {
       key: p.key,
