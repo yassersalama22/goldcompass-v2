@@ -3,7 +3,7 @@ import type { GlossaryEntry } from "@/server/i18n/glossary";
 import type { TranslatableField } from "@/server/i18n/field-map";
 
 /** Bump on any change to the wording below; recorded on every artifact. */
-export const TRANSLATION_PROMPT_VERSION = "2026-11-15.1";
+export const TRANSLATION_PROMPT_VERSION = "2026-11-19.1";
 
 const KIND_RULES: Record<TranslatableField["kind"], string> = {
   title:
@@ -48,6 +48,8 @@ export function buildSystemPrompt(locale: LocaleDef): string {
     "",
     "- Write all numbers with WESTERN ARABIC (Latin) digits: 0123456789. Do not use Eastern Arabic-Indic numerals.",
     "- Keep every number in the FORM the source uses. A number the source writes as digits stays digits — never spell it out as a word, even when the word would be more idiomatic, and including small numbers inside compounds: \"20-day return\" keeps \"20\", \"2 cents\" keeps \"2\", \"the 20th month\" keeps \"20\". A number the source writes as a word stays a word — \"Twenty-day volatility\" must not become \"20\". An automated check compares the digits in the source and the translation and rejects any difference, in either direction.",
+    "- The numbers most often lost are the small round ones inside time spans and maturities, because the target language has a natural word for them. Write the digits anyway: \"30-day\" → \"30 يومًا\" (not ثلاثين), \"20-day\" / \"90-day\" → \"20 يومًا\" / \"90 يومًا\" (not عشرين / تسعين), \"10-year yield\" → \"لأجل 10 سنوات\" (not عشر), \"1–4 weeks\" → \"1–4 أسابيع\" (not أسبوع إلى أربعة), \"3 months\" → \"3 أشهر\" (not ثلاثة). A dual form (يومين، سنتين، شهرين) drops the digit, so use it only where the source has no digit. The same applies in every target language with number words or a dual form.",
+    "- Before you return, check each field: every number in its source must appear in your translation of that field, as digits, the same number of times — no more, no fewer.",
     `- Write USD amounts as ${currency}.`,
     "- Keep ranges and their dash characters as they appear in the source.",
     "",
@@ -122,4 +124,69 @@ export function buildUserPrompt(
   );
 
   return parts.join("\n");
+}
+
+export type NumeralRepairItem = {
+  path: string;
+  source: string;
+  translation: string;
+  /** Numbers (digits only, separators stripped) the source has more often than the translation. */
+  missing: string[];
+  /** Numbers the translation has that the source does not. */
+  extra: string[];
+  /** The translation contains Eastern Arabic-Indic digits. */
+  indic: boolean;
+};
+
+/**
+ * The follow-up request for fields whose numbers changed in translation.
+ *
+ * Tells the model precisely what is wrong in each field instead of asking it to
+ * look again: a vague "check your numbers" is what the original prompt already
+ * says. Numbers are listed without separators because that is how the check
+ * compares them — "4121" means 4,121 wherever it appears.
+ */
+export function buildNumeralRepairPrompt(items: NumeralRepairItem[]): string {
+  const describe = (item: NumeralRepairItem): string => {
+    const lines: string[] = [];
+    if (item.missing.length > 0) {
+      lines.push(
+        `missing from your translation: ${item.missing.join(", ")} — the source writes these as digits. ` +
+          `You most likely wrote them as words or as a dual form; write the digits instead.`,
+      );
+    }
+    if (item.extra.length > 0) {
+      lines.push(
+        `in your translation but not in the source: ${item.extra.join(", ")} — the source writes these as ` +
+          `words (or not at all). Keep them as words, as the source does, or remove anything you added.`,
+      );
+    }
+    if (item.indic) {
+      lines.push("uses Eastern Arabic-Indic digits; use 0123456789 only.");
+    }
+    return lines.map((l) => `  - ${l}`).join("\n");
+  };
+
+  return [
+    "An automated check compared the numbers in your translation with the English source and found differences in the fields below. Numbers are listed with separators removed (\"4121\" means 4,121).",
+    "",
+    "For each field, return the corrected translation. Change ONLY what is needed to make its numbers match the source exactly — same numbers, written as digits, the same number of times. Keep every other word, the Markdown structure, links and tags exactly as in your translation.",
+    "",
+    ...items.flatMap((item) => [
+      `### ${item.path}`,
+      describe(item),
+      "",
+      "English source:",
+      "```",
+      item.source,
+      "```",
+      "",
+      "Your translation:",
+      "```",
+      item.translation,
+      "```",
+      "",
+    ]),
+    `Return a JSON object with exactly these ${items.length} keys (${items.map((i) => i.path).join(", ")}), each mapping to its complete corrected translation. Return only the JSON object — no prose, no code fences.`,
+  ].join("\n");
 }

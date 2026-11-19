@@ -2594,3 +2594,27 @@ Match the current site's look and feel:
   - Unrelated failure seen while checking: the 2026-11-18 scheduled run failed `i18n:check` because
     the Arabic `analysisMarkdown` dropped a `0` (numeral gate, working as intended). The manual run
     earlier that day had already published, so nothing was lost.
+- 2026-11-19: **Translation numeral repair — the daily outlook's main failure cause.** Branch
+  `fix/translation-numeral-repair`.
+  - **Diagnosis** (17 failed outlook runs, 2026-10-23 → 11-19): 16 failed `i18n:check` numeral
+    parity on the **Arabic translation**, 1 was an empty API credit balance. English generation
+    passed every time. In every parity failure the translator dropped a **small round number by
+    writing it as a word**: 30 ×16, 10 ×10, 20 ×5, 90 ×3, 3, 1, 4, 0 ("30-day" → ثلاثين يومًا,
+    "10-year" → لعشر سنوات, "1–4 weeks"). Never a price or a precise figure. Once the reverse
+    ("Twenty-day" → 20). The prompt already forbade this; ~70 numbers per analysis made a
+    prompt-only rule insufficient.
+  - **Fix**: `repairNumerals()` in `translate/claude.ts` — after translating, it counts numbers per
+    field with the gate's own `numerals()` (moved to `src/server/i18n/numerals.ts`, shared by both,
+    so they cannot disagree) and re-sends **only the broken fields**, each with source, current
+    translation and the exact missing/extra numbers (`buildNumeralRepairPrompt`). Max 2 passes; a
+    repair is kept only if it strictly reduces the differences; a failed request keeps the
+    translation. **The gate is unchanged** — whatever survives still fails `i18n:check`.
+    Artifacts only (`exactNumerals: true` from `translateFields`); catalogs keep their looser rule.
+  - **Repair runs at `effort: "low"`.** At medium, one long-Markdown repair thought for 343s and
+    the stream was terminated; at low it took 39s and returned the field **byte-identical** to the
+    known-good translation (verified live on today's outlook with two numbers deliberately broken).
+  - Prompts: translation `2026-11-19.1` (explicit list of the failing phrases + a per-field
+    self-check), outlook `2026-11-19.1` (write every number as digits, so the translator never
+    receives "Twenty-day").
+  - Verified: 11 stubbed repair tests, live repair ✓, `i18n:check` 0 errors (self-test unchanged),
+    `check:signal` 71/71, `tsc` ✓, `eslint` ✓.

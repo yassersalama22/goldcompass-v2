@@ -4,6 +4,14 @@ import type { TranslatableField } from "@/server/i18n/field-map";
 export type TranslationRequest = {
   locale: LocaleDef;
   fields: TranslatableField[];
+  /**
+   * Every number must survive exactly — the artifact rule in `i18n:check`.
+   * When set, a provider that can repair its output (the Claude one) re-asks
+   * for any field whose numbers changed before returning. Left unset for UI
+   * catalogs, whose gate allows small round numbers to be spelled as words and
+   * whose ICU plural branches legitimately carry different digits per language.
+   */
+  exactNumerals?: boolean;
 };
 
 export type TranslationResult = {
