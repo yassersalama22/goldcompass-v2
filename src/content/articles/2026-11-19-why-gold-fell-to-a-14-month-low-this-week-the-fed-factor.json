@@ -1,0 +1,42 @@
+{
+  "contractVersion": 1,
+  "slug": "why-gold-fell-to-a-14-month-low-this-week-the-fed-factor",
+  "title": "Why Gold Fell to a 14-Month Low This Week: The Fed Factor",
+  "description": "Gold slid toward $3,700 as hawkish Federal Reserve signals lifted the dollar and bond yields. Here's what's driving the drop—and why central banks keep buying.",
+  "category": "Market Analysis",
+  "kind": "market-update",
+  "tags": [
+    "fed",
+    "interest rates",
+    "price drop",
+    "central banks",
+    "dollar"
+  ],
+  "date": "2026-11-19",
+  "updatedAt": "2026-11-19T14:54:20.072Z",
+  "origin": "generated",
+  "status": "published",
+  "bodyMarkdown": "Gold has had a rough week. After a powerful multi-year rally, the metal tumbled to its lowest level in more than a year as investors recalibrated their bets on U.S. interest rates. For everyday investors watching the headlines, the move can feel jarring—so here is a plain-English breakdown of what happened and why.\n\n## What happened to the price\n\nThe sell-off accelerated midweek. According to Reuters reporting, gold fell more than 2% on Wednesday, November 18, sinking to a more-than-one-year low, touching around **$3,757 per ounce**—its weakest level since September 2025. By Thursday, November 19, spot gold was trading near **$3,703 per ounce**, still hovering close to that 14-month trough.\n\nTo put that in context, gold spent much of 2026 setting records. A pullback of this size is a meaningful correction, but it follows an exceptional run-up. Price drops after sharp rallies are a normal feature of any market, not necessarily a sign that the longer-term story has changed.\n\n## The main driver: a hawkish Fed\n\nThe biggest force behind the decline is a shift in expectations about the **Federal Reserve**, the U.S. central bank that sets short-term interest rates. In recent days, several Fed officials signaled they may need to keep raising rates—or raise them faster—to bring inflation under control. Fed Governor Christopher Waller argued the central bank should get more aggressive, floating the idea of a half-point hike in December or a quicker pace of increases in 2027. Officials John Williams and Alberto Musalem also suggested further tightening may be needed.\n\nWhy does this matter so much for gold? It comes down to **opportunity cost**. Gold pays no interest or dividend—you hold it purely hoping the price rises. When interest rates climb, safer assets like U.S. Treasury bonds and even savings accounts pay more, making non-yielding gold relatively less attractive. As Reuters noted, higher rates increase the cost of holding gold, so hawkish signals tend to push its price down.\n\n## The dollar's role\n\nThe second force is the **U.S. dollar**. Gold is priced in dollars globally, so when the dollar strengthens, gold becomes more expensive for buyers using other currencies—which can dampen demand and weigh on the price. This week the dollar climbed to a fresh 19-month high, amplifying the downward pressure on gold as traders grew more confident the Fed would hike again.\n\nTreasury yields—the return investors earn on U.S. government bonds—also rose, reinforcing the same message: in a higher-rate environment, income-generating assets look more competitive against gold.\n\n## What traders are watching next\n\nMarket attention centered on the minutes from the Fed's October 27–28 policy meeting, which investors comb through for clues about where officials stand. Analysts quoted in the coverage noted the market is now testing expectations for as many as three more rate hikes through mid-2027. If upcoming data and Fed communications confirm a more aggressive path, the dollar and yields could rise further, extending gold's weakness. If inflation cools or the Fed softens its tone, the pressure could ease.\n\nThe key takeaway for non-experts: gold's near-term direction is being dictated largely by the rate outlook, not by any fundamental flaw in gold itself. These are exactly the kinds of macro crosscurrents that can reverse quickly when the narrative shifts.\n\n## Meanwhile, central banks keep buying\n\nHere is an important counterpoint that often gets lost in the day-to-day price noise. Even as speculative traders retreat, **central banks**—the institutions that manage national reserves—have remained steady buyers. The World Gold Council's Gold Demand Trends report for the third quarter of 2026 showed central bank gold buying jumped 42% year-on-year, while high prices weighed on more price-sensitive segments such as jewellery and some retail demand.\n\nWhy do central banks buy gold? They use it to **diversify** their reserves away from any single currency and to hold an asset that carries no counterparty risk—meaning it isn't someone else's liability that could default. This structural, long-horizon demand tends to be far less reactive to short-term rate swings than trader positioning, and it has been a notable pillar of support for the gold market in recent years.\n\n## The bottom line\n\nGold's slide to a 14-month low is a textbook example of how macro forces—interest-rate expectations and the dollar—can override everything else in the short run. A more hawkish Fed and a stronger dollar have made non-yielding gold temporarily less appealing to traders. At the same time, steady central-bank demand highlights that different buyers act for very different reasons and on very different timelines.\n\nFor everyday investors, the practical lesson is to understand *why* prices move rather than reacting to the headline number. Gold remains a volatile asset whose short-term swings are tied closely to rate and currency dynamics—something worth keeping in mind whether prices are hitting records or testing new lows.",
+  "sources": [
+    {
+      "title": "Gold drops 2% to over one-year low as hawkish Fed signals boost dollar (CNBC/Reuters)",
+      "url": "https://www.cnbc.com/2026/11/18/gold-slides-to-over-one-year-low-on-firm-dollar-us-rate-outlook.html"
+    },
+    {
+      "title": "Gold drops to 14-month low as hawkish Fed rhetoric boosts dollar, yields (Reuters)",
+      "url": "https://www.marketscreener.com/news/gold-drops-to-14-month-low-as-hawkish-fed-rhetoric-boosts-dollar-yields-ce785eddda8cff2d"
+    },
+    {
+      "title": "Gold prices today, Thursday, November 19, 2026: Gold opened at the lowest level in 14 months (Yahoo Finance)",
+      "url": "https://finance.yahoo.com/personal-finance/investing/article/gold-prices-today-thursday-november-19-2026-gold-price-opened-at-the-lowest-level-in-14-months-122258391.html"
+    },
+    {
+      "title": "Gold Demand Trends: Q3 2026 — Central Banks (World Gold Council)",
+      "url": "https://www.gold.org/goldhub/research/gold-demand-trends/gold-demand-trends-q3-2026/central-banks"
+    },
+    {
+      "title": "Central bank gold buying jumps 42% in Q3 as high prices hit jewellery demand, WGC says",
+      "url": "https://investinglive.com/commodities/central-bank-gold-buying-jumps-42-in-q3-as-high-prices-hit-jewellery-demand-wgc-says/"
+    }
+  ]
+}
