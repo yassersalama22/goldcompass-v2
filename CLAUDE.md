@@ -2578,3 +2578,19 @@ Match the current site's look and feel:
     now always underlined); `check:faq` 100/100 en+ar; `check:markdown` 38/38; `i18n:check` 0 errors.
   - **Owner review**: Arabic currency units/names, the new FAQ q6 and `methodology.data.p6`,
     `currency.localNote`. Not tested: the rates-down path in a browser (logic is one branch).
+- 2026-11-19: **Daily outlook moved to 12:00 UTC + same-day skip guard.** Branch
+  `ci/outlook-schedule-guard`. `daily-outlook.yml` cron `0 6 * * *` → `0 12 * * *`.
+  - **Guard step** (scheduled runs only; manual runs always generate): skips the rest of the job
+    when `current.json` on main is already dated today (UTC), or when the open
+    `outlook/daily-update` PR already carries today's outlook. An open PR from an **earlier** day
+    does not skip — it is stale and gets refreshed. Exists because a manual run followed by the
+    scheduled one spent a second generation and overwrote the open PR (both share one branch).
+    Verified by extracting the step and running it under stubbed `date`/`gh`/`git`: 5 scenarios.
+  - **⚠ GitHub starts this schedule hours late, not minutes.** The `0 6 * * *` runs actually started
+    10:25–11:18 UTC in late October and 12:34–15:36 UTC through November (30 runs checked). Top-of-
+    hour crons are the most congested. Expect the 12:00 schedule to drift the same way; if the
+    start time matters, use an off-the-hour minute or trigger from outside (e.g. a
+    `workflow_dispatch` call from a cron elsewhere).
+  - Unrelated failure seen while checking: the 2026-11-18 scheduled run failed `i18n:check` because
+    the Arabic `analysisMarkdown` dropped a `0` (numeral gate, working as intended). The manual run
+    earlier that day had already published, so nothing was lost.
