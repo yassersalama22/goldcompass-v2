@@ -15,11 +15,11 @@ name: Daily Gold Outlook
 # calls rest on price alone.
 
 on:
-  # Manual-only for now (run from the Actions tab). Enable the daily schedule
-  # after release by uncommenting the cron below.
+  # Manual runs always generate. The scheduled run skips itself when today's
+  # (UTC) outlook already exists — see the "Skip if already done today" step.
   workflow_dispatch: {}
   schedule:
-    - cron: "0 6 * * *" # 06:00 UTC daily
+    - cron: "0 12 * * *" # 12:00 UTC daily (GitHub may start it some minutes late)
 
 permissions:
   contents: write
@@ -31,14 +31,57 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      # A manual run earlier the same UTC day makes the scheduled run redundant:
+      # it would spend another generation and either open a PR nobody needs or
+      # overwrite the open one (both runs share the outlook/daily-update branch).
+      # Skips when today's outlook is already on main, or when the open PR
+      # already carries today's outlook. An open PR from an earlier day is NOT
+      # a reason to skip — that one is stale and the run should refresh it.
+      # Manual runs never skip.
+      - name: Skip if already done today
+        id: guard
+        if: github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: outlook/daily-update
+          FILE: src/content/outlook/current.json
+        run: |
+          today=$(date -u +%F)
+          skip=false
+          reason=""
+
+          published=$(jq -r '.date' "$FILE")
+          if [ "$published" = "$today" ]; then
+            skip=true
+            reason="today's outlook ($today) is already published on main"
+          elif git fetch --quiet --depth=1 origin "$BRANCH" 2>/dev/null \
+            && [ -n "$(gh pr list --head "$BRANCH" --state open --json number --jq '.[].number')" ]; then
+            pending=$(git show "FETCH_HEAD:$FILE" | jq -r '.date')
+            if [ "$pending" = "$today" ]; then
+              skip=true
+              reason="the open outlook PR already carries today's outlook ($today)"
+            fi
+          fi
+
+          echo "skip=$skip" >> "$GITHUB_OUTPUT"
+          if [ "$skip" = true ]; then
+            echo "::notice::Skipping scheduled run: $reason."
+            echo "Skipped: $reason." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No outlook for $today yet (main has $published) — generating."
+          fi
+
       - uses: actions/setup-node@v5
+        if: steps.guard.outputs.skip != 'true'
         with:
           node-version: 22
           cache: npm
 
       - run: npm ci
+        if: steps.guard.outputs.skip != 'true'
 
       - name: Generate + stage outlook
+        if: steps.guard.outputs.skip != 'true'
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           # Optional, but the scorecard's yield and dollar factors need it.
@@ -58,6 +101,7 @@ jobs:
       # Arabic is switched on, the daily outlook is already translated in the
       # same PR — one review covering both languages rather than two.
       - name: Translate + verify
+        if: steps.guard.outputs.skip != 'true'
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           # Only what this PR commits (see add-paths). Unscoped, the run would
@@ -69,6 +113,7 @@ jobs:
           npm run i18n:check
 
       - name: Open pull request
+        if: steps.guard.outputs.skip != 'true'
         uses: peter-evans/create-pull-request@v8
         with:
           branch: outlook/daily-update
