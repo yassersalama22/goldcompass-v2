@@ -9,6 +9,7 @@ import {
   type TranslatableField,
 } from "@/server/i18n/field-map";
 import { glossaryEntries, loadGlossary } from "@/server/i18n/glossary";
+import { ARABIC_INDIC, numerals } from "@/server/i18n/numerals";
 
 /**
  * Mechanical checks on a translated artifact.
@@ -34,22 +35,8 @@ export type Finding = {
 /* Primitives                                                                  */
 /* -------------------------------------------------------------------------- */
 
-const ARABIC_INDIC = /[٠-٩۰-۹]/u;
-
-/**
- * Every number in a string, normalised for comparison.
- *
- * Separators are stripped rather than compared, because locales legitimately
- * differ on them; the *digits* are what must not move. Returned sorted so field
- * order inside a sentence can change (which translation constantly requires)
- * without tripping the check.
- */
-function numerals(text: string): string[] {
-  return (text.match(/\d[\d.,٫٬]*/g) ?? [])
-    .map((n) => n.replace(/[.,٫٬]/g, ""))
-    .filter(Boolean)
-    .sort();
-}
+// `numerals` / `ARABIC_INDIC` live in `numerals.ts`, shared with the
+// translator's repair pass so both sides count numbers identically.
 
 /**
  * Interpolation tokens that must survive translation intact.

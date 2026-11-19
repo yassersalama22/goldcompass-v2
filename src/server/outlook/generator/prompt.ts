@@ -6,7 +6,7 @@ import { STEPS, stepKey, type HorizonBrief } from "./brief";
 import { levelText, type GenerationInput } from "./schema";
 
 /** Bump when the prompt changes materially (shows up in logs / PR body). */
-export const PROMPT_VERSION = "2026-11-15.1";
+export const PROMPT_VERSION = "2026-11-19.1";
 
 /**
  * The signal definitions are read from the UI catalog rather than restated, so
@@ -51,6 +51,7 @@ Use the web_search tool to find what is moving gold now: central-bank policy and
 
 STYLE
 Trustworthy, clear, educational. Accessible to non-experts. No hype, no guarantees, no "as an AI" meta-commentary, and no disclaimer text (the site adds its own).
+Write every number as digits, never as a word: "30-day", "20-day", "10-year", "1–4 weeks", "3 months" — not "thirty-day", "Twenty-day", "ten-year", "three months". The analysis is translated, and the translation is checked digit for digit against this text.
 
 OUTPUT FORMAT — CRITICAL
 After researching, respond with EXACTLY ONE JSON object and nothing else (no prose before or after, no code fences):

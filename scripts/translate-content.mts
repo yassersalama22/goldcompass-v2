@@ -64,6 +64,8 @@ async function translateFields(
   const { values, model, promptVersion } = await provider.translate({
     locale,
     fields: prose,
+    // Artifacts (outlook, articles, pages) are gated on exact numeral parity.
+    exactNumerals: true,
   });
 
   for (const field of money) {
