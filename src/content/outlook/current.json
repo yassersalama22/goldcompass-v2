@@ -1,15 +1,15 @@
 {
   "contractVersion": 1,
-  "date": "2026-11-22",
-  "updatedAt": "2026-11-22T16:28:58.665Z",
+  "date": "2026-11-23",
+  "updatedAt": "2026-11-23T15:45:42.345Z",
   "origin": "generated",
   "status": "published",
-  "summary": "Gold trades at $3,557.44, up 0.41% on the day but 35.3% below its January high of $5,496 and near this year's lows. A hawkish Federal Reserve, a broad dollar at a 1-year high and elevated real yields keep conditions adverse. The scorecard reads SELL on both horizons, and no dated catalyst points the other way, so both calls stand: short-term SELL, long-term SELL.",
+  "summary": "Spot gold is $3,663.69, up 3.19% today but still 33.3% below its 52-week high of $5,496 and under both moving averages. A near one-year-high dollar and elevated real yields have driven a steep 90-day slide. The scorecard reads SELL on both horizons; today's bounce on softer Fed hike bets does not meet the bar for a dated adjustment. Short-term: SELL. Long-term: SELL.",
   "spot": {
-    "price": 3557.44,
+    "price": 3663.69,
     "currency": "USD",
-    "asOf": "2026-11-22T16:26:53.000Z",
-    "changePct": 0.4059731149174314
+    "asOf": "2026-11-23T15:40:53.000Z",
+    "changePct": 3.1900021212814815
   },
   "macro": {
     "indicators": [
@@ -59,20 +59,20 @@
       }
     ],
     "source": "Source: FRED, Federal Reserve Bank of St. Louis (Board of Governors; U.S. Treasury)",
-    "fetchedAt": "2026-11-22T16:27:47.159Z"
+    "fetchedAt": "2026-11-23T15:41:28.950Z"
   },
   "context": {
-    "asOf": "2026-11-22",
+    "asOf": "2026-11-23",
     "high52w": {
       "price": 5495.62,
       "date": "2026-01-29"
     },
-    "drawdownPct": -35.27,
-    "ma50": 4012.08,
-    "ma200": 4233.94,
-    "ret20d": -8.98,
-    "ret90d": -22.92,
-    "ret365d": -12.3
+    "drawdownPct": -33.33,
+    "ma50": 4000.59,
+    "ma200": 4228.38,
+    "ret20d": -7.19,
+    "ret90d": -21.59,
+    "ret365d": -9.84
   },
   "scorecard": {
     "rulesVersion": "2026-11-15.1",
@@ -82,19 +82,19 @@
         {
           "key": "momentum20d",
           "reading": -2,
-          "value": -8.98,
+          "value": -7.19,
           "unit": "percent"
         },
         {
           "key": "trend50d",
           "reading": -1,
-          "value": -11.33,
+          "value": -8.42,
           "unit": "percent"
         },
         {
           "key": "stretch50d",
           "reading": 1,
-          "value": -11.33,
+          "value": -8.42,
           "unit": "percent"
         },
         {
@@ -117,25 +117,25 @@
         {
           "key": "trend200d",
           "reading": -1,
-          "value": -15.98,
+          "value": -13.35,
           "unit": "percent"
         },
         {
           "key": "maCross",
           "reading": -1,
-          "value": -5.24,
+          "value": -5.39,
           "unit": "percent"
         },
         {
           "key": "return90d",
           "reading": -1,
-          "value": -22.92,
+          "value": -21.59,
           "unit": "percent"
         },
         {
           "key": "drawdown52w",
           "reading": -1,
-          "value": -35.27,
+          "value": -33.33,
           "unit": "percent"
         },
         {
@@ -155,44 +155,44 @@
   },
   "drivers": [
     {
-      "title": "Waller urges half-point December rate hike",
-      "direction": "bearish",
-      "horizon": "both",
-      "eventDate": "2026-11-18",
-      "summary": "Fed Governor Christopher Waller said a half-point hike is probably needed at the December 8–9 meeting to curb inflation. Stocks and gold fell as short-term yields and the dollar rose, undercutting non-yielding gold.",
-      "url": "https://www.cnbc.com/2026/11/18/federal-reserve-governor-christopher-waller.html"
+      "title": "Gold jumps ~3% as half-point Fed hike bets fade",
+      "direction": "bullish",
+      "horizon": "short",
+      "eventDate": "2026-11-23",
+      "summary": "Gold rebounded from a 14-month low as markets pared bets on a larger Fed rate increase and the dollar rally paused, with traders awaiting US PCE inflation data.",
+      "url": "https://www.tmgm.com/en-in/analysis/market-news/article/gold-jumps-over-2-as-half-point-fed-hike-bets-fade-us-pce-in-focus-202611231116"
     },
     {
-      "title": "Hawkish October Fed minutes signal more hikes",
+      "title": "Gold hit 14-month low on strong dollar, Fed tightening bets",
       "direction": "bearish",
       "horizon": "both",
-      "eventDate": "2026-11-19",
-      "summary": "Minutes showed officials favored holding in October but saw hikes ahead, lifting the dollar to a multi-month high and pushing gold to a 14-month low near $3,693 intraday.",
-      "url": "https://finance.yahoo.com/economy/policy/article/fed-minutes-officials-favored-holding-rates-steady-in-october-but-they-see-hikes-ahead-195719301.html"
+      "eventDate": "2026-11-21",
+      "summary": "A strong dollar and expectations of tighter Fed policy pushed gold to a 14-month low of $3,533, extending a sharp multi-week decline.",
+      "url": "https://www.cnbc.com/amp/2026/11/19/gold-silver-metals-price-treasury.html"
     },
     {
-      "title": "December rate-hike odds jump to ~97%",
+      "title": "Goldman Sachs cuts gold forecast as Fed turns hawkish",
+      "direction": "bearish",
+      "horizon": "long",
+      "eventDate": "2026-11-14",
+      "summary": "Goldman Sachs lowered its gold price forecast, citing a more hawkish Federal Reserve and the pressure of higher real yields on non-yielding bullion.",
+      "url": "https://qz.com/goldman-sachs-lowers-gold-forecast-fed-hawkish-110626"
+    },
+    {
+      "title": "AI-driven market rout deepens gold's slide",
       "direction": "bearish",
       "horizon": "short",
       "eventDate": "2026-11-20",
-      "summary": "Futures markets priced roughly a 97% chance of a 25bp hike at the December 8–9 FOMC, reinforcing dollar strength and the headwind for gold.",
-      "url": "https://au.investing.com/analysis/gold-price-crash-tests-3500-as-fed-hike-bets-reach-97-200618458"
+      "summary": "A broad sell-off tied to AI-related equity weakness coincided with liquidation pressure in gold, as rate-hike bets and a firm dollar weighed on bullion.",
+      "url": "https://www.cnbc.com/2026/11/20/gold-federal-reserve-price-dollar-metals.html"
     },
     {
-      "title": "Broad dollar near strongest in 19 months",
-      "direction": "bearish",
-      "horizon": "both",
-      "eventDate": "2026-11-19",
-      "summary": "The dollar held near its firmest level in about 19 months as rate-hike bets built, keeping sustained pressure on gold and silver despite some safe-haven interest.",
-      "url": "https://www.kitco.com/news/article/2026-11-19/gold-falls-below-3650-silver-tumbles-fed-rate-concerns-pressure-metals"
-    },
-    {
-      "title": "December FOMC decision scheduled",
-      "direction": "neutral",
-      "horizon": "short",
-      "eventDate": "2026-12-09",
-      "summary": "The next FOMC decision lands December 8–9. It is the key upcoming event for rates and the dollar, but as a scheduled future event it cannot justify an adjustment today.",
-      "url": "https://economyandmarkets.org/policy/fed-meeting-schedule"
+      "title": "Central-bank gold buying surged as price fell below $4,000",
+      "direction": "bullish",
+      "horizon": "long",
+      "eventDate": "2026-11-13",
+      "summary": "Reported official-sector purchases rose sharply as prices dropped under $4,000, a structural demand backdrop that remains supportive but is a standing condition, not a single dated catalyst.",
+      "url": "https://www.streetwisereports.com/article/2026/11/13/central-bank-gold-buying-surges-42-as-prices-dip-below-us-4-000.html"
     }
   ],
   "calls": [
@@ -202,7 +202,7 @@
       "horizon": "Next 1–4 weeks",
       "signal": "SELL",
       "confidence": "medium",
-      "reason": "The scorecard reads strongly adverse: a 20-day return of -8.98% and a price 11.3% below the 50-day average, with a flat dollar and real-yield change over 30 days. Recent Fed commentary and hawkish minutes have reinforced dollar strength, leaving conditions more challenging than supportive over the next 1–4 weeks.",
+      "reason": "Over the next 1–4 weeks the setup leans adverse: the 20-day return is -7.2%, spot sits 8.4% below its 50-day average, and the dollar is near a one-year high with real yields elevated. Today's 3.19% bounce on softer Fed hike bets is one session against that trend and is already reflected in the price, so conditions still look more challenging than supportive.",
       "invalidation": "A daily close above $4,121 would break this view.",
       "since": "2026-11-16",
       "previous": {
@@ -226,7 +226,7 @@
       "horizon": "Next 3–12 months",
       "signal": "SELL",
       "confidence": "high",
-      "reason": "Every long-term factor is adverse: spot sits 16.0% below the 200-day average, the 50-day is below the 200-day, the 90-day return is -22.9%, and both real yields and the dollar have risen over 90 days. With the Fed leaning toward further hikes, the medium-term backdrop remains challenging.",
+      "reason": "Over 3–12 months the measured backdrop is broadly adverse: spot is 13.4% below its 200-day average, the 50-day is below the 200-day, the 90-day return is -21.6%, and both real yields and the broad dollar have risen over 90 days. Structural central-bank demand is a counterweight but is a standing condition, not a dated catalyst, so the dominant read remains challenging.",
       "invalidation": "A daily close above $4,673 would break this view.",
       "since": "2026-11-16",
       "previous": {
@@ -248,7 +248,7 @@
   "keyLevels": [
     {
       "label": "Spot",
-      "value": "$3,557",
+      "value": "$3,664",
       "emphasis": true
     },
     {
@@ -261,50 +261,42 @@
     },
     {
       "label": "50-day average",
-      "value": "$4,012"
+      "value": "$4,001"
     },
     {
       "label": "200-day average",
-      "value": "$4,234"
+      "value": "$4,228"
     },
     {
       "label": "52-week high",
       "value": "$5,496"
     }
   ],
-  "analysisMarkdown": "## Where gold sits in its 1-year context\n\nSpot gold is $3,557.44, up 0.41% on the day — a small bounce within a steep decline. The price is **35.3% below its 52-week high of $5,496** set on 2026-01-29, and sits just above the 52-week low of $3,533 printed on 2026-11-21. This is near-lows territory, not record territory.\n\nThe trend is firmly lower across every window:\n\n- **20-day return:** -9.0%\n- **90-day return:** -22.9%\n- **1-year return:** -12.3%\n- Spot is **11.3% below the 50-day average** ($4,012) and **16.0% below the 200-day average** ($4,234).\n\nVolatility is elevated at 32% annualised, and the 20-day closing range ($3,533 to $4,121) is wide — the market has moved fast and in one direction.\n\n## The macro backdrop\n\nThe headwinds are concentrated in rates and the dollar:\n\n- The **broad dollar index** is 122.65, higher than 100% of readings in the past year — a 1-year high. It rose over both 30 and 90 days.\n- The **10-year real yield** is 2.88%, higher than 96% of readings in the past year, up 0.11 pp over 30 days and 0.48 pp over 90 days.\n- The **10-year Treasury yield** is 5.04%, up 0.30 pp over 90 days.\n- The **10-year inflation breakeven** is 2.16%, down 0.19 pp over 30 days.\n\nHigher real yields raise the opportunity cost of holding non-yielding gold, and a strong dollar makes gold more expensive outside the US. Both forces are pulling the same way right now.\n\n## What is driving the market\n\nThe single clearest catalyst has been the Federal Reserve's hawkish turn. Fed Governor Christopher Waller said a half percentage point increase in the central bank's benchmark rate is probably necessary at its December meeting, telling CNBC the central bank may need to 'shock people.' That message was reinforced by the October minutes: officials favored holding rates steady in October, but they see hikes ahead.\n\nThe market reaction was immediate. Stocks and gold fell on Wednesday after Federal Reserve Governor Christopher Waller called for a 50-basis-point rate hike in December, while short-term Treasury yields and the dollar rose. Rate-hike expectations have climbed sharply: futures markets now price a 97.3% probability of a 25-basis-point rate hike at the December 8–9 meeting, with a 2.7% chance of a half-point move.\n\nThe dollar has amplified the pressure. The dollar remained near its strongest level in 19 months, maintaining pressure on precious metals and adding to pressure on gold and silver despite weaker economic data and continued geopolitical uncertainty. Gold itself reached fresh cycle lows: gold slid to US$3,693.13 on 19 November, its weakest level since September 2025, as Fed minutes signalled more rate hikes.\n\nThe next scheduled catalyst is the December 8–9 FOMC decision. As a future event it cannot shift today's call, but it frames the risk calendar for the weeks ahead.\n\n## Short-term outlook (1–4 weeks)\n\nThe short-term scorecard is **strongly adverse**. The 20-day return of -8.98% counts heavily against gold, and the price sitting 11.3% below the 50-day average adds to that. A modest offset comes from the contrarian 'stretch' factor — a price this far below its own average is less extended — but it is outweighed. The 30-day changes in the real yield and the dollar are small enough to read as neutral.\n\nThe net reading is **SELL, medium confidence**. The hawkish Fed commentary and near-record dollar point the same way as the scorecard, so there is no dated, bullish catalyst to justify softening the call. Conditions over the next few weeks look more challenging than supportive.\n\n**Risks to this view:** a surprisingly soft inflation print, a dovish pivot in Fed communication, or a sharp risk-off episode that revives safe-haven demand could all lift gold. A daily close above $4,121 would break the short-term view.\n\n## Long-term outlook (3–12 months)\n\nThe long-term scorecard is uniformly negative, scoring -6. Spot is below both major moving averages, the 50-day sits below the 200-day (a bearish cross), the 90-day return is deeply negative, the price is far below its 52-week high, and both the real yield and the dollar have risen over 90 days. There is no supportive factor to point to.\n\nThe reading is **SELL, high confidence**. With the Fed signalling a higher-for-longer, possibly higher-still path for rates, the medium-term setup remains adverse.\n\n**Risks to this view:** the medium term is where a turn could build if the rate cycle peaks and the dollar rolls over, or if official-sector and physical demand reassert themselves at lower prices. Those are standing conditions, not dated events, so they do not change today's call — but they are what to watch. A daily close above $4,673 would break the long-term view.\n\n## Bottom line\n\nBoth horizons read SELL. The trend, the dollar and real yields are aligned against gold, and the most recent dated catalysts — Waller's half-point call and the hawkish minutes — reinforce rather than challenge that picture. No adjustment is warranted today.",
+  "analysisMarkdown": "## Where the price sits\n\nSpot gold is **$3,663.69**, up **3.19%** on the day after rebounding from a 14-month low. Put that in context: the price is **33.3% below** its 52-week high of **$5,496** (set on 2026-01-29), and it is still only a touch above the 52-week low of **$3,533** printed on 2026-11-21. It trades **8.4% below** the 50-day average ($4,001) and **13.4% below** the 200-day average ($4,228). Trailing returns are negative across the board: **-7.2%** over 20 days, **-21.6%** over 90 days, and **-9.8%** over one year. Realised volatility is elevated at **32%** annualised, and the 20-day closing range runs from $3,533 to $4,121 — a wide band that frames how sharp the recent move has been.\n\nToday's bounce is real, but it is one session against a steep decline. Nothing here is a record or \"record territory\"; the price is well off its 52-week high and only recently lifted off a one-year low.\n\n## The macro backdrop\n\nThe headwinds are measured, not guessed. The **broad dollar index** stands at **122.65**, higher than **100%** of readings over the past year — near a one-year high — and up over both 30- and 90-day windows. The **10-year real yield** is **2.88%**, higher than **96%** of past-year readings and up **0.48 pp** over 90 days. The **10-year Treasury yield** is **5.04%**. A firm dollar and high real yields raise the opportunity cost of holding non-yielding gold, and both have been working against the metal through the autumn.\n\n## Scorecard — short term (1–4 weeks)\n\nThe short-term scorecard reads **-2, a baseline SELL at medium confidence**:\n\n- **20-day return -7.2%** → strongly adverse\n- **Price vs 50-day average -8.4%** → adverse\n- **Stretch from 50-day average -8.4%** → supportive on a contrarian basis (price has fallen far below trend)\n- **Real-yield 30-day change +0.11 pp** → neutral\n- **Dollar 30-day change +0.53%** → neutral\n\nIn plain language: momentum is clearly negative, but the distance below the 50-day average is large enough to offer a modest contrarian cushion, and the 30-day moves in yields and the dollar are no longer piling on. The balance still tilts adverse.\n\n## Scorecard — long term (3–12 months)\n\nThe long-term scorecard reads **-6, a baseline SELL at high confidence**, with every measured factor adverse:\n\n- **Price vs 200-day average -13.4%**\n- **50-day vs 200-day average -5.4%** (a bearish moving-average cross)\n- **90-day return -21.6%**\n- **Distance from 52-week high -33.3%**\n- **Real-yield 90-day change +0.48 pp**\n- **Dollar 90-day change +3.15%**\n\nThis is a broad, consistent picture of a market that has re-rated lower over several months.\n\n## What is driving the market\n\nThe near-term story is about the Fed. Gold slid to a 14-month low as a strong dollar and bets on **tighter** policy — unusually, talk of rate **hikes** rather than cuts — pressured bullion. Today's rebound came as markets **pared bets on a larger, half-point move** and the dollar rally paused, with attention turning to upcoming **US PCE inflation** data. That PCE release is scheduled, not yet in hand, so it cannot justify a change to today's call; it is a key event to watch.\n\nOn the longer view, **Goldman Sachs lowered its gold forecast** around 2026-11-14, citing a more hawkish Fed and the drag from higher real yields. A broad risk-off episode tied to **AI-related equity weakness** on 2026-11-20 added liquidation pressure. Against these, **official-sector demand remains a structural support**: reported central-bank buying picked up as prices fell below $4,000. That is genuinely supportive, but it is a standing condition rather than a single dated catalyst, so it does not move today's rules-based signal.\n\n## Outlook and risks\n\n**Short term (SELL, medium confidence).** Conditions over the next 1–4 weeks look more challenging than supportive: negative momentum, a sub-average price, and a firm dollar outweigh the contrarian stretch and today's bounce. The main risk to this read is a dovish surprise — a soft PCE print or a clear step back from rate-hike rhetoric — that could extend the rebound. This view would be broken by a **daily close above $4,121**.\n\n**Long term (SELL, high confidence).** Over 3–12 months the measured backdrop is uniformly adverse, from the bearish moving-average structure to the rise in real yields and the dollar. The risk here is two-sided: sustained central-bank accumulation and any turn lower in yields or the dollar could stabilise the market, while further Fed tightening could prolong the downtrend. This view would be broken by a **daily close above $4,673**.\n\nBoth calls are descriptions of the setup over their horizons, not instructions. They say nothing about any individual's circumstances, timing, or risk tolerance.",
   "sources": [
     {
-      "title": "Fed's Waller says central bank may need to 'shock people' with half-point rate hike",
-      "url": "https://www.cnbc.com/2026/11/18/federal-reserve-governor-christopher-waller.html"
+      "title": "Gold jumps over 2% as half-point Fed hike bets fade, US PCE in focus",
+      "url": "https://www.tmgm.com/en-in/analysis/market-news/article/gold-jumps-over-2-as-half-point-fed-hike-bets-fade-us-pce-in-focus-202611231116"
     },
     {
-      "title": "Fed minutes: Officials favored holding rates steady in October, but they see hikes ahead",
-      "url": "https://finance.yahoo.com/economy/policy/article/fed-minutes-officials-favored-holding-rates-steady-in-october-but-they-see-hikes-ahead-195719301.html"
+      "title": "Gold climbs more than 2% as dollar rally pauses",
+      "url": "https://www.cnbc.com/amp/2026/11/23/gold-rises-from-14-month-low-as-markets-await-us-inflation-data.html"
     },
     {
-      "title": "Gold Price Crash Tests $3,500 as Fed Hike Bets Reach 97%",
-      "url": "https://au.investing.com/analysis/gold-price-crash-tests-3500-as-fed-hike-bets-reach-97-200618458"
+      "title": "Strong dollar, tighter Fed policy bets leave gold to languish at 14-month low",
+      "url": "https://www.cnbc.com/amp/2026/11/19/gold-silver-metals-price-treasury.html"
     },
     {
-      "title": "Gold falls below $3,650, silver tumbles as Fed rate concerns pressure metals - Kitco PM Report",
-      "url": "https://www.kitco.com/news/article/2026-11-19/gold-falls-below-3650-silver-tumbles-fed-rate-concerns-pressure-metals"
+      "title": "Gold's slide deepens as AI rout, rate hike bets hurt bullion",
+      "url": "https://www.cnbc.com/2026/11/20/gold-federal-reserve-price-dollar-metals.html"
     },
     {
-      "title": "Gold Price Outlook: Fed Hike Bets Drag Gold to US$3,693",
-      "url": "https://discoveryalert.com/news/gold-price-outlook-fed-hikes-november-2026/"
+      "title": "Goldman Sachs lowered its gold price forecast as Fed turns hawkish",
+      "url": "https://qz.com/goldman-sachs-lowers-gold-forecast-fed-hawkish-110626"
     },
     {
-      "title": "Gold's bad year is getting worse. Why its price keeps falling",
-      "url": "https://www.cnbc.com/2026/11/19/gold-prices-fall-fed-rates-dollar.html"
-    },
-    {
-      "title": "Fed Governor Sends Shockwave Through Markets With 50bp Rate Hike Call",
-      "url": "https://beincrypto.com/fed-waller-50-basis-point-hike/"
-    },
-    {
-      "title": "Fed meeting schedule 2026–2027",
-      "url": "https://economyandmarkets.org/policy/fed-meeting-schedule"
+      "title": "Central Bank Gold Buying Surges 42% as Prices Dip Below US$4,000",
+      "url": "https://www.streetwisereports.com/article/2026/11/13/central-bank-gold-buying-surges-42-as-prices-dip-below-us-4-000.html"
     }
   ]
 }
