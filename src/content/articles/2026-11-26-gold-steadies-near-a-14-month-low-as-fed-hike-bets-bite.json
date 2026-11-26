@@ -1,0 +1,45 @@
+{
+  "contractVersion": 1,
+  "slug": "gold-steadies-near-a-14-month-low-as-fed-hike-bets-bite",
+  "title": "Gold Steadies Near a 14-Month Low as Fed Hike Bets Bite",
+  "description": "Gold bounced after briefly dropping below $3,500 for the first time since September 2025, as hot inflation data stoked bets on another Fed rate hike. Here's what's driving the move.",
+  "category": "Market Analysis",
+  "kind": "market-update",
+  "tags": [
+    "gold price",
+    "federal reserve",
+    "inflation",
+    "central banks"
+  ],
+  "date": "2026-11-26",
+  "updatedAt": "2026-11-26T09:41:39.356Z",
+  "origin": "generated",
+  "status": "published",
+  "bodyMarkdown": "Gold is trying to find its footing after a bruising stretch. As of November 26, spot gold (XAU/USD) traded around **$3,566 per ounce, up about 1.3% on the day** — a bounce that followed one of its weakest weeks in more than a year.\n\n## What just happened\n\nThe rebound comes right after a sharp slide. Earlier in the week, gold briefly dropped **below the $3,500 level for the first time since September 2025**, marking a more-than-one-year low before steadying. By early Thursday, spot gold was little changed near $3,580 per ounce, while U.S. gold futures for December delivery firmed roughly 1.2%.\n\nAnalysts attribute much of the immediate recovery to positioning rather than a change in the fundamental backdrop. Traders described the move as **short-covering ahead of a major U.S. holiday** — when investors who had bet on falling prices buy back contracts to close those positions — in a nervous, risk-averse market where gold has also been sold simply to raise cash.\n\n## Why gold fell in the first place\n\nThe deeper story is about interest rates. Through mid-November, gold tumbled to a 14-month low, with one session seeing a drop of about 3%, after several Federal Reserve officials signaled they could support **more rate hikes** to tame stubborn inflation. A stronger U.S. dollar and bets on tighter Fed policy left the metal languishing.\n\nThis matters because gold and interest rates tend to move in opposite directions. Gold pays no interest or dividend. When the Fed raises rates — or is expected to — bonds, savings accounts, and money-market funds offer higher yields, making non-yielding gold relatively less attractive. A firmer dollar adds pressure, since gold is priced in dollars and becomes more expensive for buyers using other currencies.\n\n## The inflation trigger\n\nThe latest leg down was tied to inflation data. Attention turned to the **PCE price index**, the Fed's preferred inflation gauge. (PCE stands for Personal Consumption Expenditures; the \"core\" version strips out volatile food and fuel prices to show the underlying trend.) Core PCE was expected to tick up to around **3.2% year over year** — still well above the Fed's 2% target.\n\nHotter inflation reduces the odds of rate cuts and raises the odds of hikes. Heading into the Fed's next decision, markets were pricing in roughly a **98% chance of a 25 basis-point increase**, while scaling back earlier bets on a larger half-point move. (A basis point is one-hundredth of a percentage point, so 25 basis points equals 0.25%.) The prospect of new tariffs, which could push consumer prices higher, added to the cautious mood.\n\nThis is a reminder that gold's reputation as an \"inflation hedge\" is not a simple one-way street. Gold can struggle when inflation prompts central banks to tighten aggressively, because the rate response — not the inflation itself — often drives the price in the short term.\n\n## The longer-term support: central banks\n\nAmid the sell-off, one pillar of demand has stayed firm. According to the **World Gold Council**, central banks bought **321 tonnes of gold in the third quarter of 2026**, a jump of about 42% and enough to lift year-to-date official-sector buying to roughly 675 tonnes. Overall gold demand held steady in the quarter, supported by central banks and exchange-traded funds (ETFs) even as retail bar-and-coin demand softened, falling about 19%.\n\nCentral banks buy gold to diversify their reserves away from any single currency and to hold an asset that carries no credit risk. This steady, price-insensitive demand is a key reason many analysts see a floor under gold over longer horizons, even when short-term traders are selling.\n\n## What to watch next\n\nFor everyday investors, a few signposts stand out:\n\n- **Fed communication and rate decisions.** Hawkish signals (leaning toward higher rates) tend to pressure gold; dovish signals (leaning toward cuts) tend to support it.\n- **Inflation reports.** Upcoming PCE and CPI readings will shape expectations for the Fed's path.\n- **The U.S. dollar.** A stronger dollar is typically a headwind for gold, and vice versa.\n- **Central-bank buying.** Continued official-sector demand could cushion deeper declines.\n\n## The takeaway\n\nThis week captured gold's dual nature: a short-term trade sensitive to rates, inflation, and the dollar, and a long-term reserve asset underpinned by steady central-bank demand. The dip below $3,500 and the quick bounce back toward $3,566 show how fast sentiment can shift. For a non-expert, the lesson is less about catching the exact bottom and more about understanding *why* gold moves — so a volatile week looks like a story you can follow rather than noise. None of this is a forecast; it's context to help you weigh the headlines you'll keep seeing.",
+  "sources": [
+    {
+      "title": "Gold steadies after hitting over one-year low; Fed outlook in focus — CNBC",
+      "url": "https://www.cnbc.com/2026/11/26/gold-federal-reserve-interest-rate-metals.html"
+    },
+    {
+      "title": "Gold price today, Wednesday, November 25, 2026 — Yahoo Finance",
+      "url": "https://finance.yahoo.com/personal-finance/investing/article/gold-price-today-wednesday-november-25-2026-gold-prices-fall-as-inflation-data-and-potential-new-tariffs-loom-121548844.html"
+    },
+    {
+      "title": "Gold falls 3%, drops to 14-month low on hawkish Fed rhetoric — CNBC",
+      "url": "https://www.cnbc.com/2026/11/17/gold-falls-3percent-drops-to-14-month-low-on-hawkish-fed-rhetoric.html"
+    },
+    {
+      "title": "Gold falls to a 14-month low after Fed officials signal several more rate hikes — Quartz",
+      "url": "https://qz.com/gold-14-month-low-fed-rate-hikes-musalem-111826"
+    },
+    {
+      "title": "Gold Steadies Near 14-Month Low as Rate-Hike Pressure Mounts — Bloomberg",
+      "url": "https://www.bloomberg.com/news/articles/2026-11-17/gold-steadies-near-14-month-low-as-rate-hike-pressure-mounts"
+    },
+    {
+      "title": "Gold Demand Trends Q3 2026: Central Banks — World Gold Council",
+      "url": "https://www.gold.org/goldhub/research/gold-demand-trends/gold-demand-trends-q3-2026/central-banks"
+    }
+  ]
+}
